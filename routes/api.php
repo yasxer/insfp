@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\SpecialtyController;
+use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\TeacherAttendanceController;
+use App\Http\Controllers\Api\TeacherGradesController;
 
 // Public routes (no authentication)
 Route::get('/specialties', [SpecialtyController::class, 'index']);
@@ -21,16 +25,36 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Student routes
     Route::middleware(['approved', 'role:student'])->prefix('student')->group(function () {
-        Route::get('/dashboard', function () {
-            return response()->json(['message' => 'Student Dashboard']);
-        });
+        Route::get('/dashboard', [StudentController::class, 'dashboard']);
+        Route::get('/profile', [StudentController::class, 'profile']);
+        Route::put('/profile', [StudentController::class, 'updateProfile']);
+        Route::get('/modules', [StudentController::class, 'modules']);
+        Route::get('/grades', [StudentController::class, 'grades']);
+        Route::get('/attendance', [StudentController::class, 'attendance']);
+        Route::get('/schedule', [StudentController::class, 'schedule']);
+        Route::get('/exams', [StudentController::class, 'exams']);
     });
 
     // Teacher routes
     Route::middleware(['approved', 'role:teacher'])->prefix('teacher')->group(function () {
-        Route::get('/dashboard', function () {
-            return response()->json(['message' => 'Teacher Dashboard']);
-        });
+        Route::get('/dashboard', [TeacherController::class, 'dashboard']);
+        Route::get('/profile', [TeacherController::class, 'profile']);
+        Route::put('/profile', [TeacherController::class, 'updateProfile']);
+        Route::get('/modules', [TeacherController::class, 'modules']);
+        Route::get('/modules/{module}/students', [TeacherController::class, 'moduleStudents']);
+
+        // Attendance Management
+        Route::get('/attendance/sessions', [TeacherAttendanceController::class, 'sessions']);
+        Route::get('/attendance/sessions/{schedule}/students', [TeacherAttendanceController::class, 'sessionStudents']);
+        Route::post('/attendance', [TeacherAttendanceController::class, 'store']);
+        Route::get('/attendance/history', [TeacherAttendanceController::class, 'history']);
+
+        // Exam & Grades Management
+        Route::get('/exams', [TeacherGradesController::class, 'exams']);
+        Route::get('/exams/history', [TeacherGradesController::class, 'history']);
+        Route::get('/exams/{exam}/students', [TeacherGradesController::class, 'examStudents']);
+        Route::post('/exams/{exam}/results', [TeacherGradesController::class, 'storeResults']);
+        Route::get('/schedule', [TeacherController::class, 'schedule']);
     });
 
     // Administration routes

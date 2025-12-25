@@ -151,31 +151,29 @@ class StudentController extends Controller
         }
 
         return response()->json([
-            'student' => [
-                'id' => $student->id,
-                'registration_number' => $student->registration_number,
-                'first_name' => $student->first_name,
-                'last_name' => $student->last_name,
-                'full_name' => $student->full_name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'specialty' => [
-                    'id' => $student->specialty->id,
-                    'name' => $student->specialty->name,
-                    'code' => $student->specialty->code,
-                    'duration_semesters' => $student->specialty->duration_semesters,
-                ],
-                'current_semester' => $student->current_semester,
-                'study_mode' => $student->study_mode,
-                'years_enrolled' => $student->years_enrolled,
-                'is_graduated' => $student->is_graduated,
-                'created_at' => $student->created_at->format('Y-m-d'),
+            'id' => $student->id,
+            'registration_number' => $student->registration_number,
+            'first_name' => $student->first_name,
+            'last_name' => $student->last_name,
+            'date_of_birth' => $student->date_of_birth,
+            'address' => $student->address,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'specialty' => [
+                'id' => $student->specialty->id,
+                'name' => $student->specialty->name,
+                'code' => $student->specialty->code,
             ],
+            'current_semester' => $student->current_semester,
+            'study_mode' => $student->study_mode,
+            'years_enrolled' => $student->years_enrolled,
+            'is_graduated' => $student->is_graduated,
+            'created_at' => $student->created_at->format('Y-m-d'),
         ]);
     }
 
     /**
-     * Update student profile (Email + Phone + Password)
+     * Update student profile
      * PUT /api/student/profile
      */
     public function updateProfile(Request $request): JsonResponse
@@ -184,47 +182,161 @@ class StudentController extends Controller
         $student = $user->student;
 
         if (!$student) {
-            return response()->json([
-                'message' => 'Profil étudiant non trouvé',
-            ], 404);
+            return response()->json(['message' => 'Student profile not found'], 404);
         }
 
+        // Validate only editable fields
         $validated = $request->validate([
-            'email' => ['sometimes', 'email', Rule::unique('users')->ignore($user->id)],
             'phone' => ['sometimes', 'nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($user->id)],
-            'current_password' => 'required_with:new_password|string',
-            'new_password' => 'sometimes|string|min:6|confirmed',
+            'date_of_birth' => ['sometimes', 'nullable', 'date', 'before:today'],
+            'address' => ['sometimes', 'nullable', 'string', 'max:500'],
         ]);
 
-        // Update email/phone
-        $userUpdate = [];
-        if (isset($validated['email'])) {
-            $userUpdate['email'] = $validated['email'];
-        }
+        // Update User model (only phone)
         if (isset($validated['phone'])) {
-            $userUpdate['phone'] = $validated['phone'];
+            $user->update(['phone' => $validated['phone']]);
         }
 
-        // Update password if provided
-        if (isset($validated['new_password'])) {
-            // Verify current password
-            if (!Hash::check($validated['current_password'], $user->password)) {
-                throw ValidationException::withMessages([
-                    'current_password' => ['Mot de passe actuel incorrect.'],
-                ]);
-            }
-            $userUpdate['password'] = Hash::make($validated['new_password']);
+        // Update Student model (date_of_birth, address)
+        $studentUpdate = [];
+        if (isset($validated['date_of_birth'])) {
+            $studentUpdate['date_of_birth'] = $validated['date_of_birth'];
+        }
+        if (isset($validated['address'])) {
+            $studentUpdate['address'] = $validated['address'];
         }
 
-        if (!empty($userUpdate)) {
-            $user->update($userUpdate);
+        if (!empty($studentUpdate)) {
+            $student->update($studentUpdate);
         }
+
+        // Reload relationships
+        $student->load('specialty');
+        $student->refresh();
+        $user->refresh();
 
         return response()->json([
-            'message' => 'Profil mis à jour avec succès',
+            'message' => 'Profile updated successfully',
+            'id' => $student->id,
+            'registration_number' => $student->registration_number,
+            'first_name' => $student->first_name,
+            'last_name' => $student->last_name,
+            'date_of_birth' => $student->date_of_birth,
+            'address' => $student->address,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'specialty' => [
+                'id' => $student->specialty->id,
+                'name' => $student->specialty->name,
+                'code' => $student->specialty->code,
+            ],
+            'current_semester' => $student->current_semester,
+            'study_mode' => $student->study_mode,
+            'years_enrolled' => $student->years_enrolled,
+            'is_graduated' => $student->is_graduated,
+            'created_at' => $student->created_at->format('Y-m-d'),
+        ]);
+    }
+
+    /**
+     * Update password
+     * PUT /api/student/profile/password
+     */
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8',
+        ]);
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($validated['new_password'])
+        ]);
+
+        return response()->json(['message' => 'Password updated successfully']);
+    }
+
+    /**
+     * Complete student profile (first time)
+     * POST /api/student/complete-profile
+     */
+    public function completeProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $student = $user->student()->with('specialty')->first();
+
+        if (!$student) {
+            return response()->json(['message' => 'Student profile not found'], 404);
+        }
+
+        // Log incoming data
+        \Log::info('Complete Profile Request', [
+            'user_id' => $user->id,
+            'student_id' => $student->id,
+            'data' => $request->all()
+        ]);
+
+        // Validate required fields
+        $validated = $request->validate([
+            'date_of_birth' => ['required', 'date', 'before:today', 'after:1950-01-01'],
+            'address' => ['required', 'string', 'min:10', 'max:500'],
+            'phone' => ['nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($user->id)],
+        ]);
+
+        // Update student (saves to database)
+        $student->update([
+            'date_of_birth' => $validated['date_of_birth'],
+            'address' => $validated['address'],
+        ]);
+
+        \Log::info('Student updated', [
+            'student_id' => $student->id,
+            'date_of_birth' => $student->date_of_birth,
+            'address' => $student->address
+        ]);
+
+        // Update phone if provided
+        if (isset($validated['phone']) && !empty($validated['phone'])) {
+            $user->update(['phone' => $validated['phone']]);
+            \Log::info('User phone updated', ['user_id' => $user->id, 'phone' => $user->phone]);
+        }
+
+        // Reload from database
+        $student->refresh();
+        $user->refresh();
+
+        \Log::info('Profile completion successful', [
+            'student_id' => $student->id,
+            'date_of_birth' => $student->date_of_birth,
+            'address' => $student->address,
+            'phone' => $user->phone
+        ]);
+
+        return response()->json([
+            'message' => 'Profile completed successfully',
+            'profile_complete' => true,
             'student' => [
+                'id' => $student->id,
+                'registration_number' => $student->registration_number,
+                'first_name' => $student->first_name,
+                'last_name' => $student->last_name,
+                'date_of_birth' => $student->date_of_birth,
+                'address' => $student->address,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'specialty' => [
+                    'id' => $student->specialty->id,
+                    'name' => $student->specialty->name,
+                    'code' => $student->specialty->code,
+                ],
+                'current_semester' => $student->current_semester,
+                'study_mode' => $student->study_mode,
             ],
         ]);
     }
@@ -413,7 +525,7 @@ class StudentController extends Controller
         }
 
         $query = Attendance::where('student_id', $student->id)
-            ->with(['schedule.module']);
+            ->with(['schedule.module', 'schedule.teacher']);
 
         // Filter by date range
         if ($request->from) {
@@ -435,6 +547,7 @@ class StudentController extends Controller
         $attendances->getCollection()->transform(function($attendance) {
             $schedule = $attendance->schedule;
             $module = $schedule ? $schedule->module : null;
+            $teacher = $schedule ? $schedule->teacher : null;
 
             return [
                 'date' => $attendance->attendance_date->format('Y-m-d'),
@@ -447,6 +560,7 @@ class StudentController extends Controller
                     'code' => $module->code,
                     'name' => $module->name,
                 ] : null,
+                'instructor' => $teacher ? $teacher->user->full_name : 'N/A',
                 'status' => $attendance->status,
                 'note' => $attendance->notes,
             ];
@@ -547,10 +661,10 @@ class StudentController extends Controller
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * Get student exams / results
-     * GET /api/student/exams
+     * Get student exam results
+     * GET /api/student/exams/results
      */
-    public function exams(Request $request): JsonResponse
+    public function examResults(Request $request): JsonResponse
     {
         $student = $request->user()->student;
 
@@ -561,65 +675,64 @@ class StudentController extends Controller
         $query = Grade::where('student_id', $student->id)
             ->with(['exam.module']);
 
-        // Filter by module
-        if ($request->module_id) {
-            $query->where('module_id', $request->module_id);
-        }
-
-        // Filter by date range
-        if ($request->from) {
-            $query->whereHas('exam', function($q) use ($request) {
-                $q->whereDate('exam_date', '>=', $request->from);
-            });
-        }
-        if ($request->to) {
-            $query->whereHas('exam', function($q) use ($request) {
-                $q->whereDate('exam_date', '<=', $request->to);
-            });
-        }
-
-        // Filter by passed status
-        if ($request->has('passed')) {
-            if ($request->boolean('passed')) {
-                $query->where('grade', '>=', 10);
-            } else {
-                $query->where('grade', '<', 10);
-            }
-        }
-
         // Sort by exam date descending
-        // We need to join exams table to sort by exam_date
         $query->join('exams', 'grades.exam_id', '=', 'exams.id')
               ->orderBy('exams.exam_date', 'desc')
               ->select('grades.*');
 
-        $grades = $query->paginate(15);
+        $grades = $query->get();
 
-        $grades->getCollection()->transform(function($grade) {
+        $results = $grades->map(function($grade) {
             $exam = $grade->exam;
             $module = $exam ? $exam->module : ($grade->module ?? null);
 
             return [
-                'exam' => $exam ? [
-                    'id' => $exam->id,
-                    'title' => ucfirst($exam->exam_type) . ' Exam',
-                    'type' => $exam->exam_type,
-                    'date' => $exam->exam_date->format('Y-m-d'),
-                    'max_mark' => 20,
-                    'module' => $module ? [
-                        'id' => $module->id,
-                        'code' => $module->code,
-                        'name' => $module->name,
-                    ] : null,
-                ] : null,
-                'mark' => (float)$grade->grade,
-                'grade_letter' => $this->calculateGradeLetter($grade->grade),
-                'note' => null,
-                'passed' => $grade->grade >= 10,
+                'id' => $grade->id,
+                'subject' => $module ? $module->name : 'Unknown Subject',
+                'type' => $exam ? ucfirst($exam->exam_type) : 'Exam',
+                'date' => $exam ? $exam->exam_date->format('Y-m-d') : null,
+                'grade' => (float)$grade->grade,
             ];
         });
 
-        return response()->json($grades);
+        return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Get upcoming exams
+     * GET /api/student/exams/upcoming
+     */
+    public function upcomingExams(Request $request): JsonResponse
+    {
+        $student = $request->user()->student;
+
+        if (!$student) {
+            return response()->json(['message' => 'Student profile not found'], 404);
+        }
+
+        // Get exams for the student's specialty and semester that are in the future
+        $exams = Exam::whereHas('module', function($q) use ($student) {
+                $q->where('specialty_id', $student->specialty_id)
+                  ->where('semester', $student->current_semester);
+            })
+            ->where('exam_date', '>=', now())
+            ->orderBy('exam_date', 'asc')
+            ->with('module')
+            ->get();
+
+        $upcoming = $exams->map(function($exam) {
+            return [
+                'id' => $exam->id,
+                'subject' => $exam->module->name,
+                'type' => ucfirst($exam->exam_type),
+                'date' => $exam->exam_date->format('Y-m-d'),
+                'time' => $exam->exam_date->format('H:i'), // exam_date is dateTime
+                'room' => $exam->classroom ?? 'TBA',
+                'duration' => $exam->duration_minutes ? $exam->duration_minutes . ' mins' : 'N/A',
+            ];
+        });
+
+        return response()->json(['exams' => $upcoming]);
     }
 
     /**

@@ -5,8 +5,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Student extends Model
 {
-    protected $fillable = ['user_id', 'specialty_id', 'registration_number', 'first_name', 'last_name', 'study_mode', 'current_semester', 'years_enrolled', 'is_graduated'];
-    protected $casts = ['current_semester' => 'integer', 'years_enrolled' => 'integer', 'is_graduated' => 'boolean'];
+    protected $fillable = [
+        'user_id',
+        'specialty_id',
+        'registration_number',
+        'first_name',
+        'last_name',
+        'date_of_birth',  // Added
+        'address',        // Added
+        'study_mode',
+        'current_semester',
+        'years_enrolled',
+        'is_graduated'
+    ];
+    protected $casts = ['current_semester' => 'integer', 'years_enrolled' => 'integer', 'is_graduated' => 'boolean', 'date_of_birth' => 'date'];
     protected $appends = ['full_name'];
 
     public function user() { return $this->belongsTo(User::class); }

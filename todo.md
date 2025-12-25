@@ -36,36 +36,36 @@
 - [x] src/api/axios.js
 
 ### 3.2 API Endpoints
-- [ ] src/api/endpoints/auth.js
-- [ ] src/api/endpoints/student.js
+- [x] src/api/endpoints/auth.js
+- [x] src/api/endpoints/student.js
 
 ### 3.3 Test API
-- [ ] Backend running on localhost:8000
-- [ ] CORS configured
+- [x] Backend running on localhost:8000
+- [x] CORS configured
 
 ---
 
 ## ✅ المرحلة 4: State Management
 
 ### 4.1 Auth Store
-- [ ] src/stores/auth.js
-- [ ] Test login function
+- [x] src/stores/auth.js
+- [x] Test login function
 
 ---
 
 ## ✅ المرحلة 5: Routing
 
 ### 5.1 Router Setup
-- [ ] src/router/index.js
-- [ ] Test navigation
+- [x] src/router/index.js
+- [x] Test navigation
 
 ---
 
 ## ✅ المرحلة 6: Dark Mode
 
 ### 6.1 Theme Composable
-- [ ] src/composables/useTheme.js
-- [ ] Test theme toggle
+- [x] src/composables/useTheme.js
+- [x] Test theme toggle
 
 ---
 

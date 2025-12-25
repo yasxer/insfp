@@ -10,7 +10,7 @@ const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use(config => {
-  const token = localStorage.getItem('auth_token')
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -33,7 +33,10 @@ apiClient.interceptors.response.use(
   response => response,
   error => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('auth_token')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
       console.log('Unauthorized, logging out...')
       // Router redirection will be added later
     }

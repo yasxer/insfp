@@ -50,13 +50,22 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // 5. Check if profile is complete (for students only)
+        $profileComplete = true;
+        if ($user->role === 'student') {
+            $student = $user->student;
+            $profileComplete = !is_null($student->date_of_birth) && !is_null($student->address);
+        }
+
         $token = $user->createToken('auth-token')->plainTextToken;
         $userData = $this->getUserData($user);
+        $userData['profile_complete'] = $profileComplete;
 
         return response()->json([
             'message' => 'Connexion réussie',
             'token' => $token,
             'user' => $userData,
+            'profile_complete' => $profileComplete,
         ]);
     }
 

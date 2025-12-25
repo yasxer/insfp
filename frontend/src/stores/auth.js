@@ -5,15 +5,20 @@ import authApi from '@/api/endpoints/auth'
 import studentApi from '@/api/endpoints/student'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null)
-  const token = ref(localStorage.getItem('auth_token') || null)
+  const user = ref(JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user')) || null)
+  const token = ref(localStorage.getItem('token') || sessionStorage.getItem('token') || null)
+  const profileComplete = ref(true)
   const loading = ref(false)
   const error = ref(null)
 
-  const isAuthenticated = computed(() => !!token.value && !!user.value)
+  const isAuthenticated = computed(() => !!token.value)
+  const userRole = computed(() => user.value?.role || null)
+  const isStudent = computed(() => user.value?.role === 'student')
+  const isTeacher = computed(() => user.value?.role === 'teacher')
+  const isAdmin = computed(() => user.value?.role === 'administration')
   const userName = computed(() => user.value?.name || '')
 
-  async function login(credentials) {
+  async function login(credentials, remember = false) {
     loading.value = true
     error.value = null
     try {
@@ -21,18 +26,31 @@ export const useAuthStore = defineStore('auth', () => {
       // Expect data to contain { token, user }
       token.value = data.token
       user.value = data.user
-      localStorage.setItem('auth_token', token.value)
-      return true
+      profileComplete.value = data.profile_complete ?? true
+      
+      if (remember) {
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('user', JSON.stringify(data.user))
+      } else {
+        sessionStorage.setItem('token', data.token)
+        sessionStorage.setItem('user', JSON.stringify(data.user))
+      }
+      
+      return { success: true, profileComplete: profileComplete.value }
     } catch (err) {
       console.error('Login error:', err)
       error.value =
         err?.response?.data?.message ||
         err?.message ||
         'Login failed. Please check your credentials.'
-      return false
+      return { success: false }
     } finally {
       loading.value = false
     }
+  }
+
+  function setProfileComplete(status) {
+    profileComplete.value = status
   }
 
   async function logout() {
@@ -43,7 +61,13 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       token.value = null
       user.value = null
-      localStorage.removeItem('auth_token')
+      profileComplete.value = true
+      
+      // Clear storage
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
     }
   }
 
@@ -58,7 +82,10 @@ export const useAuthStore = defineStore('auth', () => {
       if (err?.response?.status === 401) {
         token.value = null
         user.value = null
-        localStorage.removeItem('auth_token')
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        sessionStorage.removeItem('token')
+        sessionStorage.removeItem('user')
       }
     }
   }
@@ -66,12 +93,18 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     token,
+    profileComplete,
     loading,
     error,
     isAuthenticated,
+    userRole,
+    isStudent,
+    isTeacher,
+    isAdmin,
     userName,
     login,
     logout,
     fetchUser,
+    setProfileComplete
   }
 })

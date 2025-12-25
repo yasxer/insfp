@@ -31,6 +31,16 @@ export default {
     }
   },
 
+  async updatePassword(payload) {
+    try {
+      const response = await apiClient.put('/api/student/profile/password', payload)
+      return response.data
+    } catch (error) {
+      console.error('Student API Error (updatePassword):', error)
+      throw error
+    }
+  },
+
   async getModules() {
     try {
       const response = await apiClient.get('/api/student/modules')
@@ -61,12 +71,32 @@ export default {
     }
   },
 
-  async getExams() {
+  async getExamResults() {
     try {
-      const response = await apiClient.get('/api/student/exams')
+      const response = await apiClient.get('/api/student/exams/results')
       return response.data
     } catch (error) {
-      console.error('Student API Error (getExams):', error)
+      console.error('Student API Error (getExamResults):', error)
+      throw error
+    }
+  },
+
+  async getUpcomingExams() {
+    try {
+      const response = await apiClient.get('/api/student/exams/upcoming')
+      return response.data
+    } catch (error) {
+      console.error('Student API Error (getUpcomingExams):', error)
+      throw error
+    }
+  },
+
+  async completeProfile(payload) {
+    try {
+      const response = await apiClient.post('/api/student/complete-profile', payload)
+      return response.data
+    } catch (error) {
+      console.error('Student API Error (completeProfile):', error)
       throw error
     }
   }

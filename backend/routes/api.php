@@ -25,14 +25,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Student routes
     Route::middleware(['approved', 'role:student'])->prefix('student')->group(function () {
+        // Profile completion (accessible even if profile incomplete)
+        Route::post('/complete-profile', [StudentController::class, 'completeProfile']);
+
         Route::get('/dashboard', [StudentController::class, 'dashboard']);
         Route::get('/profile', [StudentController::class, 'profile']);
         Route::put('/profile', [StudentController::class, 'updateProfile']);
+        Route::put('/profile/password', [StudentController::class, 'updatePassword']);
         Route::get('/modules', [StudentController::class, 'modules']);
         Route::get('/grades', [StudentController::class, 'grades']);
         Route::get('/attendance', [StudentController::class, 'attendance']);
         Route::get('/schedule', [StudentController::class, 'schedule']);
-        Route::get('/exams', [StudentController::class, 'exams']);
+        Route::get('/exams/results', [StudentController::class, 'examResults']);
+        Route::get('/exams/upcoming', [StudentController::class, 'upcomingExams']);
     });
 
     // Teacher routes

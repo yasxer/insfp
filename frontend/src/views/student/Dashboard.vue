@@ -26,17 +26,23 @@ const upcomingExams = ref([])
 onMounted(async () => {
   try {
     loading.value = true
+    console.log('Loading dashboard...')
     const data = await studentApi.getDashboard()
+    console.log('Dashboard response:', data)
     
     // Update stats with API response
     stats.value = {
-      modulesCount: data.statistics.modules_count || 0,
-      attendanceRate: data.statistics.attendance?.rate || 0,
-      gradesCount: data.statistics.grades_count || 0,
-      upcomingExamsCount: data.statistics.upcoming_exams || 0
+      modulesCount: data.statistics?.modules_count || 0,
+      attendanceRate: data.statistics?.attendance?.rate || 0,
+      gradesCount: data.statistics?.grades_count || 0,
+      upcomingExamsCount: data.statistics?.upcoming_exams || 0
     }
     recentGrades.value = data.recent_grades || []
     upcomingExams.value = data.upcoming_exams || []
+    
+    console.log('Stats:', stats.value)
+    console.log('Recent grades:', recentGrades.value.length)
+    console.log('Upcoming exams:', upcomingExams.value.length)
     
     // Update auth store user info if needed
     if (data.student) {

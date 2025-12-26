@@ -7,7 +7,6 @@ import studentApi from '@/api/endpoints/student'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user')) || null)
   const token = ref(localStorage.getItem('token') || sessionStorage.getItem('token') || null)
-  const profileComplete = ref(true)
   const loading = ref(false)
   const error = ref(null)
 
@@ -17,16 +16,34 @@ export const useAuthStore = defineStore('auth', () => {
   const isTeacher = computed(() => user.value?.role === 'teacher')
   const isAdmin = computed(() => user.value?.role === 'administration')
   const userName = computed(() => user.value?.name || '')
+  
+  // Check if student profile is actually complete (has date_of_birth and address)
+  const isProfileComplete = computed(() => {
+    if (!isStudent.value) return true
+    if (!user.value) return false
+    
+    // Check if student has completed required profile fields
+    const hasDateOfBirth = user.value.date_of_birth && user.value.date_of_birth !== null
+    const hasAddress = user.value.address && user.value.address !== null && user.value.address.length >= 10
+    
+    return hasDateOfBirth && hasAddress
+  })
 
   async function login(credentials, remember = false) {
     loading.value = true
     error.value = null
     try {
+      console.log('📡 Calling login API...')
       const data = await authApi.login(credentials)
+      console.log('📦 Login API response:', data)
+      
       // Expect data to contain { token, user }
       token.value = data.token
       user.value = data.user
-      profileComplete.value = data.profile_complete ?? true
+      
+      console.log('✅ Token set:', token.value ? 'Yes' : 'No')
+      console.log('✅ User set:', user.value)
+      console.log('✅ User role:', user.value?.role)
       
       if (remember) {
         localStorage.setItem('token', data.token)
@@ -36,7 +53,38 @@ export const useAuthStore = defineStore('auth', () => {
         sessionStorage.setItem('user', JSON.stringify(data.user))
       }
       
-      return { success: true, profileComplete: profileComplete.value }
+      // For students, fetch full profile to check if complete
+      if (data.user?.role === 'student') {
+        console.log('👨‍🎓 User is student, fetching full profile...')
+        try {
+          const profileData = await studentApi.getProfile()
+          console.log('📦 Profile data:', profileData)
+          
+          // Merge profile data with existing user data (preserve role!)
+          user.value = {
+            ...user.value,
+            ...profileData,
+            role: data.user.role  // Keep the role from login response!
+          }
+          
+          console.log('✅ User after merge:', user.value)
+          
+          // Update storage with full profile data
+          if (remember) {
+            localStorage.setItem('user', JSON.stringify(user.value))
+          } else {
+            sessionStorage.setItem('user', JSON.stringify(user.value))
+          }
+        } catch (err) {
+          console.error('Failed to fetch profile:', err)
+        }
+      }
+      
+      console.log('✅ Final user value:', user.value)
+      console.log('✅ Final user role:', user.value?.role)
+      console.log('✅ Profile complete:', isProfileComplete.value)
+      
+      return { success: true, profileComplete: isProfileComplete.value }
     } catch (err) {
       console.error('Login error:', err)
       error.value =
@@ -49,10 +97,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function setProfileComplete(status) {
-    profileComplete.value = status
-  }
-
   async function logout() {
     try {
       await authApi.logout()
@@ -61,7 +105,6 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       token.value = null
       user.value = null
-      profileComplete.value = true
       
       // Clear storage
       localStorage.removeItem('token')
@@ -93,7 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     token,
-    profileComplete,
+    profileComplete: isProfileComplete,
     loading,
     error,
     isAuthenticated,
@@ -104,7 +147,6 @@ export const useAuthStore = defineStore('auth', () => {
     userName,
     login,
     logout,
-    fetchUser,
-    setProfileComplete
+    fetchUser
   }
 })

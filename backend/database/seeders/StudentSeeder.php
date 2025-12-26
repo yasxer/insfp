@@ -34,8 +34,9 @@ class StudentSeeder extends Seeder
             // Study mode: 70% initial, 30% alternance
             $studyMode = ($i % 10 < 7) ? 'initial' : 'alternance';
 
-            $currentSemester = rand(1, 6);
-            $yearsEnrolled = ceil(($currentSemester + 1) / 2);
+            // Set all students to semester 1 for testing
+            $currentSemester = 1;
+            $yearsEnrolled = 1;
 
             Student::create([
                 'user_id' => $userId,

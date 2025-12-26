@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Sidebar from './Sidebar.vue'
 import Topbar from './Topbar.vue'
 
@@ -8,6 +8,13 @@ const sidebarOpen = ref(false)
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
 }
+
+// Open sidebar on desktop by default
+onMounted(() => {
+  if (window.innerWidth >= 1024) {
+    sidebarOpen.value = true
+  }
+})
 </script>
 
 <template>

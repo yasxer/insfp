@@ -24,11 +24,27 @@ const routes = [
     path: '/student',
     component: () => import('@/components/layout/DashboardLayout.vue'),
     meta: { requiresAuth: true, role: 'student' },
+    redirect: '/student/dashboard',
     children: [
       {
         path: 'dashboard',
         name: 'StudentDashboard',
         component: () => import('@/views/student/Dashboard.vue')
+      },
+      {
+        path: 'messages',
+        name: 'StudentMessages',
+        component: () => import('@/views/student/Messages.vue')
+      },
+      {
+        path: 'courses',
+        name: 'StudentCourses',
+        component: () => import('@/views/student/Courses.vue')
+      },
+      {
+        path: 'documents',
+        name: 'StudentDocuments',
+        component: () => import('@/views/student/Documents.vue')
       },
       {
         path: 'schedule',
@@ -53,6 +69,16 @@ const routes = [
     ]
   },
   {
+    path: '/dashboard',
+    redirect: (to) => {
+      const authStore = useAuthStore()
+      if (authStore.isStudent) return '/student/dashboard'
+      if (authStore.isTeacher) return '/teacher/dashboard'
+      if (authStore.isAdmin) return '/admin/dashboard'
+      return '/login'
+    }
+  },
+  {
     path: '/',
     redirect: '/login'
   }
@@ -66,16 +92,61 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
+  // Check authentication first
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    console.log('Not authenticated, redirecting to login')
     next('/login')
-  } else if (authStore.isAuthenticated && authStore.isStudent && !authStore.profileComplete && to.path !== '/complete-profile') {
-    // Student with incomplete profile, redirect to complete profile
-    next('/complete-profile')
-  } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    next('/student/dashboard')
-  } else {
-    next()
+    return
   }
+
+  // Check if guest route but user is authenticated
+  if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    console.log('Already authenticated, redirecting to dashboard')
+    if (authStore.isStudent) {
+      next('/student/dashboard')
+    } else if (authStore.isTeacher) {
+      next('/teacher/dashboard')
+    } else if (authStore.isAdmin) {
+      next('/admin/dashboard')
+    } else {
+      next('/dashboard')
+    }
+    return
+  }
+
+  // Check role-based access
+  if (to.meta.role && authStore.userRole && to.meta.role !== authStore.userRole) {
+    console.log(`Access denied: route requires ${to.meta.role}, user is ${authStore.userRole}`)
+    if (authStore.isStudent) {
+      next('/student/dashboard')
+    } else if (authStore.isTeacher) {
+      next('/teacher/dashboard')
+    } else if (authStore.isAdmin) {
+      next('/admin/dashboard')
+    } else {
+      next('/login')
+    }
+    return
+  }
+
+  // Check student profile completion (but only if user data is loaded)
+  if (authStore.isAuthenticated && authStore.isStudent && authStore.user && to.path !== '/complete-profile') {
+    if (!authStore.profileComplete) {
+      console.log('Profile incomplete, redirecting to complete profile')
+      next('/complete-profile')
+      return
+    }
+  }
+
+  // Prevent access to complete-profile if already complete
+  if (to.path === '/complete-profile' && authStore.profileComplete) {
+    console.log('Profile already complete, redirecting to dashboard')
+    next('/student/dashboard')
+    return
+  }
+
+  // Allow navigation
+  next()
 })
 
 export default router

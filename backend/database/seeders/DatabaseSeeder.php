@@ -18,6 +18,12 @@ class DatabaseSeeder extends Seeder
             TeacherModuleSeeder::class,
             ScheduleSeeder::class,
             HolidaySeeder::class,
+            MessageSeeder::class,
+            LessonSeeder::class,
+            DocumentSeeder::class,
+            AttendanceSeeder::class,
+            ExamSeeder::class,
+            GradeSeeder::class,
         ]);
     }
 }

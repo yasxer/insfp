@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import studentApi from '@/api/endpoints/student'
 import {
   HomeIcon,
   CalendarIcon,
@@ -9,7 +10,10 @@ import {
   AcademicCapIcon,
   UserCircleIcon,
   ArrowLeftOnRectangleIcon,
-  XMarkIcon
+  XMarkIcon,
+  EnvelopeIcon,
+  BookOpenIcon,
+  DocumentTextIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -25,6 +29,43 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
+const badges = ref({
+  messages: 0,
+  lessons: 0,
+  documents: 0
+})
+
+const fetchBadges = async () => {
+  if (authStore.user?.role === 'student') {
+    try {
+      const [msgRes, lessonRes, docRes] = await Promise.all([
+        studentApi.getUnreadMessagesCount(),
+        studentApi.getNewLessonsCount(),
+        studentApi.getNewDocumentsCount()
+      ])
+      badges.value = {
+        messages: msgRes.count,
+        lessons: lessonRes.count,
+        documents: docRes.count
+      }
+    } catch (err) {
+      console.error('Failed to fetch badges', err)
+    }
+  }
+}
+
+onMounted(() => {
+  fetchBadges()
+  
+  // Listen for message-read events to refresh badge count
+  window.addEventListener('message-read', fetchBadges)
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  window.removeEventListener('message-read', fetchBadges)
+})
+
 // Dynamic navigation items based on user role
 const navigationItems = computed(() => {
   const role = authStore.user?.role
@@ -33,6 +74,24 @@ const navigationItems = computed(() => {
   if (role === 'student') {
     return [
       { name: 'Dashboard', icon: HomeIcon, path: '/student/dashboard' },
+      { 
+        name: 'Messages', 
+        icon: EnvelopeIcon, 
+        path: '/student/messages',
+        badge: badges.value.messages 
+      },
+      { 
+        name: 'Courses', 
+        icon: BookOpenIcon, 
+        path: '/student/courses',
+        badge: badges.value.lessons
+      },
+      { 
+        name: 'Documents', 
+        icon: DocumentTextIcon, 
+        path: '/student/documents',
+        badge: badges.value.documents
+      },
       { name: 'Schedule', icon: CalendarIcon, path: '/student/schedule' },
       { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/student/attendance' },
       { name: 'Exams', icon: AcademicCapIcon, path: '/student/exams' },
@@ -88,8 +147,11 @@ const handleLogout = async () => {
 
     <!-- Sidebar -->
     <aside 
-      class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-200 flex flex-col h-full"
-      :class="open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+      class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-transform duration-200 flex flex-col h-full"
+      :class="[
+        open ? 'translate-x-0' : '-translate-x-full',
+        'lg:translate-x-0'
+      ]"
     >
       <!-- Header -->
       <div class="h-16 px-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shrink-0">
@@ -106,11 +168,18 @@ const handleLogout = async () => {
           v-for="item in navigationItems" 
           :key="item.path" 
           :to="item.path"
-          class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors"
+          class="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors relative"
           :class="isActive(item.path) ? 'bg-blue-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
         >
-          <component :is="item.icon" class="w-5 h-5 mr-3" />
-          {{ item.name }}
+          <div class="flex items-center">
+            <component :is="item.icon" class="w-5 h-5 mr-3" />
+            {{ item.name }}
+          </div>
+          <!-- Red dot indicator -->
+          <span 
+            v-if="item.badge && item.badge > 0" 
+            class="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+          ></span>
         </router-link>
       </nav>
 

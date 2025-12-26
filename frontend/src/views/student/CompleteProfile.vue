@@ -51,7 +51,15 @@ const handleSubmit = async () => {
     
     console.log('✅ Profile completion response:', response)
     
-    authStore.setProfileComplete(true)
+    // Update user in store with new profile data
+    authStore.user = response
+    
+    // Update storage with complete profile
+    if (localStorage.getItem('token')) {
+      localStorage.setItem('user', JSON.stringify(response))
+    } else {
+      sessionStorage.setItem('user', JSON.stringify(response))
+    }
     
     // Show success and redirect
     setTimeout(() => {

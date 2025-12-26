@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class StudentController extends Controller
@@ -155,7 +156,7 @@ class StudentController extends Controller
             'registration_number' => $student->registration_number,
             'first_name' => $student->first_name,
             'last_name' => $student->last_name,
-            'date_of_birth' => $student->date_of_birth,
+            'date_of_birth' => $student->date_of_birth->format('Y-m-d'),
             'address' => $student->address,
             'email' => $user->email,
             'phone' => $user->phone,
@@ -276,7 +277,7 @@ class StudentController extends Controller
         }
 
         // Log incoming data
-        \Log::info('Complete Profile Request', [
+        Log::info('Complete Profile Request', [
             'user_id' => $user->id,
             'student_id' => $student->id,
             'data' => $request->all()
@@ -295,7 +296,7 @@ class StudentController extends Controller
             'address' => $validated['address'],
         ]);
 
-        \Log::info('Student updated', [
+        Log::info('Student updated', [
             'student_id' => $student->id,
             'date_of_birth' => $student->date_of_birth,
             'address' => $student->address
@@ -304,14 +305,14 @@ class StudentController extends Controller
         // Update phone if provided
         if (isset($validated['phone']) && !empty($validated['phone'])) {
             $user->update(['phone' => $validated['phone']]);
-            \Log::info('User phone updated', ['user_id' => $user->id, 'phone' => $user->phone]);
+            Log::info('User phone updated', ['user_id' => $user->id, 'phone' => $user->phone]);
         }
 
         // Reload from database
         $student->refresh();
         $user->refresh();
 
-        \Log::info('Profile completion successful', [
+        Log::info('Profile completion successful', [
             'student_id' => $student->id,
             'date_of_birth' => $student->date_of_birth,
             'address' => $student->address,
@@ -597,7 +598,7 @@ class StudentController extends Controller
         // Get recurring schedules for student's specialty and semester
         $schedules = Schedule::where('specialty_id', $student->specialty_id)
             ->where('semester', $student->current_semester)
-            ->with(['module.teachers'])
+            ->with(['module', 'teacher'])
             ->get();
 
         // Map recurring schedules to actual dates in the week
@@ -647,13 +648,20 @@ class StudentController extends Controller
             return [
                 'date' => $date,
                 'day_name' => $daySchedules->first()['day_name'],
-                'classes' => $daySchedules->values(),
+                'classes' => $daySchedules->values()->toArray(),
             ];
-        })->values();
+        })->values()->toArray();
 
-        return response()->json([
-            'schedule' => $schedulesByDay,
+        Log::info('Schedule Response', [
+            'student_id' => $student->id,
+            'specialty_id' => $student->specialty_id,
+            'semester' => $student->current_semester,
+            'schedules_count' => $schedules->count(),
+            'week_schedules_count' => $weekSchedules->count(),
+            'response_count' => count($schedulesByDay)
         ]);
+
+        return response()->json($schedulesByDay);
     }
 
     // ═══════════════════════════════════════════════════════════

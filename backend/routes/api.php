@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\TeacherAttendanceController;
 use App\Http\Controllers\Api\TeacherGradesController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\LessonController;
+use App\Http\Controllers\Api\DocumentController;
 
 // Public routes (no authentication)
 Route::get('/specialties', [SpecialtyController::class, 'index']);
@@ -38,6 +41,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/schedule', [StudentController::class, 'schedule']);
         Route::get('/exams/results', [StudentController::class, 'examResults']);
         Route::get('/exams/upcoming', [StudentController::class, 'upcomingExams']);
+
+        // Messages
+        Route::get('/messages', [MessageController::class, 'index']);
+        Route::get('/messages/unread/count', [MessageController::class, 'unreadCount']);
+        Route::get('/messages/{id}', [MessageController::class, 'show']);
+        
+        // Lessons
+        Route::get('/lessons/modules', [LessonController::class, 'modules']);
+        Route::get('/lessons/modules/{moduleId}', [LessonController::class, 'moduleDetails']);
+        Route::get('/lessons/{id}/download', [LessonController::class, 'download']);
+        Route::get('/lessons/new/count', [LessonController::class, 'newCount']);
+        
+        // Documents
+        Route::get('/documents', [DocumentController::class, 'index']);
+        Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
+        Route::get('/documents/new/count', [DocumentController::class, 'newCount']);
     });
 
     // Teacher routes

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import api from '@/api/axios'
+import studentApi from '@/api/endpoints/student'
 import { 
   BookOpenIcon, 
   CheckCircleIcon, 
@@ -74,8 +74,10 @@ const getRateColorClass = (rate) => {
 onMounted(async () => {
   try {
     loading.value = true
-    const response = await api.get('/student/attendance')
-    attendanceRecords.value = response.data.data || []
+    const response = await studentApi.getAttendance()
+    console.log('Attendance response:', response)
+    attendanceRecords.value = response.data || []
+    console.log('Attendance records loaded:', attendanceRecords.value.length)
   } catch (err) {
     console.error('Failed to fetch attendance:', err)
     error.value = 'Failed to load attendance records'

@@ -18,26 +18,42 @@ const handleLogin = async () => {
   if (!credentials.value.registration_number || !credentials.value.password) return
 
   loading.value = true
+  console.log('🔐 Starting login with:', credentials.value.registration_number)
+  
   try {
     const result = await authStore.login(credentials.value, rememberMe.value)
+    console.log('✅ Login result:', result)
     
     if (result.success) {
+      console.log('✅ Login successful!')
+      console.log('👤 User role:', authStore.userRole)
+      console.log('📋 Profile complete:', result.profileComplete)
+      
       if (!result.profileComplete) {
-        // Redirect to complete profile page
+        console.log('➡️ Redirecting to complete profile')
         router.push('/complete-profile')
       } else {
+        console.log('➡️ Redirecting to dashboard')
         // Redirect to dashboard based on role
         if (authStore.isStudent) {
+          console.log('👨‍🎓 Redirecting student to /student/dashboard')
           router.push('/student/dashboard')
         } else if (authStore.isTeacher) {
+          console.log('👨‍🏫 Redirecting teacher to /teacher/dashboard')
           router.push('/teacher/dashboard')
         } else if (authStore.isAdmin) {
+          console.log('👨‍💼 Redirecting admin to /admin/dashboard')
           router.push('/admin/dashboard')
         } else {
+          console.log('➡️ Redirecting to /dashboard')
           router.push('/dashboard')
         }
       }
+    } else {
+      console.error('❌ Login failed:', authStore.error)
     }
+  } catch (error) {
+    console.error('❌ Login exception:', error)
   } finally {
     loading.value = false
   }

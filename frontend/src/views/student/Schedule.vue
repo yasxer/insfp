@@ -1,15 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import api from '@/api/axios'
+import studentApi from '@/api/endpoints/student'
 
 const loading = ref(true)
-const schedule = ref([])
+const scheduleData = ref([])
 const error = ref(null)
-const currentWeek = ref('Week 1, Semester 2')
+const currentWeek = ref('Week 1, Semester 1')
 
-const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday']
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const timeSlots = [
   '08:00 - 09:30',
   '09:45 - 11:15',
@@ -18,19 +18,83 @@ const timeSlots = [
   '15:45 - 17:15'
 ]
 
+// Convert day name from API (lowercase French) to English
+const normalizeDayName = (dayName) => {
+  const dayMap = {
+    'lundi': 'Monday',
+    'mardi': 'Tuesday', 
+    'mercredi': 'Wednesday',
+    'jeudi': 'Thursday',
+    'vendredi': 'Friday',
+    'samedi': 'Saturday',
+    'dimanche': 'Sunday',
+    'monday': 'Monday',
+    'tuesday': 'Tuesday',
+    'wednesday': 'Wednesday',
+    'thursday': 'Thursday',
+    'friday': 'Friday',
+    'saturday': 'Saturday',
+    'sunday': 'Sunday'
+  }
+  return dayMap[dayName.toLowerCase()] || dayName
+}
+
+// Check if time falls within slot
+const isTimeInSlot = (time, slot) => {
+  const [slotStart] = slot.split(' - ')
+  return time === slotStart
+}
+
 const getClassForSlot = (day, timeSlot) => {
-  return schedule.value.find(
-    item => item.day === day && item.time === timeSlot
-  )
+  const found = scheduleData.value.find(item => {
+    const itemDay = normalizeDayName(item.day_name)
+    // Handle start_time as string or object
+    let itemTime = ''
+    if (typeof item.start_time === 'string') {
+      itemTime = item.start_time.substring(0, 5)
+    } else if (item.start_time) {
+      itemTime = item.start_time.toString().substring(0, 5)
+    }
+    
+    const slotTime = timeSlot.substring(0, 5)
+    const match = itemDay === day && itemTime === slotTime
+    
+    if (match) {
+      console.log('Match found:', {
+        day,
+        timeSlot,
+        itemDay,
+        itemTime,
+        slotTime,
+        class: item.module?.name
+      })
+    }
+    
+    return match
+  })
+  return found
 }
 
 onMounted(async () => {
   try {
     loading.value = true
-    const response = await api.get('/student/schedule')
-    schedule.value = response.data.schedule || []
+    console.log('Loading schedule...')
+    const response = await studentApi.getSchedule()
+    console.log('Schedule API response:', response)
+    
+    // Response is now array of days directly
+    if (Array.isArray(response)) {
+      // Flatten array of days to array of classes
+      scheduleData.value = response.flatMap(day => day.classes || [])
+      console.log('Schedule classes loaded:', scheduleData.value.length)
+      console.log('Schedule data sample:', scheduleData.value[0])
+      console.log('Full schedule data:', JSON.parse(JSON.stringify(scheduleData.value)))
+    } else {
+      scheduleData.value = []
+      console.warn('Unexpected schedule response format:', response)
+    }
   } catch (err) {
-    console.error('Failed to fetch schedule:', err)
+    console.error('Failed to load schedule:', err)
     error.value = 'Failed to load schedule'
   } finally {
     loading.value = false
@@ -78,10 +142,10 @@ onMounted(async () => {
                 <td v-for="day in days" :key="day" class="border border-gray-200 dark:border-gray-700 p-2 min-w-[140px]">
                   <div v-if="getClassForSlot(day, timeSlot)" class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded h-full">
                     <p class="font-semibold text-sm text-gray-900 dark:text-white">
-                      {{ getClassForSlot(day, timeSlot).subject }}
+                      {{ getClassForSlot(day, timeSlot).module.name }}
                     </p>
                     <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      {{ getClassForSlot(day, timeSlot).instructor }}
+                      {{ getClassForSlot(day, timeSlot).teacher?.full_name || 'TBA' }}
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       Room {{ getClassForSlot(day, timeSlot).room }}

@@ -94,6 +94,7 @@ export default {
   async completeProfile(payload) {
     try {
       const response = await apiClient.post('/api/student/complete-profile', payload)
+      // Return only the user data, not the entire response
       return response.data
     } catch (error) {
       console.error('Student API Error (completeProfile):', error)

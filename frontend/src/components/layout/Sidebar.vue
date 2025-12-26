@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import studentApi from '@/api/endpoints/student'
@@ -34,6 +34,21 @@ const badges = ref({
   lessons: 0,
   documents: 0
 })
+
+const userDisplay = ref({
+  name: '',
+  role: ''
+})
+
+// Watch for user changes in auth store
+watch(() => authStore.user, (newUser) => {
+  if (newUser) {
+    userDisplay.value = {
+      name: newUser.name || newUser.email || 'User',
+      role: newUser.role || ''
+    }
+  }
+}, { immediate: true, deep: true })
 
 const fetchBadges = async () => {
   if (authStore.user?.role === 'student') {
@@ -188,15 +203,15 @@ const handleLogout = async () => {
         <div class="flex items-center gap-3 mb-3 px-4">
           <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
             <span class="text-blue-600 dark:text-blue-400 font-semibold text-xs">
-              {{ authStore.user?.name?.charAt(0)?.toUpperCase() || 'U' }}
+              {{ userDisplay.name?.charAt(0)?.toUpperCase() || 'U' }}
             </span>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {{ authStore.user?.name || 'User' }}
+              {{ userDisplay.name || 'User' }}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400 capitalize truncate">
-              {{ authStore.user?.role }}
+              {{ userDisplay.role }}
             </p>
           </div>
         </div>

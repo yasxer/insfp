@@ -56,7 +56,15 @@ class StudentController extends Controller
         $presentCount = Attendance::where('student_id', $student->id)
             ->where('status', 'present')
             ->count();
-        $absentCount = $totalAttendance - $presentCount;
+        $lateCount = Attendance::where('student_id', $student->id)
+            ->where('status', 'late')
+            ->count();
+        $absentCount = Attendance::where('student_id', $student->id)
+            ->where('status', 'absent')
+            ->count();
+        $excusedCount = Attendance::where('student_id', $student->id)
+            ->where('status', 'excused')
+            ->count();
         $attendanceRate = $totalAttendance > 0
             ? round(($presentCount / $totalAttendance) * 100, 2)
             : 0;
@@ -92,12 +100,23 @@ class StudentController extends Controller
                 'attendance' => [
                     'total' => $totalAttendance,
                     'present' => $presentCount,
+                    'late' => $lateCount,
                     'absent' => $absentCount,
+                    'excused' => $excusedCount,
                     'rate' => $attendanceRate,
                 ],
                 'grades_count' => $recentGrades->count(),
                 'upcoming_exams' => $upcomingExams->count(),
             ],
+            'modules' => $modules->map(function($module) {
+                return [
+                    'id' => $module->id,
+                    'name' => $module->name,
+                    'code' => $module->code,
+                    'coefficient' => $module->coefficient ?? 1,
+                    'hours_per_week' => $module->hours_per_week ?? 0,
+                ];
+            }),
             'recent_grades' => $recentGrades->map(function($grade) {
                 $maxGrade = 20;
                 return [
@@ -322,23 +341,19 @@ class StudentController extends Controller
         return response()->json([
             'message' => 'Profile completed successfully',
             'profile_complete' => true,
-            'student' => [
-                'id' => $student->id,
-                'registration_number' => $student->registration_number,
-                'first_name' => $student->first_name,
-                'last_name' => $student->last_name,
-                'date_of_birth' => $student->date_of_birth,
-                'address' => $student->address,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'specialty' => [
-                    'id' => $student->specialty->id,
-                    'name' => $student->specialty->name,
-                    'code' => $student->specialty->code,
-                ],
-                'current_semester' => $student->current_semester,
-                'study_mode' => $student->study_mode,
-            ],
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'role' => $user->role,
+            'registration_number' => $student->registration_number,
+            'first_name' => $student->first_name,
+            'last_name' => $student->last_name,
+            'date_of_birth' => $student->date_of_birth,
+            'address' => $student->address,
+            'specialty_id' => $student->specialty_id,
+            'current_semester' => $student->current_semester,
+            'study_mode' => $student->study_mode,
         ]);
     }
 
@@ -633,7 +648,7 @@ class StudentController extends Controller
                         'id' => $schedule->teacher->id,
                         'full_name' => $schedule->teacher->full_name,
                     ] : null,
-                    'start_time' => $schedule->start_time,
+                    'start_time' => is_string($schedule->start_time) ? $schedule->start_time : Carbon::parse($schedule->start_time)->format('H:i:s'),
                     'end_time' => Carbon::parse($schedule->start_time)->addHours(1)->format('H:i:s'),
                     'room' => $schedule->classroom,
                     'type' => 'course',

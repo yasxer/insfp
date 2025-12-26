@@ -20,6 +20,7 @@ const form = ref({
 const loading = ref(false)
 const initialLoading = ref(true)
 const error = ref(null)
+const success = ref(false)
 const fieldErrors = ref({})
 
 // Load existing profile data on mount
@@ -50,21 +51,37 @@ const handleSubmit = async () => {
     const response = await studentApi.completeProfile(form.value)
     
     console.log('✅ Profile completion response:', response)
+    console.log('Response type:', typeof response)
+    console.log('Response keys:', Object.keys(response))
     
-    // Update user in store with new profile data
-    authStore.user = response
+    // Extract user data from response
+    const userData = response.message ? response : response
+    
+    console.log('User data to save:', userData)
+    
+    // Update user in store with new profile data - preserve role!
+    authStore.user = {
+      ...authStore.user,
+      ...userData,
+      role: authStore.user?.role
+    }
+    
+    console.log('Updated authStore.user:', authStore.user)
     
     // Update storage with complete profile
     if (localStorage.getItem('token')) {
-      localStorage.setItem('user', JSON.stringify(response))
+      localStorage.setItem('user', JSON.stringify(authStore.user))
     } else {
-      sessionStorage.setItem('user', JSON.stringify(response))
+      sessionStorage.setItem('user', JSON.stringify(authStore.user))
     }
     
-    // Show success and redirect
+    // Show success message
+    success.value = true
+    
+    // Redirect after delay
     setTimeout(() => {
       router.push('/student/dashboard')
-    }, 1500)
+    }, 2000)
   } catch (err) {
     console.error('❌ Profile completion error:', err)
     console.error('Error response:', err.response?.data)
@@ -93,6 +110,18 @@ const handleSubmit = async () => {
           </svg>
         </div>
         <p class="text-gray-600 dark:text-gray-400">Loading your profile...</p>
+      </div>
+
+      <!-- Success State -->
+      <div v-else-if="success" class="text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900 mb-4">
+          <CheckCircleIcon class="w-10 h-10 text-green-600" />
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Profile Completed!</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">Redirecting to dashboard...</p>
+        <div class="flex justify-center">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+        </div>
       </div>
 
       <!-- Form -->

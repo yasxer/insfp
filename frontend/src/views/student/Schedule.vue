@@ -12,96 +12,66 @@ const currentWeek = ref('Week 1, Semester 1')
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const timeSlots = [
   '08:00 - 09:30',
-  '09:45 - 11:15',
+  '10:00 - 11:30',
   '11:30 - 13:00',
-  '14:00 - 15:30',
-  '15:45 - 17:15'
+  '13:30 - 15:00',
+  '15:00 - 16:30'
 ]
 
-// Convert day name from API (lowercase French) to English
-const normalizeDayName = (dayName) => {
-  const dayMap = {
+// Convert French day names to English
+const frenchToEnglish = (frenchDay) => {
+  const map = {
     'lundi': 'Monday',
-    'mardi': 'Tuesday', 
+    'mardi': 'Tuesday',
     'mercredi': 'Wednesday',
     'jeudi': 'Thursday',
     'vendredi': 'Friday',
     'samedi': 'Saturday',
-    'dimanche': 'Sunday',
-    'monday': 'Monday',
-    'tuesday': 'Tuesday',
-    'wednesday': 'Wednesday',
-    'thursday': 'Thursday',
-    'friday': 'Friday',
-    'saturday': 'Saturday',
-    'sunday': 'Sunday'
+    'dimanche': 'Sunday'
   }
-  return dayMap[dayName.toLowerCase()] || dayName
-}
-
-// Check if time falls within slot
-const isTimeInSlot = (time, slot) => {
-  const [slotStart] = slot.split(' - ')
-  return time === slotStart
+  return map[frenchDay?.toLowerCase()] || frenchDay
 }
 
 const getClassForSlot = (day, timeSlot) => {
-  const found = scheduleData.value.find(item => {
-    const itemDay = normalizeDayName(item.day_name)
-    // Handle start_time as string or object
-    let itemTime = ''
-    if (typeof item.start_time === 'string') {
-      itemTime = item.start_time.substring(0, 5)
-    } else if (item.start_time) {
-      itemTime = item.start_time.toString().substring(0, 5)
-    }
+  const slotStartTime = timeSlot.split(' - ')[0]
+  
+  return scheduleData.value.find(classItem => {
+    let classDay = classItem.day_name || ''
+    classDay = frenchToEnglish(classDay)
     
-    const slotTime = timeSlot.substring(0, 5)
-    const match = itemDay === day && itemTime === slotTime
+    const classStartTime = classItem.start_time ? classItem.start_time.substring(0, 5) : ''
     
-    if (match) {
-      console.log('Match found:', {
-        day,
-        timeSlot,
-        itemDay,
-        itemTime,
-        slotTime,
-        class: item.module?.name
-      })
-    }
-    
-    return match
+    return classDay === day && classStartTime === slotStartTime
   })
-  return found
 }
 
 onMounted(async () => {
   try {
     loading.value = true
-    console.log('Loading schedule...')
     const response = await studentApi.getSchedule()
-    console.log('Schedule API response:', response)
     
-    // Response is now array of days directly
     if (Array.isArray(response)) {
-      // Flatten array of days to array of classes
-      scheduleData.value = response.flatMap(day => day.classes || [])
-      console.log('Schedule classes loaded:', scheduleData.value.length)
-      console.log('Schedule data sample:', scheduleData.value[0])
-      console.log('Full schedule data:', JSON.parse(JSON.stringify(scheduleData.value)))
+      const allClasses = []
+      response.forEach((dayData) => {
+        if (dayData.classes && Array.isArray(dayData.classes)) {
+          dayData.classes.forEach(classItem => {
+            classItem.day_name = dayData.day_name
+            allClasses.push(classItem)
+          })
+        }
+      })
+      scheduleData.value = allClasses
     } else {
       scheduleData.value = []
-      console.warn('Unexpected schedule response format:', response)
     }
   } catch (err) {
     console.error('Failed to load schedule:', err)
-    error.value = 'Failed to load schedule'
+    error.value = 'فشل تحميل الجدول'
   } finally {
     loading.value = false
   }
 })
 </script>
-
 <template>
   <div>
     <!-- Header -->

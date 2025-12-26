@@ -1,14 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import studentApi from '@/api/endpoints/student'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { 
   BookOpenIcon, 
-  ChartBarIcon, 
+  AcademicCapIcon,
   ClockIcon, 
-  ClipboardDocumentListIcon 
+  ClipboardDocumentListIcon,
+  CalendarIcon
 } from '@heroicons/vue/24/outline'
 
 const authStore = useAuthStore()
@@ -16,12 +17,19 @@ const loading = ref(true)
 const error = ref(null)
 const stats = ref({
   modulesCount: 0,
-  attendanceRate: 0,
-  gradesCount: 0,
-  upcomingExamsCount: 0
+  currentGPA: 0,
+  classesThisWeek: 0,
+  pendingTasks: 0
 })
-const recentGrades = ref([])
-const upcomingExams = ref([])
+const attendanceData = ref({
+  total: 0,
+  present: 0,
+  late: 0,
+  absent: 0,
+  excused: 0
+})
+const weeklySchedule = ref([])
+const modules = ref([])
 
 onMounted(async () => {
   try {
@@ -33,16 +41,25 @@ onMounted(async () => {
     // Update stats with API response
     stats.value = {
       modulesCount: data.statistics?.modules_count || 0,
-      attendanceRate: data.statistics?.attendance?.rate || 0,
-      gradesCount: data.statistics?.grades_count || 0,
-      upcomingExamsCount: data.statistics?.upcoming_exams || 0
+      currentGPA: data.statistics?.gpa || 0,
+      classesThisWeek: data.statistics?.classes_this_week || 0,
+      pendingTasks: data.statistics?.pending_tasks || 0
     }
-    recentGrades.value = data.recent_grades || []
-    upcomingExams.value = data.upcoming_exams || []
+    
+    attendanceData.value = {
+      total: data.statistics?.attendance?.total || 0,
+      present: data.statistics?.attendance?.present || 0,
+      late: data.statistics?.attendance?.late || 0,
+      absent: data.statistics?.attendance?.absent || 0,
+      excused: data.statistics?.attendance?.excused || 0
+    }
+    
+    weeklySchedule.value = data.weekly_schedule || []
+    modules.value = data.modules || []
     
     console.log('Stats:', stats.value)
-    console.log('Recent grades:', recentGrades.value.length)
-    console.log('Upcoming exams:', upcomingExams.value.length)
+    console.log('Attendance:', attendanceData.value)
+    console.log('Weekly schedule:', weeklySchedule.value)
     
     // Update auth store user info if needed
     if (data.student) {
@@ -56,6 +73,23 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const maxAttendanceValue = computed(() => {
+  return Math.max(attendanceData.value.total, attendanceData.value.present, attendanceData.value.late, attendanceData.value.absent, attendanceData.value.excused, 1)
+})
+
+const getBarHeight = (value) => {
+  return `${(value / maxAttendanceValue.value) * 100}%`
+}
+
+const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+const timeSlots = ['08:00 - 10:30', '11:00 - 12:30']
+
+const getClassForSlot = (day, time) => {
+  return weeklySchedule.value.find(item => 
+    item.day === day && item.time === time
+  )
+}
 </script>
 
 <template>
@@ -82,122 +116,196 @@ onMounted(async () => {
 
       <!-- Stats Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Enrolled Modules -->
+        <!-- Enrolled Courses -->
         <Card no-padding>
-          <div class="p-6 flex items-center">
-            <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4">
-              <BookOpenIcon class="w-6 h-6" />
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Enrolled Courses</p>
+              <BookOpenIcon class="w-5 h-5 text-blue-500" />
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Enrolled Modules</p>
-              <div class="flex items-center mt-1">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mr-2">{{ stats.modulesCount }}</h3>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                  Active
-                </span>
-              </div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.modulesCount }}</h3>
+            <div class="mt-2 flex items-center text-xs text-green-600 dark:text-green-400">
+              <span class="mr-1">●</span>
+              <span>Active</span>
             </div>
           </div>
         </Card>
 
-        <!-- Attendance Rate -->
+        <!-- Current GPA -->
         <Card no-padding>
-          <div class="p-6 flex items-center">
-            <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 mr-4">
-              <ChartBarIcon class="w-6 h-6" />
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Current GPA</p>
+              <AcademicCapIcon class="w-5 h-5 text-green-500" />
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Attendance Rate</p>
-              <div class="flex items-center mt-1">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mr-2">{{ stats.attendanceRate }}%</h3>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                  Current
-                </span>
-              </div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.currentGPA.toFixed(1) }}</h3>
+            <div class="mt-2 flex items-center text-xs text-green-600 dark:text-green-400">
+              <span>▲ Top 10%</span>
             </div>
           </div>
         </Card>
 
-        <!-- Grades Count -->
+        <!-- Classes This Week -->
         <Card no-padding>
-          <div class="p-6 flex items-center">
-            <div class="p-3 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 mr-4">
-              <ClockIcon class="w-6 h-6" />
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Classes This Week</p>
+              <ClockIcon class="w-5 h-5 text-orange-500" />
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Grades Recorded</p>
-              <div class="flex items-center mt-1">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mr-2">{{ stats.gradesCount }}</h3>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                  Total
-                </span>
-              </div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.classesThisWeek }}</h3>
+            <div class="mt-2 flex items-center text-xs text-gray-600 dark:text-gray-400">
+              <span>Same load</span>
             </div>
           </div>
         </Card>
 
-        <!-- Upcoming Exams -->
+        <!-- Pending Tasks -->
         <Card no-padding>
-          <div class="p-6 flex items-center">
-            <div class="p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mr-4">
-              <ClipboardDocumentListIcon class="w-6 h-6" />
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Tasks</p>
+              <ClipboardDocumentListIcon class="w-5 h-5 text-red-500" />
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Upcoming Exams</p>
-              <div class="flex items-center mt-1">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mr-2">{{ stats.upcomingExamsCount }}</h3>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                  Scheduled
-                </span>
-              </div>
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.pendingTasks }}</h3>
+            <div class="mt-2 flex items-center text-xs text-red-600 dark:text-red-400">
+              <span>▲ Due soon</span>
             </div>
           </div>
         </Card>
       </div>
 
-      <!-- Content Sections -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Recent Grades -->
-        <Card title="Recent Grades">
-          <div v-if="recentGrades.length > 0" class="space-y-4">
-            <div v-for="(grade, index) in recentGrades" :key="index" class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-700 last:border-0 last:pb-0">
-              <div>
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ grade.module?.name || 'Unknown Module' }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ grade.date ? new Date(grade.date).toLocaleDateString() : 'N/A' }}</p>
-              </div>
-              <div class="text-right">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  :class="grade.grade >= 10 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'">
-                  {{ grade.grade }}/{{ grade.max_grade || 20 }}
-                </span>
-              </div>
-            </div>
+      <!-- Attendance Overview Chart -->
+      <Card title="Student Attendance Overview" class="mb-8">
+        <div v-if="attendanceData.total > 0" class="relative py-8">
+          <!-- Y-axis labels -->
+          <div class="absolute left-0 top-8 h-80 flex flex-col justify-between text-xs text-gray-500 dark:text-gray-400 pr-2 text-right">
+            <span>{{ maxAttendanceValue }}</span>
+            <span>{{ Math.floor(maxAttendanceValue * 0.75) }}</span>
+            <span>{{ Math.floor(maxAttendanceValue * 0.5) }}</span>
+            <span>{{ Math.floor(maxAttendanceValue * 0.25) }}</span>
+            <span>0</span>
           </div>
-          <div v-else class="h-32 flex items-center justify-center text-gray-500 dark:text-gray-400">
-            No recent grades found
-          </div>
-        </Card>
 
-        <!-- Upcoming Exams List -->
-        <Card title="Upcoming Exams">
-          <div v-if="upcomingExams.length > 0" class="space-y-4">
-            <div v-for="(exam, index) in upcomingExams" :key="index" class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-700 last:border-0 last:pb-0">
-              <div>
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ exam.module?.name || 'Unknown Module' }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ exam.date }} at {{ exam.start_time }}</p>
+          <!-- Chart container -->
+          <div class="ml-12 flex items-end justify-center space-x-12 h-80 border-l-2 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
+            <!-- Total Sessions Bar -->
+            <div class="flex flex-col items-center justify-end h-full group">
+              <div class="w-32 bg-blue-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-blue-400/50 transition-all duration-300"
+                   :style="{ height: `${(attendanceData.total / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
+                {{ attendanceData.total }}
               </div>
-              <div class="text-right">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                  {{ exam.type }}
-                </span>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Total Sessions</p>
+            </div>
+
+            <!-- Present Bar -->
+            <div class="flex flex-col items-center justify-end h-full group">
+              <div class="w-32 bg-cyan-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-cyan-400/50 transition-all duration-300"
+                   :style="{ height: `${(attendanceData.present / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
+                {{ attendanceData.present }}
               </div>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Present</p>
+            </div>
+
+            <!-- Late Bar -->
+            <div class="flex flex-col items-center justify-end h-full group">
+              <div v-if="attendanceData.late > 0" class="w-32 bg-amber-300 rounded-t-xl flex items-center justify-center text-gray-800 font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-amber-300/50 transition-all duration-300"
+                   :style="{ height: `${(attendanceData.late / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
+                {{ attendanceData.late }}
+              </div>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Late</p>
+            </div>
+
+            <!-- Absent Bar -->
+            <div class="flex flex-col items-center justify-end h-full group">
+              <div v-if="attendanceData.absent > 0" class="w-32 bg-red-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-red-400/50 transition-all duration-300"
+                   :style="{ height: `${(attendanceData.absent / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
+                {{ attendanceData.absent }}
+              </div>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Absent</p>
+            </div>
+
+            <!-- Excused Bar -->
+            <div class="flex flex-col items-center justify-end h-full group">
+              <div v-if="attendanceData.excused > 0" class="w-32 bg-purple-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-purple-400/50 transition-all duration-300"
+                   :style="{ height: `${(attendanceData.excused / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
+                {{ attendanceData.excused }}
+              </div>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Excused</p>
             </div>
           </div>
-          <div v-else class="h-32 flex items-center justify-center text-gray-500 dark:text-gray-400">
-            No upcoming exams
+        </div>
+        <div v-else class="h-80 flex items-center justify-center text-gray-500 dark:text-gray-400">
+          No attendance data available
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center justify-center flex-wrap gap-6 mt-8">
+          <div class="flex items-center">
+            <div class="w-5 h-5 bg-blue-400 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Total Sessions</span>
           </div>
-        </Card>
-      </div>
+          <div class="flex items-center">
+            <div class="w-5 h-5 bg-cyan-400 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Present</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-5 h-5 bg-amber-300 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Late</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-5 h-5 bg-red-400 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Absent</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-5 h-5 bg-purple-400 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Excused</span>
+          </div>
+        </div>
+      </Card>
+
+      <!-- Modules List with Coefficients -->
+      <Card title="Current Semester Modules" class="mb-8">
+        <div v-if="modules.length > 0" class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b-2 border-gray-300 dark:border-gray-600">
+                <th class="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Code</th>
+                <th class="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Module Name</th>
+                <th class="text-center py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Coefficient</th>
+                <th class="text-center py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Hours/Week</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="module in modules" :key="module.id" class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                <td class="py-4 px-4 text-sm font-mono font-semibold text-blue-600 dark:text-blue-400">{{ module.code }}</td>
+                <td class="py-4 px-4 text-sm font-medium text-gray-900 dark:text-white">{{ module.name }}</td>
+                <td class="py-4 px-4 text-center">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-900 dark:from-blue-900/30 dark:to-indigo-900/30 dark:text-blue-100">
+                    {{ module.coefficient }}
+                  </span>
+                </td>
+                <td class="py-4 px-4 text-center text-sm text-gray-600 dark:text-gray-400">{{ module.hours_per_week }}h</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-gray-50 dark:bg-gray-800/50">
+                <td colspan="2" class="py-4 px-4 text-sm font-bold text-gray-900 dark:text-white">Total</td>
+                <td class="py-4 px-4 text-center">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-green-100 to-emerald-100 text-green-900 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-100">
+                    {{ modules.reduce((sum, m) => sum + (m.coefficient || 0), 0) }}
+                  </span>
+                </td>
+                <td class="py-4 px-4 text-center text-sm font-bold text-gray-900 dark:text-white">
+                  {{ modules.reduce((sum, m) => sum + (m.hours_per_week || 0), 0) }}h
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div v-else class="h-32 flex items-center justify-center text-gray-500 dark:text-gray-400">
+          No modules found for current semester
+        </div>
+      </Card>
     </div>
   </div>
 </template>

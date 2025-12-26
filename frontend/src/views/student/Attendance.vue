@@ -7,12 +7,69 @@ import {
   BookOpenIcon, 
   CheckCircleIcon, 
   XCircleIcon, 
-  ChartPieIcon 
+  ChartPieIcon,
+  CalendarIcon,
+  AcademicCapIcon,
+  FunnelIcon
 } from '@heroicons/vue/24/outline'
 
 const loading = ref(true)
 const attendanceRecords = ref([])
+const allRecords = ref([]) // Keep all records
+const modules = ref([])
 const error = ref(null)
+const selectedDate = ref('')
+const selectedModule = ref('')
+const selectedStatus = ref('')
+
+const loadAttendance = async () => {
+  try {
+    loading.value = true
+    
+    const response = await studentApi.getAttendance()
+    console.log('Attendance response:', response)
+    allRecords.value = response.data || []
+    attendanceRecords.value = allRecords.value
+    
+    // Extract unique modules
+    const uniqueModules = [...new Map(allRecords.value.map(r => 
+      [r.module?.id, r.module]
+    ).filter(([id]) => id)).values()]
+    modules.value = uniqueModules
+    
+    console.log('Attendance records loaded:', attendanceRecords.value.length)
+  } catch (err) {
+    console.error('Failed to fetch attendance:', err)
+    error.value = 'Failed to load attendance records'
+  } finally {
+    loading.value = false
+  }
+}
+
+const applyFilters = () => {
+  let filtered = allRecords.value
+  
+  if (selectedDate.value) {
+    filtered = filtered.filter(record => record.date === selectedDate.value)
+  }
+  
+  if (selectedModule.value) {
+    filtered = filtered.filter(record => record.module?.id === parseInt(selectedModule.value))
+  }
+  
+  if (selectedStatus.value) {
+    filtered = filtered.filter(record => record.status === selectedStatus.value)
+  }
+  
+  attendanceRecords.value = filtered
+}
+
+const clearFilter = () => {
+  selectedDate.value = ''
+  selectedModule.value = ''
+  selectedStatus.value = ''
+  attendanceRecords.value = allRecords.value
+}
 
 const totalSessions = computed(() => attendanceRecords.value.length)
 
@@ -72,18 +129,7 @@ const getRateColorClass = (rate) => {
 }
 
 onMounted(async () => {
-  try {
-    loading.value = true
-    const response = await studentApi.getAttendance()
-    console.log('Attendance response:', response)
-    attendanceRecords.value = response.data || []
-    console.log('Attendance records loaded:', attendanceRecords.value.length)
-  } catch (err) {
-    console.error('Failed to fetch attendance:', err)
-    error.value = 'Failed to load attendance records'
-  } finally {
-    loading.value = false
-  }
+  loadAttendance()
 })
 </script>
 
@@ -164,6 +210,72 @@ onMounted(async () => {
         </Card>
       </div>
 
+      <!-- Date Filter (Below Stats) -->
+      <Card class="mb-6">
+        <div class="flex flex-wrap items-end gap-4">
+          <div class="flex-1 min-w-[180px]">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <CalendarIcon class="w-5 h-5" />
+              Filter by Date
+            </label>
+            <input 
+              v-model="selectedDate"
+              @change="applyFilters"
+              type="date" 
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Select a date"
+            />
+          </div>
+          <div class="flex-1 min-w-[180px]">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <AcademicCapIcon class="w-5 h-5" />
+              Filter by Module
+            </label>
+            <select 
+              v-model="selectedModule"
+              @change="applyFilters"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Modules</option>
+              <option v-for="module in modules" :key="module.id" :value="module.id">
+                {{ module.name }}
+              </option>
+            </select>
+          </div>
+          <div class="flex-1 min-w-[180px]">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <FunnelIcon class="w-5 h-5" />
+              Filter by Status
+            </label>
+            <select 
+              v-model="selectedStatus"
+              @change="applyFilters"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Status</option>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="late">Late</option>
+              <option value="excused">Excused</option>
+            </select>
+          </div>
+          <button 
+            v-if="selectedDate || selectedModule || selectedStatus"
+            @click="clearFilter"
+            class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
+          >
+            Clear Filters
+          </button>
+        </div>
+        <p v-if="selectedDate || selectedModule || selectedStatus" class="mt-3 text-sm text-blue-600 dark:text-blue-400">
+          <span v-if="selectedDate">Date: <strong>{{ selectedDate }}</strong></span>
+          <span v-if="selectedDate && (selectedModule || selectedStatus)"> • </span>
+          <span v-if="selectedModule">Module: <strong>{{ modules.find(m => m.id === parseInt(selectedModule))?.name }}</strong></span>
+          <span v-if="selectedModule && selectedStatus"> • </span>
+          <span v-if="selectedStatus">Status: <strong>{{ getStatusText(selectedStatus) }}</strong></span>
+        </p>
+      </Card>
+
       <!-- Attendance History -->
       <Card title="Attendance History">
         <div class="overflow-x-auto">
@@ -204,7 +316,7 @@ onMounted(async () => {
       <!-- Warning Message -->
       <div v-if="attendanceRate < 75 && totalSessions > 0" 
            class="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start">
-        <span class="text-xl mr-3">⚠️</span>
+        <XCircleIcon class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3 flex-shrink-0 mt-0.5" />
         <p class="text-yellow-800 dark:text-yellow-400 text-sm font-medium pt-0.5">
           Warning: Your attendance rate is below 75%. Please attend classes regularly to avoid academic penalties.
         </p>

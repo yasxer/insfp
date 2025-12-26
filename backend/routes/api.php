@@ -46,13 +46,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/messages', [MessageController::class, 'index']);
         Route::get('/messages/unread/count', [MessageController::class, 'unreadCount']);
         Route::get('/messages/{id}', [MessageController::class, 'show']);
-        
+
         // Lessons
         Route::get('/lessons/modules', [LessonController::class, 'modules']);
         Route::get('/lessons/modules/{moduleId}', [LessonController::class, 'moduleDetails']);
         Route::get('/lessons/{id}/download', [LessonController::class, 'download']);
         Route::get('/lessons/new/count', [LessonController::class, 'newCount']);
-        
+
         // Documents
         Route::get('/documents', [DocumentController::class, 'index']);
         Route::get('/documents/{id}/download', [DocumentController::class, 'download']);

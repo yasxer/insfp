@@ -28,8 +28,8 @@ const passwordStrength = computed(() => {
 
 const passwordClass = computed(() => {
   if (form.value.password.length === 0) return ''
-  return form.value.password.length >= 8 
-    ? 'border-green-500 focus:ring-green-500' 
+  return form.value.password.length >= 8
+    ? 'border-green-500 focus:ring-green-500'
     : 'border-red-500 focus:ring-red-500'
 })
 
@@ -66,9 +66,9 @@ const handleRegister = async () => {
 
   try {
     await apiClient.post('/api/register', form.value)
-    
+
     successMessage.value = 'Registration successful! Please wait for admin approval before logging in.'
-    
+
     // Clear form on success
     form.value = {
       registration_number: '',
@@ -240,8 +240,8 @@ onMounted(() => {
               ]"
               placeholder="••••••••"
             />
-            <p v-if="form.password.length > 0" 
-               :class="form.password.length >= 8 ? 'text-green-600' : 'text-red-600'" 
+            <p v-if="form.password.length > 0"
+               :class="form.password.length >= 8 ? 'text-green-600' : 'text-red-600'"
                class="mt-1 text-xs">
               {{ form.password.length }}/8 characters minimum
             </p>

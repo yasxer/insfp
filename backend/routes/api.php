@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\TeacherAttendanceController;
 use App\Http\Controllers\Api\TeacherGradesController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\AdminMessageController;
 use App\Http\Controllers\Api\LessonController;
 use App\Http\Controllers\Api\DocumentController;
 
@@ -86,6 +87,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Dashboard
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
+        Route::get('/statistics', [AdminController::class, 'statistics']);
+        Route::get('/students/random', [AdminController::class, 'randomStudents']);
+        Route::get('/charts/students-by-specialty', [AdminController::class, 'studentsBySpecialty']);
+        Route::get('/charts/teachers-by-specialty', [AdminController::class, 'teachersBySpecialty']);
 
         // Registration Numbers
         Route::post('/generate-registration', [AdminController::class, 'generateRegistrationNumber']);
@@ -95,6 +100,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Student Management
         Route::get('/students', [AdminController::class, 'getStudents']);
+        Route::post('/students', [AdminController::class, 'createStudent']);
         Route::get('/students/{id}', [AdminController::class, 'getStudent']);
         Route::put('/students/{id}', [AdminController::class, 'updateStudent']);
         Route::delete('/students/{id}', [AdminController::class, 'deleteStudent']);
@@ -127,5 +133,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/modules/{id}', [AdminController::class, 'deleteModule']);
         Route::post('/modules/assign-teacher', [AdminController::class, 'assignTeacherToModule']);
         Route::post('/modules/remove-teacher', [AdminController::class, 'removeTeacherFromModule']);
+
+        // Message Management
+        Route::post('/messages/send', [AdminMessageController::class, 'sendMessage']);
+        Route::get('/messages', [AdminMessageController::class, 'index']);
+        Route::get('/messages/stats', [AdminMessageController::class, 'stats']);
     });
 });

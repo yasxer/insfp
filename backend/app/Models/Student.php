@@ -15,10 +15,22 @@ class Student extends Model
         'address',        // Added
         'study_mode',
         'current_semester',
+        'group',
         'years_enrolled',
-        'is_graduated'
+        'is_graduated',
+        'graduation_year',
+        'graduation_semester',
+        'final_gpa'
     ];
-    protected $casts = ['current_semester' => 'integer', 'years_enrolled' => 'integer', 'is_graduated' => 'boolean', 'date_of_birth' => 'date'];
+    protected $casts = [
+        'current_semester' => 'integer',
+        'years_enrolled' => 'integer',
+        'is_graduated' => 'boolean',
+        'date_of_birth' => 'date',
+        'graduation_year' => 'integer',
+        'graduation_semester' => 'integer',
+        'final_gpa' => 'decimal:2'
+    ];
     protected $appends = ['full_name'];
 
     public function user() { return $this->belongsTo(User::class); }

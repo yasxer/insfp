@@ -69,6 +69,29 @@ const routes = [
     ]
   },
   {
+    path: '/admin',
+    component: () => import('@/components/layout/DashboardLayout.vue'),
+    meta: { requiresAuth: true, role: 'administration' },
+    redirect: '/admin/dashboard',
+    children: [
+      {
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: () => import('@/views/admin/Dashboard.vue')
+      },
+      {
+        path: 'students',
+        name: 'AdminStudents',
+        component: () => import('@/views/admin/Students.vue')
+      },
+      {
+        path: 'students/:id',
+        name: 'AdminStudentDetails',
+        component: () => import('@/views/admin/StudentDetails.vue')
+      }
+    ]
+  },
+  {
     path: '/dashboard',
     redirect: (to) => {
       const authStore = useAuthStore()

@@ -9,7 +9,10 @@ use App\Models\Teacher;
 use App\Models\Administration;
 use App\Models\Specialty;
 use App\Models\Module;
+use App\Models\Grade;
+use App\Models\Deliberation;
 use App\Models\RegistrationNumber;
+use App\Models\Exam;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +63,127 @@ class AdminController extends Controller
         return response()->json([
             'statistics' => $stats,
         ]);
+    }
+
+    /**
+     * Get detailed statistics for admin dashboard
+     */
+    public function statistics()
+    {
+        $now = now();
+        $lastMonth = $now->copy()->subMonth();
+        $lastWeek = $now->copy()->subWeek();
+
+        // Current counts
+        $totalStudents = Student::count();
+        $totalTeachers = Teacher::count();
+        $totalSpecialties = Specialty::count();
+        $activeExams = Exam::upcoming()->count();
+
+        // Calculate percentage changes
+        $studentLastMonth = Student::where('created_at', '<', $lastMonth)->count();
+        $studentChange = $studentLastMonth > 0
+            ? round((($totalStudents - $studentLastMonth) / $studentLastMonth) * 100, 1)
+            : 0;
+
+        $teacherLastMonth = Teacher::where('created_at', '<', $lastMonth)->count();
+        $teacherChange = $teacherLastMonth > 0
+            ? round((($totalTeachers - $teacherLastMonth) / $teacherLastMonth) * 100, 1)
+            : 0;
+
+        $specialtyLastWeek = Specialty::where('created_at', '<', $lastWeek)->count();
+        $specialtyChange = $totalSpecialties - $specialtyLastWeek;
+
+        $examLastMonth = Exam::upcoming()->where('created_at', '<', $lastMonth)->count();
+        $examChange = $examLastMonth > 0
+            ? round((($activeExams - $examLastMonth) / $examLastMonth) * 100, 1)
+            : 0;
+
+        return response()->json([
+            'students' => [
+                'count' => $totalStudents,
+                'change' => $studentChange,
+                'trend' => $studentChange >= 0 ? 'up' : 'down'
+            ],
+            'teachers' => [
+                'count' => $totalTeachers,
+                'change' => $teacherChange,
+                'trend' => $teacherChange >= 0 ? 'up' : 'down'
+            ],
+            'specialties' => [
+                'count' => $totalSpecialties,
+                'change' => $specialtyChange,
+                'trend' => $specialtyChange >= 0 ? 'up' : 'down'
+            ],
+            'exams' => [
+                'count' => $activeExams,
+                'change' => $examChange,
+                'trend' => $examChange >= 0 ? 'up' : 'down'
+            ]
+        ]);
+    }
+
+    /**
+     * Get random students for featured table
+     */
+    public function randomStudents(Request $request)
+    {
+        $limit = $request->input('limit', 7);
+
+        $students = Student::with('specialty')
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get()
+            ->map(function ($student) {
+                return [
+                    'id' => $student->id,
+                    'name' => $student->full_name,
+                    'registration_number' => $student->registration_number,
+                    'specialty' => $student->specialty ? $student->specialty->name : 'N/A',
+                    'year' => ceil($student->current_semester / 2),
+                    'status' => $student->is_graduated ? 'Graduated' : 'Enrolled',
+                    'avatar_initials' => substr($student->first_name, 0, 1) . substr($student->last_name, 0, 1)
+                ];
+            });
+
+        return response()->json($students);
+    }
+
+    /**
+     * Get students distribution by specialty
+     */
+    public function studentsBySpecialty()
+    {
+        $data = Student::select('specialty_id', DB::raw('count(*) as count'))
+            ->groupBy('specialty_id')
+            ->with('specialty')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->specialty ? $item->specialty->name : 'Unknown',
+                    'count' => $item->count
+                ];
+            });
+
+        return response()->json($data);
+    }
+
+    /**
+     * Get teachers distribution by specialty
+     */
+    public function teachersBySpecialty()
+    {
+        $data = Teacher::select('specialization', DB::raw('count(*) as count'))
+            ->groupBy('specialization')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->specialization ?: 'General',
+                    'count' => $item->count
+                ];
+            });
+
+        return response()->json($data);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -217,6 +341,11 @@ class AdminController extends Controller
             $query->where('current_semester', $request->semester);
         }
 
+        // Filter by group
+        if ($request->group) {
+            $query->where('group', $request->group);
+        }
+
         // Filter by study mode
         if ($request->study_mode) {
             $query->where('study_mode', $request->study_mode);
@@ -225,6 +354,11 @@ class AdminController extends Controller
         // Filter by graduated status
         if ($request->has('is_graduated')) {
             $query->where('is_graduated', $request->boolean('is_graduated'));
+        }
+
+        // Filter by graduation year
+        if ($request->graduation_year) {
+            $query->where('graduation_year', $request->graduation_year);
         }
 
         // Search by name or registration number
@@ -238,7 +372,10 @@ class AdminController extends Controller
             });
         }
 
-        $students = $query->orderBy('registration_number')->get()->map(function ($student) {
+        $perPage = $request->input('per_page', 10);
+        $students = $query->orderBy('registration_number')->paginate($perPage);
+
+        $students->getCollection()->transform(function ($student) {
             return [
                 'id' => $student->id,
                 'registration_number' => $student->registration_number,
@@ -255,24 +392,156 @@ class AdminController extends Controller
                 ] : null,
                 'study_mode' => $student->study_mode,
                 'current_semester' => $student->current_semester,
+                'group' => $student->group,
                 'years_enrolled' => $student->years_enrolled,
                 'is_graduated' => $student->is_graduated,
+                'graduation_year' => $student->graduation_year,
+                'graduation_semester' => $student->graduation_semester,
+                'final_gpa' => $student->final_gpa,
                 'created_at' => $student->created_at->format('Y-m-d'),
+                'avatar_url' => null, // Placeholder
             ];
         });
 
-        return response()->json([
-            'students' => $students,
-            'count' => $students->count(),
-        ]);
+        return response()->json($students);
     }
 
     /**
-     * Get single student details
+     * Create new student
+     */
+    public function createStudent(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email',
+            'phone' => ['nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', 'unique:users,phone'],
+            'date_of_birth' => 'required|date',
+            'address' => 'required|string',
+            'specialty_id' => 'required|exists:specialties,id',
+            'registration_number' => 'required|unique:students,registration_number',
+            'study_mode' => 'required|in:initial,alternance,continue',
+            'current_semester' => 'required|integer|min:1|max:6',
+            'group' => 'nullable|string|max:10',
+            'years_enrolled' => 'integer|min:1',
+            'password' => 'nullable|string|min:8', // Optional, default to reg number
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Create User
+            $user = User::create([
+                'name' => $validated['first_name'] . ' ' . $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($validated['password'] ?? $validated['registration_number']),
+                'role' => 'student',
+                'is_approved' => true, // Admin created students are approved by default
+            ]);
+
+            // Create Student
+            $student = Student::create([
+                'user_id' => $user->id,
+                'specialty_id' => $validated['specialty_id'],
+                'registration_number' => $validated['registration_number'],
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'date_of_birth' => $validated['date_of_birth'],
+                'address' => $validated['address'],
+                'study_mode' => $validated['study_mode'],
+                'current_semester' => $validated['current_semester'],
+                'group' => $validated['group'] ?? null,
+                'years_enrolled' => $validated['years_enrolled'] ?? 1,
+                'is_graduated' => false,
+            ]);
+
+            // Mark registration number as used
+            RegistrationNumber::where('number', $validated['registration_number'])
+                ->update(['is_used' => true, 'used_at' => now()]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Étudiant créé avec succès',
+                'student' => $student,
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Get single student details with grades and semester averages
      */
     public function getStudent($id): JsonResponse
     {
         $student = Student::with(['user', 'specialty'])->findOrFail($id);
+
+        // Get current semester grades with modules
+        $currentSemesterGrades = Grade::with('module')
+            ->where('student_id', $student->id)
+            ->where('semester', $student->current_semester)
+            ->get()
+            ->map(function ($grade) {
+                return [
+                    'id' => $grade->id,
+                    'module_id' => $grade->module_id,
+                    'module_name' => $grade->module->name ?? 'N/A',
+                    'module_code' => $grade->module->code ?? 'N/A',
+                    'coefficient' => $grade->module->coefficient ?? 1,
+                    'grade' => $grade->grade,
+                    'academic_year' => $grade->academic_year,
+                ];
+            });
+
+        // Get all modules for current semester (even if no grade yet)
+        $currentSemesterModules = Module::where('specialty_id', $student->specialty_id)
+            ->where('semester', $student->current_semester)
+            ->get()
+            ->map(function ($module) use ($currentSemesterGrades) {
+                $grade = $currentSemesterGrades->firstWhere('module_id', $module->id);
+                return [
+                    'module_id' => $module->id,
+                    'module_name' => $module->name,
+                    'module_code' => $module->code,
+                    'coefficient' => $module->coefficient,
+                    'grade' => $grade ? $grade['grade'] : null,
+                    'has_grade' => $grade !== null,
+                ];
+            });
+
+        // Get semester averages from deliberations
+        $semesterAverages = Deliberation::where('student_id', $student->id)
+            ->orderBy('semester', 'asc')
+            ->get()
+            ->map(function ($deliberation) {
+                return [
+                    'semester' => $deliberation->semester,
+                    'average' => $deliberation->average,
+                    'result' => $deliberation->result,
+                    'academic_year' => $deliberation->academic_year,
+                    'observations' => $deliberation->observations,
+                ];
+            });
+
+        // Calculate current semester average if grades exist
+        $currentAverage = null;
+        if ($currentSemesterModules->where('has_grade', true)->count() > 0) {
+            $totalWeighted = 0;
+            $totalCoef = 0;
+            foreach ($currentSemesterModules as $module) {
+                if ($module['grade'] !== null) {
+                    $totalWeighted += $module['grade'] * $module['coefficient'];
+                    $totalCoef += $module['coefficient'];
+                }
+            }
+            if ($totalCoef > 0) {
+                $currentAverage = round($totalWeighted / $totalCoef, 2);
+            }
+        }
 
         return response()->json([
             'student' => [
@@ -283,6 +552,8 @@ class AdminController extends Controller
                 'full_name' => $student->full_name,
                 'email' => $student->user->email ?? null,
                 'phone' => $student->user->phone ?? null,
+                'date_of_birth' => $student->date_of_birth ? $student->date_of_birth->format('Y-m-d') : null,
+                'address' => $student->address,
                 'is_approved' => $student->user ? $student->user->is_approved : false,
                 'specialty' => $student->specialty ? [
                     'id' => $student->specialty->id,
@@ -291,10 +562,17 @@ class AdminController extends Controller
                 ] : null,
                 'study_mode' => $student->study_mode,
                 'current_semester' => $student->current_semester,
+                'group' => $student->group,
                 'years_enrolled' => $student->years_enrolled,
                 'is_graduated' => $student->is_graduated,
+                'graduation_year' => $student->graduation_year,
+                'graduation_semester' => $student->graduation_semester,
+                'final_gpa' => $student->final_gpa,
                 'created_at' => $student->created_at->format('Y-m-d H:i'),
             ],
+            'current_semester_grades' => $currentSemesterModules,
+            'current_semester_average' => $currentAverage,
+            'semester_averages' => $semesterAverages,
         ]);
     }
 
@@ -310,11 +588,17 @@ class AdminController extends Controller
             'last_name' => 'sometimes|string|max:100',
             'email' => ['sometimes', 'email', Rule::unique('users')->ignore($student->user_id)],
             'phone' => ['sometimes', 'nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($student->user_id)],
+            'date_of_birth' => 'sometimes|date',
+            'address' => 'sometimes|string',
             'specialty_id' => 'sometimes|exists:specialties,id',
             'study_mode' => 'sometimes|in:initial,alternance,continue',
             'current_semester' => 'sometimes|integer|min:1|max:6',
+            'group' => 'nullable|string|max:10',
             'years_enrolled' => 'sometimes|integer|min:1',
             'is_graduated' => 'sometimes|boolean',
+            'graduation_year' => 'nullable|integer',
+            'graduation_semester' => 'nullable|integer',
+            'final_gpa' => 'nullable|numeric|between:0,20',
         ]);
 
         DB::beginTransaction();
@@ -325,6 +609,9 @@ class AdminController extends Controller
                 $userUpdate = [];
                 if (isset($validated['email'])) $userUpdate['email'] = $validated['email'];
                 if (isset($validated['phone'])) $userUpdate['phone'] = $validated['phone'];
+                if (isset($validated['first_name']) || isset($validated['last_name'])) {
+                    $userUpdate['name'] = ($validated['first_name'] ?? $student->first_name) . ' ' . ($validated['last_name'] ?? $student->last_name);
+                }
 
                 if (!empty($userUpdate)) {
                     $student->user->update($userUpdate);
@@ -333,7 +620,7 @@ class AdminController extends Controller
 
             // Update student info
             $studentUpdate = [];
-            $allowedFields = ['first_name', 'last_name', 'specialty_id', 'study_mode', 'current_semester', 'years_enrolled', 'is_graduated'];
+            $allowedFields = ['first_name', 'last_name', 'date_of_birth', 'address', 'specialty_id', 'study_mode', 'current_semester', 'group', 'years_enrolled', 'is_graduated', 'graduation_year', 'graduation_semester', 'final_gpa'];
             foreach ($allowedFields as $field) {
                 if (isset($validated[$field])) {
                     $studentUpdate[$field] = $validated[$field];

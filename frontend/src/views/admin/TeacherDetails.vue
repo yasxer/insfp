@@ -16,8 +16,8 @@
       </button>
     </div>
 
-    <!-- Student Details -->
-    <div v-else-if="student">
+    <!-- Teacher Details -->
+    <div v-else-if="teacher">
       <!-- Header -->
       <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center space-x-4">
@@ -27,8 +27,8 @@
             </svg>
           </button>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ student.full_name }}</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ student.registration_number }}</p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ teacher.full_name }}</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ teacher.specialization }}</p>
           </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -43,11 +43,11 @@
           </button>
           <span :class="[
             'px-3 py-1 rounded-full text-sm font-medium',
-            student.is_graduated 
+            teacher.is_approved 
               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
           ]">
-            {{ student.is_graduated ? 'Graduated' : 'Enrolled' }}
+            {{ teacher.is_approved ? 'Active' : 'Pending' }}
           </span>
         </div>
       </div>
@@ -58,81 +58,43 @@
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8 text-center">
               <div class="w-24 h-24 mx-auto rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-3xl font-bold text-indigo-600">
-                {{ student.first_name?.charAt(0) }}{{ student.last_name?.charAt(0) }}
+                {{ teacher.first_name?.charAt(0) }}{{ teacher.last_name?.charAt(0) }}
               </div>
-              <h2 class="mt-4 text-xl font-semibold text-white">{{ student.full_name }}</h2>
-              <p class="text-indigo-100">{{ student.specialty?.name || 'No Specialty' }}</p>
+              <h2 class="mt-4 text-xl font-semibold text-white">{{ teacher.full_name }}</h2>
+              <p class="text-indigo-100">{{ teacher.specialization || 'Teacher' }}</p>
             </div>
             <div class="p-6 space-y-4">
               <div class="flex items-center text-sm">
                 <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span class="text-gray-600 dark:text-gray-300">{{ student.email || 'N/A' }}</span>
+                <span class="text-gray-600 dark:text-gray-300">{{ teacher.email || 'N/A' }}</span>
               </div>
               <div class="flex items-center text-sm">
                 <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                <span class="text-gray-600 dark:text-gray-300">{{ student.phone || 'N/A' }}</span>
-              </div>
-              <div class="flex items-center text-sm">
-                <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span class="text-gray-600 dark:text-gray-300">{{ formatDate(student.date_of_birth) || 'N/A' }}</span>
-              </div>
-              <div class="flex items-center text-sm">
-                <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span class="text-gray-600 dark:text-gray-300">{{ student.address || 'N/A' }}</span>
+                <span class="text-gray-600 dark:text-gray-300">{{ teacher.phone || 'N/A' }}</span>
               </div>
               <hr class="border-gray-200 dark:border-gray-700">
-              <div class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p class="text-gray-500 dark:text-gray-400">Study Mode</p>
-                  <p class="font-medium text-gray-900 dark:text-white capitalize">{{ student.study_mode || 'N/A' }}</p>
-                </div>
-                <div>
-                  <p class="text-gray-500 dark:text-gray-400">Group</p>
-                  <p class="font-medium text-gray-900 dark:text-white">{{ student.group || 'N/A' }}</p>
-                </div>
-                <div>
-                  <p class="text-gray-500 dark:text-gray-400">Current Semester</p>
-                  <p class="font-medium text-gray-900 dark:text-white">S{{ student.current_semester }}</p>
-                </div>
-                <div>
-                  <p class="text-gray-500 dark:text-gray-400">Years Enrolled</p>
-                  <p class="font-medium text-gray-900 dark:text-white">{{ student.years_enrolled || 1 }}</p>
-                </div>
+              <div class="text-sm">
+                <p class="text-gray-500 dark:text-gray-400 mb-1">Total Modules</p>
+                <p class="font-medium text-gray-900 dark:text-white text-2xl">{{ teacher.modules?.length || 0 }}</p>
               </div>
-              <div v-if="student.is_graduated" class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p class="text-sm text-green-800 dark:text-green-200">
-                  <strong>Graduated:</strong> {{ student.graduation_year }} (S{{ student.graduation_semester }})
-                </p>
-                <p class="text-sm text-green-800 dark:text-green-200">
-                  <strong>Final GPA:</strong> {{ student.final_gpa }}/20
-                </p>
+              <div class="text-sm">
+                <p class="text-gray-500 dark:text-gray-400 mb-1">Member Since</p>
+                <p class="font-medium text-gray-900 dark:text-white">{{ formatDate(teacher.created_at) }}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Grades & Averages -->
+        <!-- Modules & Schedule -->
         <div class="lg:col-span-2 space-y-6">
-          <!-- Current Semester Grades -->
+          <!-- Modules -->
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Current Semester Grades (S{{ student.current_semester }})
-              </h3>
-              <div v-if="currentSemesterAverage !== null" class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
-                <span class="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-                  Average: {{ currentSemesterAverage }}/20
-                </span>
-              </div>
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Modules Taught</h3>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full">
@@ -140,87 +102,74 @@
                   <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Module</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Code</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Coefficient</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Grade</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Specialty</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Hours/Week</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                  <tr v-if="currentSemesterGrades.length === 0">
-                    <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                      No modules found for this semester
+                  <tr v-if="!teacher.modules || teacher.modules.length === 0">
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                      No modules assigned
                     </td>
                   </tr>
-                  <tr v-for="grade in currentSemesterGrades" :key="grade.module_id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ grade.module_name }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ grade.module_code }}</td>
-                    <td class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">{{ grade.coefficient }}</td>
-                    <td class="px-6 py-4 text-center">
-                      <span v-if="grade.has_grade" :class="[
-                        'font-semibold',
-                        grade.grade >= 10 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                      ]">
-                        {{ Number(grade.grade).toFixed(2) }}/20
-                      </span>
-                      <span v-else class="text-gray-400">—</span>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                      <span v-if="grade.has_grade" :class="[
-                        'px-2 py-1 text-xs font-medium rounded-full',
-                        grade.grade >= 10 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                      ]">
-                        {{ grade.grade >= 10 ? 'Pass' : 'Fail' }}
-                      </span>
-                      <span v-else class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                        Pending
-                      </span>
-                    </td>
+                  <tr v-for="module in teacher.modules" :key="module.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ module.name }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ module.code }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ module.specialty }}</td>
+                    <td class="px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">{{ module.hours_per_week }}h</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Previous Semester Averages -->
+          <!-- Weekly Schedule -->
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Previous Semesters</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Weekly Schedule</h3>
             </div>
             <div class="p-6">
-              <div v-if="semesterAverages.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
-                No previous semester records found
+              <div v-if="scheduleLoading" class="text-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
               </div>
-              <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div 
-                  v-for="sem in semesterAverages" 
-                  :key="sem.semester"
-                  :class="[
-                    'p-4 rounded-lg border-2',
-                    sem.result === 'passed' 
-                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' 
-                      : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-                  ]"
-                >
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Semester {{ sem.semester }}</span>
-                    <span :class="[
-                      'px-2 py-0.5 text-xs font-medium rounded-full',
-                      sem.result === 'passed' 
-                        ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' 
-                        : 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
-                    ]">
-                      {{ sem.result === 'passed' ? 'Passed' : 'Failed' }}
-                    </span>
+              <div v-else-if="!schedule || schedule.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                No schedule found
+              </div>
+              <div v-else class="space-y-4">
+                <div v-for="day in daysOfWeek" :key="day.value" class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <div class="bg-gray-50 dark:bg-gray-900 px-4 py-2 font-semibold text-gray-700 dark:text-gray-300">
+                    {{ day.label }}
                   </div>
-                  <div class="text-2xl font-bold" :class="[
-                    sem.result === 'passed' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
-                  ]">
-                    {{ Number(sem.average).toFixed(2) }}/20
+                  <div class="p-4">
+                    <div v-if="getScheduleForDay(day.value).length === 0" class="text-sm text-gray-500 dark:text-gray-400 italic">
+                      No classes scheduled
+                    </div>
+                    <div v-else class="space-y-2">
+                      <div 
+                        v-for="session in getScheduleForDay(day.value)" 
+                        :key="session.id"
+                        class="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg"
+                      >
+                        <div>
+                          <p class="font-medium text-gray-900 dark:text-white">{{ session.module_name }}</p>
+                          <p class="text-sm text-gray-600 dark:text-gray-400">
+                            {{ session.specialty_name }} - S{{ session.semester }} / Group {{ session.group }}
+                          </p>
+                          <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                            <span class="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded text-indigo-700 dark:text-indigo-300">
+                              {{ session.session_type }}
+                            </span>
+                          </p>
+                        </div>
+                        <div class="text-right">
+                          <p class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                            {{ formatTime(session.start_time) }} - {{ formatTime(session.end_time) }}
+                          </p>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">Room {{ session.room_number }}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ sem.academic_year }}</p>
-                  <p v-if="sem.observations" class="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">{{ sem.observations }}</p>
                 </div>
               </div>
             </div>
@@ -233,7 +182,7 @@
     <div v-if="showResetPasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-opacity-70 overflow-y-auto h-full w-full z-50 flex items-center justify-center" @click.self="closeResetPasswordModal">
       <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Student Password</h3>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Teacher Password</h3>
           <button @click="closeResetPasswordModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -307,11 +256,10 @@ import axios from '@/api/axios'
 const route = useRoute()
 
 const loading = ref(true)
+const scheduleLoading = ref(true)
 const error = ref(null)
-const student = ref(null)
-const currentSemesterGrades = ref([])
-const currentSemesterAverage = ref(null)
-const semesterAverages = ref([])
+const teacher = ref(null)
+const schedule = ref([])
 
 const showResetPasswordModal = ref(false)
 const passwordForm = ref({ new_password: '' })
@@ -319,8 +267,18 @@ const newPassword = ref('')
 const resetting = ref(false)
 const resetError = ref(null)
 
+const daysOfWeek = [
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+  { value: 0, label: 'Sunday' }
+]
+
 const formatDate = (date) => {
-  if (!date) return null
+  if (!date) return 'N/A'
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -328,21 +286,41 @@ const formatDate = (date) => {
   })
 }
 
-const fetchStudentDetails = async () => {
+const formatTime = (time) => {
+  if (!time) return ''
+  const [hours, minutes] = time.split(':')
+  return `${hours}:${minutes}`
+}
+
+const getScheduleForDay = (dayValue) => {
+  return schedule.value.filter(session => session.day_of_week === dayValue)
+}
+
+const fetchTeacherDetails = async () => {
   loading.value = true
   error.value = null
 
   try {
-    const response = await axios.get(`/api/admin/students/${route.params.id}`)
-    student.value = response.data.student
-    currentSemesterGrades.value = response.data.current_semester_grades || []
-    currentSemesterAverage.value = response.data.current_semester_average
-    semesterAverages.value = response.data.semester_averages || []
+    const response = await axios.get(`/api/admin/teachers/${route.params.id}`)
+    teacher.value = response.data.teacher
   } catch (err) {
-    console.error('Error fetching student details:', err)
-    error.value = err.response?.data?.message || 'Failed to load student details'
+    console.error('Error fetching teacher details:', err)
+    error.value = err.response?.data?.message || 'Failed to load teacher details'
   } finally {
     loading.value = false
+  }
+}
+
+const fetchTeacherSchedule = async () => {
+  scheduleLoading.value = true
+
+  try {
+    const response = await axios.get(`/api/admin/teachers/${route.params.id}/schedule`)
+    schedule.value = response.data.schedule || []
+  } catch (err) {
+    console.error('Error fetching teacher schedule:', err)
+  } finally {
+    scheduleLoading.value = false
   }
 }
 
@@ -365,7 +343,7 @@ const handleResetPassword = async () => {
   resetting.value = true
 
   try {
-    const response = await axios.post(`/api/admin/students/${route.params.id}/reset-password`, passwordForm.value)
+    const response = await axios.post(`/api/admin/teachers/${route.params.id}/reset-password`, passwordForm.value)
     newPassword.value = response.data.new_password
     passwordForm.value = { new_password: '' }
   } catch (err) {
@@ -386,6 +364,7 @@ const copyPassword = async () => {
 }
 
 onMounted(() => {
-  fetchStudentDetails()
+  fetchTeacherDetails()
+  fetchTeacherSchedule()
 })
 </script>

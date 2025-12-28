@@ -902,6 +902,40 @@ class AdminController extends Controller
     }
 
     /**
+     * Get teacher schedule
+     */
+    public function getTeacherSchedule($id): JsonResponse
+    {
+        $teacher = Teacher::findOrFail($id);
+
+        $schedules = DB::table('schedules')
+            ->join('modules', 'schedules.module_id', '=', 'modules.id')
+            ->join('teacher_module', 'modules.id', '=', 'teacher_module.module_id')
+            ->join('specialties', 'modules.specialty_id', '=', 'specialties.id')
+            ->where('teacher_module.teacher_id', $teacher->id)
+            ->select(
+                'schedules.id',
+                'schedules.day_of_week',
+                'schedules.start_time',
+                'schedules.end_time',
+                'schedules.room_number',
+                'schedules.session_type',
+                'modules.name as module_name',
+                'modules.code as module_code',
+                'specialties.name as specialty_name',
+                'schedules.semester',
+                'schedules.group'
+            )
+            ->orderBy('schedules.day_of_week')
+            ->orderBy('schedules.start_time')
+            ->get();
+
+        return response()->json([
+            'schedule' => $schedules,
+        ]);
+    }
+
+    /**
      * Create teacher
      */
     public function createTeacher(Request $request): JsonResponse

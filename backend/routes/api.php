@@ -112,6 +112,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // Teacher Management
         Route::get('/teachers', [AdminController::class, 'getTeachers']);
         Route::get('/teachers/{id}', [AdminController::class, 'getTeacher']);
+        Route::get('/teachers/{id}/schedule', [AdminController::class, 'getTeacherSchedule']);
         Route::post('/teachers', [AdminController::class, 'createTeacher']);
         Route::put('/teachers/{id}', [AdminController::class, 'updateTeacher']);
         Route::delete('/teachers/{id}', [AdminController::class, 'deleteTeacher']);

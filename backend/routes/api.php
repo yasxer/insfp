@@ -119,12 +119,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/teachers/{id}/reset-password', [AdminController::class, 'resetTeacherPassword']);
 
         // Specialty Management
-        Route::get('/specialties', [AdminController::class, 'getSpecialties']);
-        Route::get('/specialties/{id}', [AdminController::class, 'getSpecialty']);
-        Route::post('/specialties', [AdminController::class, 'createSpecialty']);
-        Route::put('/specialties/{id}', [AdminController::class, 'updateSpecialty']);
-        Route::delete('/specialties/{id}', [AdminController::class, 'deleteSpecialty']);
-        Route::post('/specialties/{id}/toggle-status', [AdminController::class, 'toggleSpecialtyStatus']);
+        Route::get('/specialties', [SpecialtyController::class, 'index']);
+        Route::get('/specialties/{id}', [SpecialtyController::class, 'show']);
+        Route::post('/specialties', [SpecialtyController::class, 'store']);
+        Route::put('/specialties/{id}', [SpecialtyController::class, 'update']);
+        Route::delete('/specialties/{id}', [SpecialtyController::class, 'destroy']);
+        // Route::post('/specialties/{id}/toggle-status', [AdminController::class, 'toggleSpecialtyStatus']);
 
         // Module Management
         Route::get('/modules', [AdminController::class, 'getModules']);

@@ -98,8 +98,17 @@ const routes = [
         path: 'teachers/:id',
         name: 'AdminTeacherDetails',
         component: () => import('@/views/admin/TeacherDetails.vue')
-      }
-    ]
+      },
+      {
+        path: 'specialties',
+        name: 'AdminSpecialties',
+        component: () => import('@/views/admin/Specialties.vue')
+      },
+      {
+        path: 'specialties/:id',
+        name: 'AdminSpecialtyDetails',
+        component: () => import('@/views/admin/SpecialtyDetails.vue')
+      }    ]
   },
   {
     path: '/dashboard',

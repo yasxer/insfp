@@ -61,13 +61,24 @@
 
     <!-- Modules -->
     <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-      <div class="px-4 py-5 sm:px-6">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Modules</h3>
-        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Modules taught in this specialty.</p>
+      <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Modules</h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Modules taught in this specialty.</p>
+        </div>
+        <button 
+          @click="openAddModuleModal" 
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Add Module
+        </button>
       </div>
       <div class="border-t border-gray-200 dark:border-gray-700 p-6">
         <div v-if="modules.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div v-for="module in modules" :key="module.id" class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-5 shadow-sm flex flex-col space-y-3 hover:border-indigo-500 hover:shadow-md transition-all">
+          <div v-for="module in modules" :key="module.id" class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-5 shadow-sm flex flex-col space-y-3 hover:border-indigo-500 hover:shadow-md transition-all group">
             <div class="flex-1">
               <div class="flex items-center justify-between space-x-3">
                 <h3 class="text-gray-900 dark:text-white text-sm font-medium truncate" :title="module.name">{{ module.name }}</h3>
@@ -79,6 +90,15 @@
             </div>
             <div class="border-t border-gray-100 dark:border-gray-600 pt-2 flex justify-between items-center">
                <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Coefficient: {{ module.coefficient }}</span>
+               <button 
+                 @click="deleteModule(module)" 
+                 class="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                 title="Delete"
+               >
+                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                   <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                 </svg>
+               </button>
             </div>
           </div>
         </div>
@@ -124,6 +144,14 @@
       @close="closeModal"
       @save="handleSave"
     />
+
+    <ModuleForm 
+      :is-open="isModuleModalOpen" 
+      :module="selectedModule"
+      :specialty-id="parseInt(route.params.id)"
+      @close="closeModuleModal"
+      @save="handleModuleSave"
+    />
   </div>
 </template>
 
@@ -132,12 +160,16 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSpecialtiesStore } from '@/stores/specialties'
 import SpecialtyForm from '@/components/admin/specialties/SpecialtyForm.vue'
+import ModuleForm from '@/components/admin/specialties/ModuleForm.vue'
+import modulesApi from '@/api/endpoints/modules'
 
 const route = useRoute()
 const router = useRouter()
 const store = useSpecialtiesStore()
 
 const isModalOpen = ref(false)
+const isModuleModalOpen = ref(false)
+const selectedModule = ref(null)
 
 const specialty = computed(() => store.currentSpecialty)
 const loading = computed(() => store.loading)
@@ -174,6 +206,44 @@ const deleteSpecialty = async () => {
       router.push('/admin/specialties')
     } catch (error) {
       console.error('Failed to delete specialty:', error)
+    }
+  }
+}
+
+// Module Functions
+const openAddModuleModal = () => {
+  selectedModule.value = null
+  isModuleModalOpen.value = true
+}
+
+const closeModuleModal = () => {
+  isModuleModalOpen.value = false
+  selectedModule.value = null
+}
+
+const handleModuleSave = async (moduleData) => {
+  try {
+    // Create new module only
+    await modulesApi.createModule(moduleData)
+    
+    // Refresh specialty data to get updated modules
+    await store.fetchSpecialty(route.params.id)
+    closeModuleModal()
+  } catch (error) {
+    console.error('Failed to save module:', error)
+    alert(error.response?.data?.message || 'Failed to save module')
+  }
+}
+
+const deleteModule = async (module) => {
+  if (confirm(`Are you sure you want to delete ${module.name}?`)) {
+    try {
+      await modulesApi.deleteModule(module.id)
+      // Refresh specialty data
+      await store.fetchSpecialty(route.params.id)
+    } catch (error) {
+      console.error('Failed to delete module:', error)
+      alert(error.response?.data?.message || 'Failed to delete module')
     }
   }
 }

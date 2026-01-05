@@ -72,8 +72,11 @@ class SpecialtyController extends Controller
                         'id' => $module->id,
                         'name' => $module->name,
                         'code' => $module->code,
+                        'description' => $module->description,
+                        'specialty_id' => $module->specialty_id,
                         'semester' => $module->semester,
                         'coefficient' => $module->coefficient,
+                        'hours_per_week' => $module->hours_per_week,
                     ];
                 }),
                 'teachers' => $teachers->map(function($teacher) {

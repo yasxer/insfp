@@ -108,7 +108,13 @@ const routes = [
         path: 'specialties/:id',
         name: 'AdminSpecialtyDetails',
         component: () => import('@/views/admin/SpecialtyDetails.vue')
-      }    ]
+      },
+      {
+        path: 'schedule',
+        name: 'AdminSchedule',
+        component: () => import('@/views/admin/Schedule.vue')
+      }
+    ]
   },
   {
     path: '/dashboard',

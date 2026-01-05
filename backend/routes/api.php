@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\SpecialtyController;
+use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\TeacherAttendanceController;
@@ -134,6 +135,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/modules/{id}', [AdminController::class, 'deleteModule']);
         Route::post('/modules/assign-teacher', [AdminController::class, 'assignTeacherToModule']);
         Route::post('/modules/remove-teacher', [AdminController::class, 'removeTeacherFromModule']);
+
+        // Schedule Management
+        Route::get('/schedules', [ScheduleController::class, 'index']);
+        Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
+        Route::post('/schedules', [ScheduleController::class, 'store']);
+        Route::put('/schedules/{id}', [ScheduleController::class, 'update']);
+        Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy']);
+        Route::get('/schedules/groups', [ScheduleController::class, 'getGroups']);
 
         // Message Management
         Route::post('/messages/send', [AdminMessageController::class, 'sendMessage']);

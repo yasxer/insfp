@@ -132,7 +132,9 @@ const navigationItems = computed(() => {
       { name: 'Students', icon: AcademicCapIcon, path: '/admin/students' },
       { name: 'Teachers', icon: UserCircleIcon, path: '/admin/teachers' },
       { name: 'Specialties', icon: ClipboardDocumentCheckIcon, path: '/admin/specialties' },
-      { name: 'Reports', icon: CalendarIcon, path: '/admin/reports' },
+      { name: 'Sessions', icon: BookOpenIcon, path: '/admin/sessions' },
+      { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
+      { name: 'Reports', icon: DocumentTextIcon, path: '/admin/reports' },
     ]
   }
   

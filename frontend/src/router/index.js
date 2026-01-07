@@ -113,6 +113,11 @@ const routes = [
         path: 'schedule',
         name: 'AdminSchedule',
         component: () => import('@/views/admin/Schedule.vue')
+      },
+      {
+        path: 'sessions',
+        name: 'AdminSessions',
+        component: () => import('@/views/admin/Sessions.vue')
       }
     ]
   },

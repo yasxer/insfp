@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\TeacherGradesController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AdminMessageController;
 use App\Http\Controllers\Api\LessonController;
+use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\DocumentController;
 
 // Public routes (no authentication)
@@ -149,5 +150,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/messages/send', [AdminMessageController::class, 'sendMessage']);
         Route::get('/messages', [AdminMessageController::class, 'index']);
         Route::get('/messages/stats', [AdminMessageController::class, 'stats']);
+
+        // Session Management (Promotions)
+        Route::get('/sessions', [SessionController::class, 'index']);
+        Route::get('/sessions/archived', [SessionController::class, 'archived']);
+        Route::get('/sessions/dropdown', [SessionController::class, 'getSessionsForDropdown']);
+        Route::get('/sessions/specialties', [SessionController::class, 'getSpecialties']);
+        Route::get('/sessions/study-types', [SessionController::class, 'getStudyTypes']);
+        Route::get('/sessions/{id}', [SessionController::class, 'show']);
+        Route::post('/sessions', [SessionController::class, 'store']);
+        Route::put('/sessions/{id}', [SessionController::class, 'update']);
+        Route::delete('/sessions/{id}', [SessionController::class, 'destroy']);
+        Route::post('/sessions/{id}/specialties', [SessionController::class, 'addSpecialty']);
+        Route::delete('/sessions/{sessionId}/specialties/{sessionSpecialtyId}', [SessionController::class, 'removeSpecialty']);
     });
 });

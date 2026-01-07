@@ -8,6 +8,7 @@ class Student extends Model
     protected $fillable = [
         'user_id',
         'specialty_id',
+        'session_specialty_id',
         'registration_number',
         'first_name',
         'last_name',
@@ -31,14 +32,34 @@ class Student extends Model
         'graduation_semester' => 'integer',
         'final_gpa' => 'decimal:2'
     ];
-    protected $appends = ['full_name'];
+    protected $appends = ['full_name', 'promotion', 'study_type'];
 
     public function user() { return $this->belongsTo(User::class); }
     public function specialty() { return $this->belongsTo(Specialty::class); }
+    public function sessionSpecialty() { return $this->belongsTo(SessionSpecialty::class); }
+    public function session() { return $this->hasOneThrough(TrainingSession::class, SessionSpecialty::class, 'id', 'id', 'session_specialty_id', 'session_id'); }
     public function attendances() { return $this->hasMany(Attendance::class); }
     public function grades() { return $this->hasMany(Grade::class); }
     public function deliberations() { return $this->hasMany(Deliberation::class); }
     public function encadrementGroups() { return $this->belongsToMany(EncadrementGroup::class, 'encadrement_students'); }
+
+    // Get promotion/session info
+    public function getPromotionAttribute()
+    {
+        if ($this->sessionSpecialty && $this->sessionSpecialty->session) {
+            return $this->sessionSpecialty->session->name;
+        }
+        return null;
+    }
+
+    // Get study type from session specialty
+    public function getStudyTypeAttribute()
+    {
+        if ($this->sessionSpecialty) {
+            return $this->sessionSpecialty->study_type_label;
+        }
+        return null;
+    }
 
     public function scopeActive($query) { return $query->where('is_graduated', false); }
     public function scopeGraduated($query) { return $query->where('is_graduated', true); }

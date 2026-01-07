@@ -610,9 +610,16 @@ class StudentController extends Controller
         }
         $endOfWeek = $startOfWeek->copy()->endOfWeek();
 
-        // Get recurring schedules for student's specialty and semester
+        // Get recurring schedules for student's specialty, semester, and study_mode
+        // Also filter by group (if schedule has a group, student must be in that group)
         $schedules = Schedule::where('specialty_id', $student->specialty_id)
             ->where('semester', $student->current_semester)
+            ->where('study_mode', $student->study_mode)
+            ->where(function($query) use ($student) {
+                // Include schedules with no group (for all students) OR matching student's group
+                $query->whereNull('group')
+                      ->orWhere('group', $student->group);
+            })
             ->with(['module', 'teacher'])
             ->get();
 
@@ -648,12 +655,13 @@ class StudentController extends Controller
                         'id' => $schedule->teacher->id,
                         'full_name' => $schedule->teacher->full_name,
                     ] : null,
-                    'start_time' => is_string($schedule->start_time) ? $schedule->start_time : Carbon::parse($schedule->start_time)->format('H:i:s'),
-                    'end_time' => Carbon::parse($schedule->start_time)->addHours(1)->format('H:i:s'),
+                    'start_time' => is_string($schedule->start_time) ? $schedule->start_time : Carbon::parse($schedule->start_time)->format('H:i'),
+                    'end_time' => is_string($schedule->end_time) ? $schedule->end_time : Carbon::parse($schedule->end_time)->format('H:i'),
                     'room' => $schedule->classroom,
+                    'group' => $schedule->group,
                     'type' => 'course',
                     'date' => $date->format('Y-m-d'),
-                    'day_name' => $date->locale('fr')->isoFormat('dddd'),
+                    'day_name' => $date->locale('en')->isoFormat('dddd'),
                 ]);
             }
         }
@@ -671,6 +679,8 @@ class StudentController extends Controller
             'student_id' => $student->id,
             'specialty_id' => $student->specialty_id,
             'semester' => $student->current_semester,
+            'study_mode' => $student->study_mode,
+            'group' => $student->group,
             'schedules_count' => $schedules->count(),
             'week_schedules_count' => $weekSchedules->count(),
             'response_count' => count($schedulesByDay)

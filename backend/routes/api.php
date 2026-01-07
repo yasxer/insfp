@@ -138,11 +138,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Schedule Management
         Route::get('/schedules', [ScheduleController::class, 'index']);
+        Route::get('/schedules/groups', [ScheduleController::class, 'getGroups']);
+        Route::get('/schedules/specialty-semesters', [ScheduleController::class, 'getSpecialtySemesters']);
         Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
         Route::post('/schedules', [ScheduleController::class, 'store']);
         Route::put('/schedules/{id}', [ScheduleController::class, 'update']);
         Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy']);
-        Route::get('/schedules/groups', [ScheduleController::class, 'getGroups']);
 
         // Message Management
         Route::post('/messages/send', [AdminMessageController::class, 'sendMessage']);

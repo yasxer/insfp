@@ -31,5 +31,12 @@ export default {
     return axios.get('/api/admin/schedules/groups', { 
       params: { specialty_id } 
     })
+  },
+
+  // Get specialty-semester combinations with student counts
+  getSpecialtySemesters(academic_year = null) {
+    return axios.get('/api/admin/schedules/specialty-semesters', {
+      params: { academic_year }
+    })
   }
 }

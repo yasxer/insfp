@@ -9,13 +9,15 @@ const scheduleData = ref([])
 const error = ref(null)
 const currentWeek = ref('Week 1, Semester 1')
 
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+// Days starting from Saturday (Algerian week)
+const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday']
 const timeSlots = [
   '08:00 - 09:30',
-  '10:00 - 11:30',
-  '11:30 - 13:00',
-  '13:30 - 15:00',
-  '15:00 - 16:30'
+  '09:30 - 11:00',
+  '11:00 - 12:30',
+  '13:00 - 14:30',
+  '14:30 - 16:00',
+  '16:00 - 17:30'
 ]
 
 // Convert French day names to English
@@ -39,7 +41,11 @@ const getClassForSlot = (day, timeSlot) => {
     let classDay = classItem.day_name || ''
     classDay = frenchToEnglish(classDay)
     
-    const classStartTime = classItem.start_time ? classItem.start_time.substring(0, 5) : ''
+    // Handle time format - remove seconds if present
+    let classStartTime = classItem.start_time || ''
+    if (classStartTime.length > 5) {
+      classStartTime = classStartTime.substring(0, 5)
+    }
     
     return classDay === day && classStartTime === slotStartTime
   })
@@ -49,6 +55,8 @@ onMounted(async () => {
   try {
     loading.value = true
     const response = await studentApi.getSchedule()
+    
+    console.log('Schedule API response:', response)
     
     if (Array.isArray(response)) {
       const allClasses = []
@@ -61,12 +69,13 @@ onMounted(async () => {
         }
       })
       scheduleData.value = allClasses
+      console.log('Processed schedule data:', allClasses)
     } else {
       scheduleData.value = []
     }
   } catch (err) {
     console.error('Failed to load schedule:', err)
-    error.value = 'فشل تحميل الجدول'
+    error.value = 'Failed to load schedule'
   } finally {
     loading.value = false
   }

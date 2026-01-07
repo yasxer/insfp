@@ -27,6 +27,7 @@ class SpecialtyController extends Controller
                     'id' => $specialty->id,
                     'name' => $specialty->name,
                     'code' => $specialty->code,
+                    'study_mode' => $specialty->study_mode,
                     'description' => $specialty->description,
                     'students_count' => $specialty->students_count,
                     'is_active' => $specialty->is_active,

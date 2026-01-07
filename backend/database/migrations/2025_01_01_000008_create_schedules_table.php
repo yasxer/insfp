@@ -13,7 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('module_id');
             $table->unsignedBigInteger('teacher_id');
             $table->unsignedBigInteger('specialty_id');
-            $table->enum('day', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']);
+            $table->enum('day', ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday']);
             $table->time('start_time');
             $table->string('classroom', 50)->nullable();
             $table->integer('semester');

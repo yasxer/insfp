@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Specialty extends Model
 {
-    protected $fillable = ['name', 'code', 'description', 'duration_semesters', 'current_semester', 'duration_years', 'is_active', 'cover_image', 'brochure_path', 'brochure_name', 'program_pdf_path'];
+    protected $fillable = ['name', 'code', 'study_mode', 'description', 'duration_semesters', 'current_semester', 'duration_years', 'is_active', 'cover_image', 'brochure_path', 'brochure_name', 'program_pdf_path'];
     protected $casts = ['duration_semesters' => 'integer', 'current_semester' => 'integer', 'duration_years' => 'decimal:1', 'is_active' => 'boolean'];
 
     public function students() { return $this->hasMany(Student::class); }

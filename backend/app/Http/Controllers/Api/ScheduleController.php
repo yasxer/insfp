@@ -9,6 +9,7 @@ use App\Models\Module;
 use App\Models\Teacher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends Controller
 {
@@ -117,7 +118,8 @@ class ScheduleController extends Controller
             'module_id' => 'required|exists:modules,id',
             'teacher_id' => 'required|exists:teachers,id',
             'specialty_id' => 'required|exists:specialties,id',
-            'study_mode' => 'required|in:presencial,apprentissage,cours_de_soir',
+            'study_mode' => 'required|in:initial,alternance,continue',
+            'semester' => 'required|integer|min:1|max:6',
             'group' => 'nullable|string|max:10',
             'day' => 'required|in:saturday,sunday,monday,tuesday,wednesday,thursday',
             'start_time' => 'required|date_format:H:i',
@@ -180,7 +182,8 @@ class ScheduleController extends Controller
             'module_id' => 'sometimes|exists:modules,id',
             'teacher_id' => 'sometimes|exists:teachers,id',
             'specialty_id' => 'sometimes|exists:specialties,id',
-            'study_mode' => 'sometimes|in:presencial,apprentissage,cours_de_soir',
+            'study_mode' => 'sometimes|in:initial,alternance,continue',
+            'semester' => 'sometimes|integer|min:1|max:6',
             'group' => 'sometimes|nullable|string|max:10',
             'day' => 'sometimes|in:saturday,sunday,monday,tuesday,wednesday,thursday',
             'start_time' => 'sometimes|date_format:H:i',
@@ -272,6 +275,61 @@ class ScheduleController extends Controller
 
         return response()->json([
             'groups' => $groups,
+        ]);
+    }
+
+    /**
+     * Get specialty-semester combinations with student counts
+     * Returns unique combinations where students are currently enrolled
+     */
+    public function getSpecialtySemesters(Request $request): JsonResponse
+    {
+        $academic_year = $request->academic_year;
+
+        // Get all active specialties with their current students grouped by semester
+        $combinations = \App\Models\Student::select(
+                'specialty_id',
+                'study_mode',
+                'current_semester',
+                DB::raw('COUNT(*) as students_count'),
+                DB::raw('GROUP_CONCAT(DISTINCT COALESCE(`group`, "") SEPARATOR ",") as groups_list')
+            )
+            ->where('is_graduated', false)
+            ->whereNotNull('specialty_id')
+            ->whereNotNull('current_semester')
+            ->groupBy('specialty_id', 'study_mode', 'current_semester')
+            ->get();
+
+        // Get all specialty IDs and fetch them separately
+        $specialtyIds = $combinations->pluck('specialty_id')->unique();
+        $specialties = \App\Models\Specialty::whereIn('id', $specialtyIds)
+            ->get()
+            ->keyBy('id');
+
+        $result = $combinations->map(function ($item) use ($specialties) {
+                $specialty = $specialties->get($item->specialty_id);
+                $groups = $item->groups_list
+                    ? array_values(array_filter(explode(',', $item->groups_list), fn($g) => $g !== ''))
+                    : [];
+
+                return [
+                    'id' => $item->specialty_id . '_' . $item->study_mode . '_' . $item->current_semester,
+                    'specialty_id' => $item->specialty_id,
+                    'specialty_name' => $specialty->name ?? 'Unknown',
+                    'specialty_code' => $specialty->code ?? '',
+                    'study_mode' => $item->study_mode,
+                    'semester' => $item->current_semester,
+                    'students_count' => $item->students_count,
+                    'groups' => $groups,
+                    'groups_count' => count($groups),
+                ];
+            })
+            ->sortBy(['study_mode', 'specialty_name', 'semester'])
+            ->values();
+
+        return response()->json([
+            'specialty_semesters' => $result,
+            'count' => $result->count(),
         ]);
     }
 }

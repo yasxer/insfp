@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\TeacherAttendanceController;
 use App\Http\Controllers\Api\TeacherGradesController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AdminMessageController;
+use App\Http\Controllers\Api\AdminDocumentController;
 use App\Http\Controllers\Api\LessonController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\DocumentController;
@@ -150,6 +151,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/messages/send', [AdminMessageController::class, 'sendMessage']);
         Route::get('/messages', [AdminMessageController::class, 'index']);
         Route::get('/messages/stats', [AdminMessageController::class, 'stats']);
+
+        // Document/File Management
+        Route::get('/documents', [AdminDocumentController::class, 'index']);
+        Route::post('/documents', [AdminDocumentController::class, 'store']);
+        Route::delete('/documents/{id}', [AdminDocumentController::class, 'destroy']);
+        Route::get('/documents/{id}/download', [AdminDocumentController::class, 'download']);
+        Route::get('/documents/sessions', [AdminDocumentController::class, 'getSessions']);
+        Route::get('/documents/sessions/{sessionId}/specialties', [AdminDocumentController::class, 'getSessionSpecialties']);
 
         // Session Management (Promotions)
         Route::get('/sessions', [SessionController::class, 'index']);

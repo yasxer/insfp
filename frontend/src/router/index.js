@@ -118,6 +118,11 @@ const routes = [
         path: 'sessions',
         name: 'AdminSessions',
         component: () => import('@/views/admin/Sessions.vue')
+      },
+      {
+        path: 'files',
+        name: 'AdminFiles',
+        component: () => import('@/views/admin/Files.vue')
       }
     ]
   },

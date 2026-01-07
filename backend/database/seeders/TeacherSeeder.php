@@ -3,45 +3,26 @@
 namespace Database\Seeders;
 
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class TeacherSeeder extends Seeder
 {
     public function run(): void
     {
-        Teacher::create([
-            'user_id' => 2,
-            'first_name' => 'Ahmed',
-            'last_name' => 'Bennani',
-            'specialization' => 'Informatique',
-        ]);
+        $teacherUsers = User::where('role', 'teacher')->get();
 
-        Teacher::create([
-            'user_id' => 3,
-            'first_name' => 'Fatima',
-            'last_name' => 'Zahra',
-            'specialization' => 'Management',
-        ]);
+        $firstNames = ['Ahmed', 'Fatima', 'Mohamed', 'Aisha', 'Hassan', 'Leila', 'Ibrahim', 'Zahra', 'Riad', 'Safiya'];
+        $lastNames = ['Hassan', 'Bennani', 'Alami', 'Boubekri', 'Cherkaoui', 'Kabbaj', 'Lahcen', 'Tazi', 'Benali', 'Srhir'];
+        $specializations = ['Électricité', 'Électronique', 'Plomberie', 'Maçonnerie', 'Menuiserie', 'Informatique', 'Gestion'];
 
-        Teacher::create([
-            'user_id' => 4,
-            'first_name' => 'Youssef',
-            'last_name' => 'Amrani',
-            'specialization' => 'Mathématiques',
-        ]);
-
-        Teacher::create([
-            'user_id' => 5,
-            'first_name' => 'Khadija',
-            'last_name' => 'El Fassi',
-            'specialization' => 'Comptabilité',
-        ]);
-
-        Teacher::create([
-            'user_id' => 6,
-            'first_name' => 'Omar',
-            'last_name' => 'Idrissi',
-            'specialization' => 'Anglais',
-        ]);
+        foreach ($teacherUsers as $index => $user) {
+            Teacher::create([
+                'user_id' => $user->id,
+                'first_name' => $firstNames[$index % count($firstNames)],
+                'last_name' => $lastNames[$index % count($lastNames)],
+                'specialization' => $specializations[array_rand($specializations)],
+            ]);
+        }
     }
 }

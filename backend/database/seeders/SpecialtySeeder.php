@@ -9,28 +9,60 @@ class SpecialtySeeder extends Seeder
 {
     public function run(): void
     {
-        Specialty::create([
-            'name' => 'Développement Digital',
-            'code' => 'DD01',
-            'description' => 'Formation en développement web et mobile',
-            'duration_semesters' => 6,
-            'is_active' => true,
-        ]);
+        $specialties = [
+            [
+                'name' => 'Électricité Bâtiment',
+                'code' => 'EB',
+                'description' => 'Formation en électricité du bâtiment et installations électriques',
+                'duration_semesters' => 4,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Électronique',
+                'code' => 'EL',
+                'description' => 'Formation en électronique et maintenance électronique',
+                'duration_semesters' => 4,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Plomberie Sanitaire',
+                'code' => 'PS',
+                'description' => 'Formation en plomberie sanitaire et installations',
+                'duration_semesters' => 4,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Maçonnerie',
+                'code' => 'MN',
+                'description' => 'Formation en maçonnerie et construction',
+                'duration_semesters' => 4,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Menuiserie Bois',
+                'code' => 'MB',
+                'description' => 'Formation en menuiserie et travail du bois',
+                'duration_semesters' => 4,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Informatique',
+                'code' => 'IT',
+                'description' => 'Formation en informatique et développement',
+                'duration_semesters' => 4,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Gestion Commerciale',
+                'code' => 'GC',
+                'description' => 'Formation en gestion et commerce',
+                'duration_semesters' => 4,
+                'is_active' => true,
+            ],
+        ];
 
-        Specialty::create([
-            'name' => "Gestion d'Entreprise",
-            'code' => 'GE01',
-            'description' => 'Formation en management et gestion',
-            'duration_semesters' => 6,
-            'is_active' => true,
-        ]);
-
-        Specialty::create([
-            'name' => 'Comptabilité et Fiscalité',
-            'code' => 'CF01',
-            'description' => 'Formation en comptabilité',
-            'duration_semesters' => 6,
-            'is_active' => true,
-        ]);
+        foreach ($specialties as $specialty) {
+            Specialty::create($specialty);
+        }
     }
 }

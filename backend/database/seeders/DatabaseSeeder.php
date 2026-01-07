@@ -11,19 +11,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             SpecialtySeeder::class,
-            AdministrationSeeder::class,
+            ModuleSeeder::class,
             TeacherSeeder::class,
             StudentSeeder::class,
-            ModuleSeeder::class,
-            TeacherModuleSeeder::class,
-            ScheduleSeeder::class,
-            HolidaySeeder::class,
-            MessageSeeder::class,
-            LessonSeeder::class,
-            DocumentSeeder::class,
-            AttendanceSeeder::class,
-            ExamSeeder::class,
-            GradeSeeder::class,
+            AdministrationSeeder::class,
         ]);
     }
 }

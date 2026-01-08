@@ -49,11 +49,11 @@ class DocumentController extends Controller
         $user = $request->user();
         $document = Document::findOrFail($id);
 
-        if (!Storage::exists($document->file_path)) {
+        if (!Storage::disk('public')->exists($document->file_path)) {
             return response()->json(['message' => 'File not found'], 404);
         }
 
-        return Storage::download($document->file_path, $document->file_name);
+        return Storage::disk('public')->download($document->file_path, $document->file_name);
     }
 
     /**

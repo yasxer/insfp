@@ -13,7 +13,8 @@ import {
   XMarkIcon,
   EnvelopeIcon,
   BookOpenIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  IdentificationIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -133,6 +134,7 @@ const navigationItems = computed(() => {
       { name: 'Teachers', icon: UserCircleIcon, path: '/admin/teachers' },
       { name: 'Specialties', icon: ClipboardDocumentCheckIcon, path: '/admin/specialties' },
       { name: 'Sessions', icon: BookOpenIcon, path: '/admin/sessions' },
+      { name: 'Registration Gen', icon: IdentificationIcon, path: '/admin/registration-generator' },
       { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
       { name: 'Files', icon: DocumentTextIcon, path: '/admin/files' },
       { name: 'Reports', icon: DocumentTextIcon, path: '/admin/reports' },

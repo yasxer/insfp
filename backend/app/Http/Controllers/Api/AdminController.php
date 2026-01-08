@@ -12,6 +12,8 @@ use App\Models\Module;
 use App\Models\Grade;
 use App\Models\Deliberation;
 use App\Models\RegistrationNumber;
+use App\Models\TrainingSession;
+use App\Models\SessionSpecialty;
 use App\Models\Exam;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -191,42 +193,142 @@ class AdminController extends Controller
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * Generate ONE registration number
+     * Get sessions suitable for registration (Future or Current)
+     */
+    public function getRegistrationSessions()
+    {
+        // Get sessions that haven't ended yet
+        $sessions = TrainingSession::where('end_date', '>=', now())
+            ->orderBy('start_date', 'asc')
+            ->get(['id', 'name', 'start_date', 'end_date', 'year']);
+
+        return response()->json($sessions);
+    }
+
+    /**
+     * Get specialties for a specific session
+     */
+    public function getRegistrationSessionSpecialties($sessionId)
+    {
+        $sessionSpecialties = SessionSpecialty::where('session_id', $sessionId)
+            ->with('specialty')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->specialty->id,
+                    'name' => $item->specialty->name,
+                    'code' => $item->specialty->code,
+                    'study_type' => $item->study_type_label,
+                ];
+            });
+
+        return response()->json($sessionSpecialties);
+    }
+
+    /**
+     * Generate ONE registration number (Modified for session and 4 digits)
      */
     public function generateRegistrationNumber(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'specialty_id' => 'required|exists:specialties,id',
+            'session_id' => 'required|exists:sessions,id',
         ]);
 
         $specialty = Specialty::findOrFail($request->specialty_id);
-        $year = date('Y');
-        $academicYear = $year . '-' . ($year + 1);
+        $session = TrainingSession::findOrFail($request->session_id);
 
+        // Get session year
+        $year = $session->year;
+
+        // Find last number for this specialty and session year
         $lastNumber = RegistrationNumber::where('specialty_id', $request->specialty_id)
-            ->where('number', 'like', $specialty->code . $year . '%')
+            ->where('number', 'like', $specialty->code . $year . '%') // Use session year
             ->orderBy('number', 'desc')
             ->first();
 
+        // Sequence calculation
         $sequence = $lastNumber
-            ? intval(substr($lastNumber->number, -3)) + 1
+            ? intval(substr($lastNumber->number, -4)) + 1 // 4 digits
             : 1;
 
-        $number = $specialty->code . $year . str_pad($sequence, 3, '0', STR_PAD_LEFT);
+        // Final Format: CODE + YEAR + 0001
+        $number = $specialty->code . $year . str_pad($sequence, 4, '0', STR_PAD_LEFT);
 
         $registrationNumber = RegistrationNumber::create([
             'number' => $number,
             'specialty_id' => $request->specialty_id,
-            'academic_year' => $academicYear,
+            'session_id' => $session->id,
+            'academic_year' => $year . '-' . ($year + 1), // Optional but good to keep
             'is_used' => false,
         ]);
 
         return response()->json([
-            'message' => 'Numéro généré avec succès',
+            'message' => 'Registration number generated successfully',
             'registration_number' => $number,
             'specialty' => $specialty->name,
-            'academic_year' => $academicYear,
+            'session' => $session->name,
+            'academic_year' => $registrationNumber->academic_year,
         ], 201);
+    }
+
+    /**
+     * Get ALL registration numbers with filters
+     */
+    public function getRegistrationNumbers(Request $request): JsonResponse
+    {
+        $query = RegistrationNumber::with(['specialty', 'session']);
+
+        // Filter by session
+        if ($request->has('session_id') && $request->session_id) {
+            $query->where('session_id', $request->session_id);
+        }
+
+        // Filter by specialty
+        if ($request->has('specialty_id') && $request->specialty_id) {
+            $query->where('specialty_id', $request->specialty_id);
+        }
+
+        // Filter by status (used/available)
+        if ($request->has('status') && $request->status !== 'all') {
+            $status = $request->status === 'used';
+            $query->where('is_used', $status);
+        }
+
+        // Search by number
+        if ($request->has('search') && $request->search) {
+            $query->where('number', 'like', '%' . $request->search . '%');
+        }
+
+        $numbers = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        // Transform the collection but keep pagination
+        $numbers->getCollection()->transform(function ($regNum) {
+            $studentName = null;
+            if ($regNum->is_used) {
+                // Try to find student efficiently?
+                // Note: Ideally we should have a relationship on RegistrationNumber model
+                // but direct query is fine for now or if we added relation
+                 $student = \App\Models\Student::where('registration_number', $regNum->number)
+                    ->join('users', 'students.user_id', '=', 'users.id')
+                    ->select('users.name')
+                    ->first();
+                 $studentName = $student ? $student->name : 'Unknown';
+            }
+
+            return [
+                'id' => $regNum->id,
+                'number' => $regNum->number,
+                'specialty' => $regNum->specialty->name ?? 'N/A',
+                'session' => $regNum->session->name ?? 'N/A',
+                'status' => $regNum->is_used ? 'Used' : 'Available',
+                'used_by' => $studentName,
+                'academic_year' => $regNum->academic_year,
+                'created_at' => $regNum->created_at->format('Y-m-d H:i'),
+            ];
+        });
+
+        return response()->json($numbers);
     }
 
     /**
@@ -1497,4 +1599,5 @@ class AdminController extends Controller
             'teacher' => $teacher->full_name,
         ]);
     }
+
 }

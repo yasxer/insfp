@@ -120,6 +120,11 @@ const routes = [
         component: () => import('@/views/admin/Sessions.vue')
       },
       {
+        path: 'registration-generator',
+        name: 'AdminRegistrationGenerator',
+        component: () => import('@/views/admin/RegistrationGenerator.vue')
+      },
+      {
         path: 'files',
         name: 'AdminFiles',
         component: () => import('@/views/admin/Files.vue')

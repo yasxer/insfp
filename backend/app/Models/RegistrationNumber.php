@@ -10,6 +10,7 @@ class RegistrationNumber extends Model
         'number',
         'is_used',
         'specialty_id',
+        'session_id',
         'academic_year',
         'used_at',
     ];
@@ -22,6 +23,11 @@ class RegistrationNumber extends Model
     public function specialty()
     {
         return $this->belongsTo(Specialty::class);
+    }
+
+    public function session()
+    {
+        return $this->belongsTo(TrainingSession::class, 'session_id');
     }
 
     public function scopeAvailable($query)

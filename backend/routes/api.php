@@ -96,6 +96,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/charts/teachers-by-specialty', [AdminController::class, 'teachersBySpecialty']);
 
         // Registration Numbers
+        Route::get('/registration/sessions', [AdminController::class, 'getRegistrationSessions']);
+        Route::get('/registration/sessions/{session}/specialties', [AdminController::class, 'getRegistrationSessionSpecialties']);
+        Route::get('/registration/list', [AdminController::class, 'getRegistrationNumbers']);
         Route::post('/generate-registration', [AdminController::class, 'generateRegistrationNumber']);
         Route::get('/available-numbers', [AdminController::class, 'availableRegistrationNumbers']);
         Route::get('/used-numbers', [AdminController::class, 'usedRegistrationNumbers']);

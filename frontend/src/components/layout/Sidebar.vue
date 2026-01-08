@@ -138,6 +138,7 @@ const navigationItems = computed(() => {
       { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
       { name: 'Files', icon: DocumentTextIcon, path: '/admin/files' },
       { name: 'Reports', icon: DocumentTextIcon, path: '/admin/reports' },
+      { name: 'Profile', icon: UserCircleIcon, path: '/admin/profile' },
     ]
   }
   

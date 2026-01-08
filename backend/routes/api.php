@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\DocumentController;
 // Public routes (no authentication)
 Route::get('/specialties', [SpecialtyController::class, 'index']);
 Route::get('/specialties/{id}', [SpecialtyController::class, 'show']);
+Route::get('/sessions', [SessionController::class, 'index']); // Public access for registration
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
@@ -87,6 +88,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Administration routes
     Route::middleware(['approved', 'role:administration'])->prefix('admin')->group(function () {
+
+        // Profile
+        Route::get('/profile', [AdminController::class, 'profile']);
+        Route::put('/profile', [AdminController::class, 'updateProfile']);
 
         // Dashboard
         Route::get('/dashboard', [AdminController::class, 'dashboard']);

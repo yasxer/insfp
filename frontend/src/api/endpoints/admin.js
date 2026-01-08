@@ -70,5 +70,26 @@ export default {
       console.error('Admin API Error (getSessionSpecialties):', error)
       throw error
     }
+  },
+
+  // Profile
+  async getProfile() {
+    try {
+      const response = await apiClient.get('/api/admin/profile')
+      return response.data
+    } catch (error) {
+      console.error('Admin API Error (getProfile):', error)
+      throw error
+    }
+  },
+
+  async updateProfile(data) {
+    try {
+      const response = await apiClient.put('/api/admin/profile', data)
+      return response.data
+    } catch (error) {
+      console.error('Admin API Error (updateProfile):', error)
+      throw error
+    }
   }
 }

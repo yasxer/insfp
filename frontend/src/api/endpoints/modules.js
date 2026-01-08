@@ -24,5 +24,15 @@ export default {
   // Delete module
   deleteModule(id) {
     return axios.delete(`/api/admin/modules/${id}`)
+  },
+
+  // Assign teacher
+  assignTeacher(data) {
+    return axios.post('/api/admin/modules/assign-teacher', data)
+  },
+
+  // Remove teacher
+  removeTeacher(data) {
+    return axios.post('/api/admin/modules/remove-teacher', data)
   }
 }

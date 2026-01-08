@@ -88,7 +88,29 @@
               </div>
               <p class="mt-1 text-gray-500 dark:text-gray-300 text-sm truncate">{{ module.code }}</p>
             </div>
-            <div class="border-t border-gray-100 dark:border-gray-600 pt-2 flex justify-between items-center">
+            <div class="p-3 border-t border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+               <div class="flex justify-between items-center mb-2">
+                   <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Teachers</h4>
+                   <button @click="openAssignTeacherModal(module)" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center">
+                     <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                     </svg>
+                     Assign
+                   </button>
+               </div>
+               <div class="space-y-1 max-h-24 overflow-y-auto">
+                  <div v-for="teacher in module.teachers" :key="teacher.id" class="flex justify-between items-center text-xs bg-white dark:bg-gray-700 px-2 py-1.5 rounded border border-gray-200 dark:border-gray-600 group/teacher">
+                      <span class="text-gray-700 dark:text-gray-200 truncate" :title="teacher.full_name">{{ teacher.full_name }}</span>
+                       <button @click="removeTeacherFromModule(module, teacher)" class="text-gray-400 hover:text-red-500 opacity-0 group-hover/teacher:opacity-100 transition-opacity">
+                         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                         </svg>
+                       </button>
+                  </div>
+                   <div v-if="!module.teachers || module.teachers.length === 0" class="text-xs text-center text-gray-400 italic py-1">No teachers assigned</div>
+               </div>
+            </div>
+            <div class="border-t border-gray-100 dark:border-gray-600 pt-2 flex justify-between items-center px-4 pb-2">
                <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Coefficient: {{ module.coefficient }}</span>
                <button 
                  @click="deleteModule(module)" 
@@ -152,6 +174,13 @@
       @close="closeModuleModal"
       @save="handleModuleSave"
     />
+
+    <AssignTeacherModal
+      :is-open="isAssignTeacherModalOpen"
+      :module="moduleToAssign"
+      @close="closeAssignTeacherModal"
+      @assign="handleAssignTeacher"
+    />
   </div>
 </template>
 
@@ -161,6 +190,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useSpecialtiesStore } from '@/stores/specialties'
 import SpecialtyForm from '@/components/admin/specialties/SpecialtyForm.vue'
 import ModuleForm from '@/components/admin/specialties/ModuleForm.vue'
+import AssignTeacherModal from '@/components/admin/specialties/AssignTeacherModal.vue'
 import modulesApi from '@/api/endpoints/modules'
 
 const route = useRoute()
@@ -169,7 +199,9 @@ const store = useSpecialtiesStore()
 
 const isModalOpen = ref(false)
 const isModuleModalOpen = ref(false)
+const isAssignTeacherModalOpen = ref(false)
 const selectedModule = ref(null)
+const moduleToAssign = ref(null)
 
 const specialty = computed(() => store.currentSpecialty)
 const loading = computed(() => store.loading)
@@ -244,6 +276,43 @@ const deleteModule = async (module) => {
     } catch (error) {
       console.error('Failed to delete module:', error)
       alert(error.response?.data?.message || 'Failed to delete module')
+    }
+  }
+}
+
+// Teacher Assignment Functions
+const openAssignTeacherModal = (module) => {
+  moduleToAssign.value = module
+  isAssignTeacherModalOpen.value = true
+}
+
+const closeAssignTeacherModal = () => {
+  isAssignTeacherModalOpen.value = false
+  moduleToAssign.value = null
+}
+
+const handleAssignTeacher = async (data) => {
+  try {
+    await modulesApi.assignTeacher(data)
+    await store.fetchSpecialty(route.params.id)
+    closeAssignTeacherModal()
+  } catch (error) {
+    console.error('Failed to assign teacher:', error)
+    alert(error.response?.data?.message || 'Failed to assign teacher')
+  }
+}
+
+const removeTeacherFromModule = async (module, teacher) => {
+  if (confirm(`Are you sure you want to remove ${teacher.full_name} from ${module.name}?`)) {
+    try {
+      await modulesApi.removeTeacher({
+        module_id: module.id,
+        teacher_id: teacher.id
+      })
+      await store.fetchSpecialty(route.params.id)
+    } catch (error) {
+      console.error('Failed to remove teacher:', error)
+      alert(error.response?.data?.message || 'Failed to remove teacher')
     }
   }
 }

@@ -21,7 +21,8 @@ export const useStudentsStore = defineStore('students', {
       study_mode: null,
       approved: null,
       is_graduated: null
-    }
+    },
+    pendingStudents: []
   }),
 
   getters: {
@@ -31,6 +32,45 @@ export const useStudentsStore = defineStore('students', {
   },
 
   actions: {
+    async fetchPendingStudents() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await axios.get('/api/admin/pending-registrations')
+        this.pendingStudents = response.data.pending_registrations
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to fetch pending registrations'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async approveStudent(id) {
+      this.loading = true
+      try {
+        await axios.post(`/api/admin/students/${id}/approve`)
+        await this.fetchPendingStudents()
+        // Refresh active list if needed, or wait until tab switch
+      } catch (error) {
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async rejectStudent(id, reason = '') {
+      this.loading = true
+      try {
+        await axios.post(`/api/admin/students/${id}/reject`, { reason })
+        await this.fetchPendingStudents()
+      } catch (error) {
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     async fetchStudents(page = 1) {
       this.loading = true
       this.error = null

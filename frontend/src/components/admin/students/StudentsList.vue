@@ -51,12 +51,23 @@
           >
             Graduated Students
           </button>
+          <button
+            @click="activeTab = 'pending'"
+            :class="[
+              activeTab === 'pending'
+                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300',
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
+            ]"
+          >
+            Pending Registrations
+          </button>
         </nav>
       </div>
     </div>
 
     <!-- Filters -->
-    <StudentFilters :tab="activeTab" @update:filters="updateFilters" />
+    <StudentFilters v-if="activeTab !== 'pending'" :tab="activeTab" @update:filters="updateFilters" />
 
     <!-- Selection Bar -->
     <div v-if="selectedStudentIds.length > 0" class="mb-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 flex items-center justify-between">
@@ -106,7 +117,7 @@
 
     <!-- Graduated Students Table -->
     <GraduatedStudentsTable 
-      v-else
+      v-else-if="activeTab === 'graduated'"
       :students="students"
       :loading="loading"
       :pagination="pagination"
@@ -116,6 +127,15 @@
       @select="handleSelect"
       @select-all="handleSelectAll"
       @message-individual="handleMessageIndividual"
+    />
+
+    <!-- Pending Students Table -->
+    <PendingStudentsTable
+      v-else-if="activeTab === 'pending'"
+      :students="pendingStudents"
+      :loading="loading"
+      @approve="confirmApprove"
+      @reject="confirmReject"
     />
 
     <!-- Pagination -->
@@ -153,11 +173,13 @@ import StudentForm from './StudentForm.vue'
 import DeleteConfirmation from './DeleteConfirmation.vue'
 import ActiveStudentsTable from './ActiveStudentsTable.vue'
 import GraduatedStudentsTable from './GraduatedStudentsTable.vue'
+import PendingStudentsTable from './PendingStudentsTable.vue'
 import MessageComposer from './MessageComposer.vue'
 
 const studentsStore = useStudentsStore()
 
 const students = computed(() => studentsStore.students)
+const pendingStudents = computed(() => studentsStore.pendingStudents)
 const loading = computed(() => studentsStore.loading)
 const pagination = computed(() => studentsStore.pagination)
 
@@ -178,10 +200,16 @@ const selectedStudentsData = computed(() => {
 
 // Watch tab change
 watch(activeTab, (newTab) => {
+  clearSelection() // Clear selection when switching tabs
+
+  if (newTab === 'pending') {
+    studentsStore.fetchPendingStudents()
+    return
+  }
+
   const isGraduated = newTab === 'graduated'
   studentsStore.setFilters({ is_graduated: isGraduated })
   studentsStore.fetchStudents(1)
-  clearSelection() // Clear selection when switching tabs
 })
 
 onMounted(() => {
@@ -329,6 +357,29 @@ const handleDeleteStudent = async () => {
       closeDeleteModal()
     } catch (error) {
       console.error('Failed to delete student', error)
+    }
+  }
+}
+
+const confirmApprove = async (student) => {
+  if (confirm(`Approve registration for ${student.full_name}?`)) {
+    try {
+      await studentsStore.approveStudent(student.id)
+    } catch (error) {
+      console.error('Failed to approve student', error)
+      alert(error.response?.data?.message || 'Failed to approve student')
+    }
+  }
+}
+
+const confirmReject = async (student) => {
+  const reason = prompt(`Reason for rejecting ${student.full_name}?`)
+  if (reason !== null) { // If not cancelled
+    try {
+      await studentsStore.rejectStudent(student.id, reason)
+    } catch (error) {
+       console.error('Failed to reject student', error)
+       alert(error.response?.data?.message || 'Failed to reject student')
     }
   }
 }

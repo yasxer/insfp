@@ -20,7 +20,9 @@ class RegisterRequest extends FormRequest
             'last_name' => 'required|string|max:100',
             'phone' => 'nullable|string|regex:/^0[5-7][0-9]{8}$/|unique:users,phone',
             'specialty_id' => 'required|exists:specialties,id',
+            'session_id' => 'required|exists:sessions,id',
             'email' => 'required|email|unique:users,email',
+            'study_mode' => 'required|in:initial,alternance,continue',
             'password' => ['required', 'string', 'confirmed', Password::min(6)],
         ];
     }
@@ -38,6 +40,8 @@ class RegisterRequest extends FormRequest
             'specialty_id.exists' => 'Spécialité invalide',
             'email.required' => 'Email requis',
             'email.unique' => 'Email déjà utilisé',
+            'study_mode.required' => 'Mode d\'étude requis',
+            'study_mode.in' => 'Mode d\'étude invalide',
             'password.confirmed' => 'Confirmation ne correspond pas',
         ];
     }

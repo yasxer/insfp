@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Models\Student;
 use App\Models\RegistrationNumber;
+use App\Models\SessionSpecialty;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -95,13 +96,26 @@ class AuthController extends Controller
                 'is_approved' => false,
             ]);
 
+            $studyTypeMap = [
+                'initial' => 'presential',
+                'alternance' => 'apprentissage',
+                'continue' => 'cours_soir',
+            ];
+            $studyType = $studyTypeMap[$request->study_mode] ?? 'presential';
+
+            $sessionSpecialty = SessionSpecialty::where('session_id', $request->session_id)
+                ->where('specialty_id', $request->specialty_id)
+                ->where('study_type', $studyType)
+                ->first();
+
             $student = Student::create([
                 'user_id' => $user->id,
                 'specialty_id' => $request->specialty_id,
+                'session_specialty_id' => $sessionSpecialty ? $sessionSpecialty->id : null,
                 'registration_number' => $request->registration_number,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
-                'study_mode' => 'initial',
+                'study_mode' => $request->study_mode,
                 'current_semester' => 1,
                 'years_enrolled' => 1,
                 'is_graduated' => false,

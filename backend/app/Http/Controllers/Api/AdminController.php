@@ -1251,9 +1251,23 @@ class AdminController extends Controller
      */
     public function getSpecialty($id): JsonResponse
     {
-        $specialty = Specialty::with(['modules', 'students'])
+        $specialty = Specialty::with(['modules.teachers.user', 'students'])
             ->withCount('students', 'modules')
             ->findOrFail($id);
+
+        // Get unique teachers assigned to modules in this specialty
+        $teachers = $specialty->modules->flatMap(function ($module) {
+            return $module->teachers;
+        })->unique('id')->values()->map(function ($teacher) {
+            return [
+                'id' => $teacher->id,
+                'full_name' => $teacher->full_name,
+                'specialization' => $teacher->specialization,
+                'email' => $teacher->user->email ?? null,
+                'phone' => $teacher->user->phone ?? null,
+                'image' => $teacher->user->profile_photo_path ?? null, // Added for UI if needed
+            ];
+        });
 
         return response()->json([
             'specialty' => [
@@ -1268,6 +1282,7 @@ class AdminController extends Controller
                 'brochure_name' => $specialty->brochure_name,
                 'students_count' => $specialty->students_count,
                 'modules_count' => $specialty->modules_count,
+                'teachers' => $teachers, // List of all teachers in this specialty
                 'modules' => $specialty->modules->map(function($module) {
                     return [
                         'id' => $module->id,
@@ -1276,6 +1291,12 @@ class AdminController extends Controller
                         'semester' => $module->semester,
                         'coefficient' => $module->coefficient,
                         'hours_per_week' => $module->hours_per_week,
+                        'teachers' => $module->teachers->map(function($teacher) {
+                            return [
+                                'id' => $teacher->id,
+                                'full_name' => $teacher->full_name,
+                            ];
+                        }),
                     ];
                 }),
             ],
@@ -1569,7 +1590,14 @@ class AdminController extends Controller
             ], 400);
         }
 
-        $module->teachers()->attach($teacher->id);
+        // Calculate current academic year
+        $currentMonth = date('n');
+        $currentYear = date('Y');
+        $academicYear = ($currentMonth >= 9)
+            ? $currentYear . '-' . ($currentYear + 1)
+            : ($currentYear - 1) . '-' . $currentYear;
+
+        $module->teachers()->attach($teacher->id, ['academic_year' => $academicYear]);
 
         return response()->json([
             'message' => 'Enseignant assigné avec succès',
@@ -1597,6 +1625,78 @@ class AdminController extends Controller
             'message' => 'Enseignant retiré du module',
             'module' => $module->name,
             'teacher' => $teacher->full_name,
+        ]);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PROFILE
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Get admin profile
+     */
+    public function profile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $admin = $user->administration;
+
+        if (!$admin) {
+            return response()->json([
+                'id' => $user->id,
+                'first_name' => 'Admin',
+                'last_name' => 'User',
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'position' => 'Administrator',
+            ]);
+        }
+
+        return response()->json([
+            'id' => $admin->id,
+            'first_name' => $admin->first_name,
+            'last_name' => $admin->last_name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'position' => $admin->position,
+            'created_at' => $admin->created_at->format('Y-m-d'),
+        ]);
+    }
+
+    /**
+     * Update admin profile
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $admin = $user->administration;
+
+        $validated = $request->validate([
+            'first_name' => ['sometimes', 'required', 'string', 'max:100'],
+            'last_name' => ['sometimes', 'required', 'string', 'max:100'],
+            'phone' => ['sometimes', 'nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($user->id)],
+            'position' => ['sometimes', 'nullable', 'string', 'max:255'],
+        ]);
+
+        // Update User (phone)
+        if (isset($validated['phone'])) {
+            $user->update(['phone' => $validated['phone']]);
+        }
+
+        // Update Administration (details)
+        if ($admin) {
+            $admin->update($request->only(['first_name', 'last_name', 'position']));
+        }
+
+        return response()->json([
+            'message' => 'Profil mis à jour avec succès',
+            'user' => [
+                'id' => $admin ? $admin->id : $user->id,
+                'first_name' => $admin ? $admin->first_name : 'Admin',
+                'last_name' => $admin ? $admin->last_name : 'User',
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'position' => $admin ? $admin->position : 'Administrator',
+            ]
         ]);
     }
 

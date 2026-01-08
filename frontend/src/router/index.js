@@ -128,6 +128,11 @@ const routes = [
         path: 'files',
         name: 'AdminFiles',
         component: () => import('@/views/admin/Files.vue')
+      },
+      {
+        path: 'profile',
+        name: 'AdminProfile',
+        component: () => import('@/views/admin/Profile.vue')
       }
     ]
   },

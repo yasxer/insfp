@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import apiClient from '@/api/axios'
@@ -9,12 +9,14 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const form = ref({
+  session_id: '',
   registration_number: '',
   first_name: '',
   last_name: '',
   email: '',
   phone: '',
   specialty_id: '',
+  study_mode: '',
   password: '',
   password_confirmation: ''
 })
@@ -33,25 +35,75 @@ const passwordClass = computed(() => {
     : 'border-red-500 focus:ring-red-500'
 })
 
-const specialties = ref([])
+const sessions = ref([])
 const loading = ref(false)
-const loadingSpecialties = ref(false)
+const loadingSessions = ref(false)
 const error = ref(null)
 const successMessage = ref(null)
 const fieldErrors = ref({})
 
-const fetchSpecialties = async () => {
-  loadingSpecialties.value = true
+// Type mapping: Backend Type -> Frontend Value
+const typeMapping = {
+  presential: 'initial',
+  apprentissage: 'alternance',
+  cours_soir: 'continue'
+}
+
+// Reverse mapping for finding specialties
+const reverseTypeMapping = {
+  initial: 'presential',
+  alternance: 'apprentissage',
+  continue: 'cours_soir'
+}
+
+const fetchSessions = async () => {
+  loadingSessions.value = true
   try {
-    const response = await apiClient.get('/api/specialties')
-    specialties.value = response.data.specialties || response.data
+    const response = await apiClient.get('/api/sessions')
+    sessions.value = response.data.data || []
   } catch (err) {
-    console.error('Failed to fetch specialties:', err)
-    error.value = 'Failed to load specialties. Please refresh the page.'
+    console.error('Failed to fetch sessions:', err)
+    error.value = 'Failed to load sessions. Please refresh the page.'
   } finally {
-    loadingSpecialties.value = false
+    loadingSessions.value = false
   }
 }
+
+const selectedSession = computed(() => {
+  if (!form.value.session_id) return null
+  return sessions.value.find(s => s.id === form.value.session_id)
+})
+
+const availableStudyModes = computed(() => {
+  if (!selectedSession.value) return []
+  
+  return selectedSession.value.specialties_by_type
+    .filter(group => group.specialties.length > 0)
+    .map(group => ({
+      value: typeMapping[group.type],
+      label: group.label
+    }))
+})
+
+// Update study mode when session changes if current mode not available
+watch(() => form.value.session_id, () => {
+  form.value.specialty_id = ''
+  form.value.study_mode = ''
+})
+
+const availableSpecialties = computed(() => {
+  if (!selectedSession.value || !form.value.study_mode) return []
+  
+  const backendType = reverseTypeMapping[form.value.study_mode]
+  const group = selectedSession.value.specialties_by_type.find(g => g.type === backendType)
+  
+  return group ? group.specialties : []
+})
+
+// Clear specialty if study mode changes
+watch(() => form.value.study_mode, () => {
+  form.value.specialty_id = ''
+})
 
 const handleRegister = async () => {
   if (form.value.password !== form.value.password_confirmation) {
@@ -70,13 +122,16 @@ const handleRegister = async () => {
     successMessage.value = 'Registration successful! Please wait for admin approval before logging in.'
 
     // Clear form on success
+    const currentSession = form.value.session_id
     form.value = {
+      session_id: currentSession, // Keep session selected
       registration_number: '',
       first_name: '',
       last_name: '',
       email: '',
       phone: '',
       specialty_id: '',
+      study_mode: '',
       password: '',
       password_confirmation: ''
     }
@@ -97,7 +152,7 @@ const handleRegister = async () => {
 }
 
 onMounted(() => {
-  fetchSpecialties()
+  fetchSessions()
 })
 </script>
 
@@ -122,6 +177,31 @@ onMounted(() => {
       <!-- Form -->
       <form v-else @submit.prevent="handleRegister" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Session -->
+          <div class="md:col-span-2">
+            <label for="session_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Session</label>
+            <div class="relative">
+                <select
+                id="session_id"
+                v-model="form.session_id"
+                required
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none"
+                    :class="{'border-red-500': fieldErrors.session_id, 'opacity-50': loadingSessions}"
+                :disabled="loadingSessions"
+                >
+                <option value="" disabled>Select Session</option>
+                <option v-for="session in sessions" :key="session.id" :value="session.id">
+                    {{ session.name }} ({{ session.month }} {{ session.year }})
+                </option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+                </div>
+            </div>
+          </div>
+
           <!-- Registration Number -->
           <div class="md:col-span-2">
             <label for="registration_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Registration Number</label>
@@ -167,6 +247,32 @@ onMounted(() => {
             <p v-if="fieldErrors.last_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.last_name[0] }}</p>
           </div>
 
+          <!-- Study Mode -->
+          <div class="md:col-span-2">
+            <label for="study_mode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mode d'étude</label>
+            <div class="relative">
+              <select
+                id="study_mode"
+                v-model="form.study_mode"
+                required
+                :disabled="!form.session_id"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="{'border-red-500': fieldErrors.study_mode}"
+              >
+                <option value="" disabled>Select Study Mode</option>
+                <option v-for="mode in availableStudyModes" :key="mode.value" :value="mode.value">
+                  {{ mode.label }}
+                </option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+              </div>
+            </div>
+            <p v-if="fieldErrors.study_mode" class="mt-1 text-xs text-red-600">{{ fieldErrors.study_mode[0] }}</p>
+          </div>
+
           <!-- Specialty -->
           <div class="md:col-span-2">
             <label for="specialty" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Specialty</label>
@@ -175,19 +281,18 @@ onMounted(() => {
                 id="specialty"
                 v-model="form.specialty_id"
                 required
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none"
-                :class="{'border-red-500': fieldErrors.specialty_id, 'opacity-50': loadingSpecialties}"
-                :disabled="loadingSpecialties"
+                :disabled="!form.study_mode"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="{'border-red-500': fieldErrors.specialty_id}"
               >
-                <option value="" disabled>Select your specialty</option>
-                <option v-for="specialty in specialties" :key="specialty.id" :value="specialty.id">
-                  {{ specialty.name }} ({{ specialty.code }})
+                <option value="" disabled>Select Specialty</option>
+                <option v-for="specialty in availableSpecialties" :key="specialty.specialty_id" :value="specialty.specialty_id">
+                  {{ specialty.specialty_name }} ({{ specialty.specialty_code }})
                 </option>
               </select>
-              <div v-if="loadingSpecialties" class="absolute right-3 top-3">
-                <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                 <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
                 </svg>
               </div>
             </div>

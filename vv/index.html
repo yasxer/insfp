@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INSFP - Institut National Spécialisé de Formation Professionnelle</title>
+    <meta name="description"
+        content="Formation professionnelle d'excellence en Algérie. Diplômes d'État, BTS, et stages pratiques.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#003366',
+                        secondary: '#004C99',
+                        light: '#F8F9FA',
+                        accent: '#FFD700', // Gold/Yellow often associated with academic excellence
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-pattern {
+            background-image: linear-gradient(rgba(0, 51, 102, 0.8), rgba(0, 51, 102, 0.7)), url('assets/hero_bg.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+
+    <!-- Sticky Navbar -->
+    <nav class="fixed w-full z-50 bg-white/95 backdrop-blur-sm shadow-md transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#" class="flex items-center space-x-2 group">
+                <div
+                    class="bg-primary text-white font-bold text-2xl w-10 h-10 flex items-center justify-center rounded-lg shadow-sm group-hover:bg-secondary transition-colors">
+                    I
+                </div>
+                <span class="text-2xl font-bold text-primary tracking-tight">INSFP</span>
+            </a>
+
+            <!-- Navigation Links -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#"
+                    class="text-gray-600 hover:text-primary font-medium transition-colors relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-primary after:left-0 after:-bottom-1 after:transition-all hover:after:w-full">Accueil</a>
+                <a href="#"
+                    class="text-gray-600 hover:text-primary font-medium transition-colors relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-primary after:left-0 after:-bottom-1 after:transition-all hover:after:w-full">Spécialités</a>
+                <a href="#"
+                    class="text-gray-600 hover:text-primary font-medium transition-colors relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-primary after:left-0 after:-bottom-1 after:transition-all hover:after:w-full">À
+                    propos</a>
+                <a href="#"
+                    class="text-gray-600 hover:text-primary font-medium transition-colors relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-primary after:left-0 after:-bottom-1 after:transition-all hover:after:w-full">Contact</a>
+            </div>
+
+            <!-- CTA Button -->
+            <a href="#"
+                class="hidden md:flex items-center px-6 py-2.5 bg-primary text-white font-semibold rounded-full shadow-lg hover:bg-secondary hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300">
+                <i class="fas fa-user-graduate mr-2"></i>
+                Espace Stagiaire
+            </a>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-primary text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative h-[90vh] flex items-center justify-center hero-pattern text-white pt-16">
+        <div class="container mx-auto px-6 text-center z-10 animate-fade-in-up">
+            <span
+                class="inline-block py-1 px-3 border border-white/30 rounded-full bg-white/10 backdrop-blur-md text-sm font-medium mb-6 animate-pulse">
+                Rentrée Professionnelle 2026/2027
+            </span>
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-shadow">
+                Institut National Spécialisé de <br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">Formation
+                    Professionnelle</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
+                Construisez votre avenir professionnel avec un diplôme d'État reconnu. Excellence académique et pratique
+                pour les métiers de demain.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <a href="#"
+                    class="px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                    Pré-inscription
+                </a>
+                <a href="#"
+                    class="px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-primary transform hover:-translate-y-1 transition-all">
+                    Nos Filières
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Down Indicator -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <a href="#info-bar" class="text-white opacity-70 hover:opacity-100 transition-opacity">
+                <i class="fas fa-chevron-down text-2xl"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Key Information Bar -->
+    <section id="info-bar" class="relative z-20 -mt-20 container mx-auto px-6 mb-20">
+        <div
+            class="bg-white rounded-2xl shadow-xl p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y md:divide-y-0 md:divide-x divide-gray-100 border border-gray-100">
+            <!-- Item 1 -->
+            <div class="flex flex-col items-center text-center p-4 group">
+                <div
+                    class="w-16 h-16 bg-blue-50 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-certificate text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Diplôme BTS</h3>
+                <p class="text-sm text-gray-500">Brevet de Technicien Supérieur agréé par l'État</p>
+            </div>
+            <!-- Item 2 -->
+            <div class="flex flex-col items-center text-center p-4 group">
+                <div
+                    class="w-16 h-16 bg-blue-50 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-clock text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Durée 30 Mois</h3>
+                <p class="text-sm text-gray-500">Formation résidentielle incluant stage pratique</p>
+            </div>
+            <!-- Item 3 -->
+            <div class="flex flex-col items-center text-center p-4 group">
+                <div
+                    class="w-16 h-16 bg-blue-50 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-graduation-cap text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Niveau Requis</h3>
+                <p class="text-sm text-gray-500">3ème Année Secondaire (Toutes filières)</p>
+            </div>
+            <!-- Item 4 -->
+            <div class="flex flex-col items-center text-center p-4 group">
+                <div
+                    class="w-16 h-16 bg-blue-50 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-handshake text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Mode Mixte</h3>
+                <p class="text-sm text-gray-500">Apprentissage pratique et théorique équilibré</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Us & Stats -->
+    <section id="about" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                <div class="lg:w-1/2">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                            alt="INSFP Campus" class="rounded-2xl shadow-2xl relative z-10">
+                        <div class="absolute -bottom-6 -right-6 w-2/3 h-2/3 bg-primary/10 rounded-2xl -z-0"></div>
+                        <div class="absolute -top-6 -left-6 w-32 h-32 bg-accent/20 rounded-full blur-2xl"></div>
+                    </div>
+                </div>
+                <div class="lg:w-1/2">
+                    <span class="text-primary font-semibold tracking-wider uppercase text-sm">À Propos de Nous</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-6">Formation d'Excellence depuis 25
+                        ans</h2>
+                    <p class="text-gray-600 leading-relaxed mb-6">
+                        L'INSFP est un leader dans la formation professionnelle en Algérie. Nous nous engageons à
+                        fournir une éducation de qualité qui répond aux besoins réels du marché du travail. Nos
+                        programmes sont conçus en collaboration avec des experts de l'industrie pour garantir
+                        l'employabilité immédiate de nos diplômés.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pourquoi Nous Choisir? (Stats) -->
+    <section class="py-16 bg-blue-50">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="p-4">
+                    <div class="text-4xl font-bold text-primary mb-2">+20</div>
+                    <div class="text-gray-600 font-medium">Ans d'expérience</div>
+                </div>
+                <div class="p-4">
+                    <div class="text-4xl font-bold text-primary mb-2">+1500</div>
+                    <div class="text-gray-600 font-medium">Diplômés</div>
+                </div>
+                <div class="p-4">
+                    <div class="text-4xl font-bold text-primary mb-2">50+</div>
+                    <div class="text-gray-600 font-medium">Entreprises Partenaires</div>
+                </div>
+                <div class="p-4">
+                    <div class="text-4xl font-bold text-primary mb-2">100%</div>
+                    <div class="text-gray-600 font-medium">Formation Pratique</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    </div>
+    </div>
+    </div>
+    </section>
+
+    <!-- Nos Spécialités (Expanded) -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <span class="text-primary font-semibold tracking-wider uppercase text-sm">Votre Avenir Commence
+                    Ici</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Nos Filières de Formation</h2>
+                <div class="w-20 h-1 bg-primary mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div
+                    class="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group hover:shadow-lg transition-all duration-300">
+                    <div class="p-8">
+                        <div
+                            class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <i class="fas fa-laptop-code text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-gray-900">Développement Web</h3>
+                        <p class="text-gray-500 text-sm mb-6">Devenez expert en création de sites et applications web
+                            modernes.</p>
+                        <a href="#"
+                            class="text-primary font-semibold text-sm flex items-center group-hover:translate-x-2 transition-transform">
+                            Voir détails <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div
+                    class="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group hover:shadow-lg transition-all duration-300">
+                    <div class="p-8">
+                        <div
+                            class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <i class="fas fa-network-wired text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-gray-900">Réseaux & Sécurité</h3>
+                        <p class="text-gray-500 text-sm mb-6">Maîtrisez l'infrastructure réseau et la cybersécurité.</p>
+                        <a href="#"
+                            class="text-primary font-semibold text-sm flex items-center group-hover:translate-x-2 transition-transform">
+                            Voir détails <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div
+                    class="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group hover:shadow-lg transition-all duration-300">
+                    <div class="p-8">
+                        <div
+                            class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <i class="fas fa-users text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-gray-900">Gestion RH</h3>
+                        <p class="text-gray-500 text-sm mb-6">Pilotez le capital humain et la stratégie sociale de
+                            l'entreprise.</p>
+                        <a href="#"
+                            class="text-primary font-semibold text-sm flex items-center group-hover:translate-x-2 transition-transform">
+                            Voir détails <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div
+                    class="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group hover:shadow-lg transition-all duration-300">
+                    <div class="p-8">
+                        <div
+                            class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <i class="fas fa-globe-africa text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-gray-900">Commerce International</h3>
+                        <p class="text-gray-500 text-sm mb-6">Gérez les échanges Commerciaux à l'échelle mondiale.</p>
+                        <a href="#"
+                            class="text-primary font-semibold text-sm flex items-center group-hover:translate-x-2 transition-transform">
+                            Voir détails <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div
+                    class="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group hover:shadow-lg transition-all duration-300">
+                    <div class="p-8">
+                        <div
+                            class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <i class="fas fa-calculator text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-gray-900">Comptabilité</h3>
+                        <p class="text-gray-500 text-sm mb-6">Assurez la gestion financière et comptable des
+                            organisations.</p>
+                        <a href="#"
+                            class="text-primary font-semibold text-sm flex items-center group-hover:translate-x-2 transition-transform">
+                            Voir détails <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div
+                    class="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group hover:shadow-lg transition-all duration-300">
+                    <div class="p-8">
+                        <div
+                            class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <i class="fas fa-microchip text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-gray-900">Électronique</h3>
+                        <p class="text-gray-500 text-sm mb-6">Concevez et maintenez les systèmes électroniques modernes.
+                        </p>
+                        <a href="#"
+                            class="text-primary font-semibold text-sm flex items-center group-hover:translate-x-2 transition-transform">
+                            Voir détails <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Process -->
+    <section id="inscription" class="py-20 bg-primary text-white relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full bg-[url('assets/pattern.png')] opacity-10"></div>
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-accent font-semibold tracking-wider uppercase text-sm">Rejoignez-nous</span>
+                <h2 class="text-3xl md:text-4xl font-bold mt-2">Comment S'inscrire ?</h2>
+                <div class="w-20 h-1 bg-accent mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <div class="relative">
+                <!-- Line for desktop -->
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-white/20 -translate-y-1/2"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <!-- Step 1 -->
+                    <div class="relative flex flex-col items-center">
+                        <div
+                            class="w-16 h-16 rounded-full bg-accent text-primary font-bold text-2xl flex items-center justify-center mb-6 relative z-10 shadow-lg border-4 border-primary">
+                            1</div>
+                        <h3 class="text-xl font-bold mb-2">Pré-inscription</h3>
+                        <p class="text-center text-blue-100 text-sm px-4">Remplissez le formulaire en ligne pour
+                            réserver votre place.</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="relative flex flex-col items-center">
+                        <div
+                            class="w-16 h-16 rounded-full bg-white text-primary font-bold text-2xl flex items-center justify-center mb-6 relative z-10 shadow-lg">
+                            2</div>
+                        <h3 class="text-xl font-bold mb-2">Dossier</h3>
+                        <p class="text-center text-blue-100 text-sm px-4">Déposez votre dossier administratif au niveau
+                            de l'institut.</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="relative flex flex-col items-center">
+                        <div
+                            class="w-16 h-16 rounded-full bg-white text-primary font-bold text-2xl flex items-center justify-center mb-6 relative z-10 shadow-lg">
+                            3</div>
+                        <h3 class="text-xl font-bold mb-2">Sélection</h3>
+                        <p class="text-center text-blue-100 text-sm px-4">Passez l'entretien ou le concours selon la
+                            spécialité.</p>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="relative flex flex-col items-center">
+                        <div
+                            class="w-16 h-16 rounded-full bg-white text-primary font-bold text-2xl flex items-center justify-center mb-6 relative z-10 shadow-lg">
+                            4</div>
+                        <h3 class="text-xl font-bold mb-2">Admission</h3>
+                        <p class="text-center text-blue-100 text-sm px-4">Consultez les résultats et finalisez votre
+                            inscription.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <a href="#"
+                    class="inline-block px-8 py-4 bg-accent text-primary font-bold rounded-full shadow-lg hover:bg-white transition-colors transform hover:-translate-y-1">
+                    Commencer ma pré-inscription
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners (Moved) -->
+    <section class="py-16 bg-white border-t border-gray-100">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-10">
+                <h3 class="text-xl font-semibold text-gray-800">Ils nous font confiance pour le recrutement</h3>
+            </div>
+            <div
+                class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                <i class="fab fa-microsoft text-4xl hover:text-blue-500 transition-colors"></i>
+                <i class="fab fa-google text-4xl hover:text-red-500 transition-colors"></i>
+                <i class="fas fa-globe text-4xl hover:text-blue-700 transition-colors"></i>
+                <!-- Placeholder for Algérie Télécom -->
+                <i class="fas fa-flask text-4xl hover:text-orange-500 transition-colors"></i>
+                <!-- Placeholder for Sonatrach -->
+                <i class="fas fa-building text-4xl hover:text-gray-800 transition-colors"></i>
+                <i class="fas fa-industry text-4xl hover:text-gray-800 transition-colors"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Alumni/Testimonials -->
+    <section class="py-20 bg-light">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Nos Réussites</h2>
+                <p class="text-gray-500 mt-4 max-w-2xl mx-auto">Découvrez les parcours inspirants de nos anciens
+                    stagiaires qui excellent aujourd'hui dans le monde professionnel.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Student 1 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-6">
+                        <img src="assets/student_1.png" alt="Etudiant"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-primary/20 mr-4">
+                        <div>
+                            <h4 class="font-bold text-lg text-gray-900">Amine Benali</h4>
+                            <p class="text-primary text-sm font-medium">Développeur Fullstack</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic leading-relaxed">"La formation à l'INSFP m'a donné les compétences
+                        techniques concrètes dont j'avais besoin. Aujourd'hui, je travaille en freelance pour des
+                        clients internationaux."</p>
+                    <div class="mt-4 text-yellow-500 text-sm">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <!-- Student 2 -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow transform md:-translate-y-2">
+                    <div class="flex items-center mb-6">
+                        <img src="assets/student_2.png" alt="Etudiante"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-primary/20 mr-4">
+                        <div>
+                            <h4 class="font-bold text-lg text-gray-900">Sarah Kaci</h4>
+                            <p class="text-primary text-sm font-medium">Responsable RH</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic leading-relaxed">"Un encadrement pédagogique exceptionnel et une
+                        ambiance d'étude motivante. Le stage pratique m'a permis de décrocher mon premier emploi avant
+                        même l'obtention du diplôme."</p>
+                    <div class="mt-4 text-yellow-500 text-sm">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <!-- Student 3 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-6">
+                        <img src="assets/student_3.png" alt="Etudiant"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-primary/20 mr-4">
+                        <div>
+                            <h4 class="font-bold text-lg text-gray-900">Yacine M.</h4>
+                            <p class="text-primary text-sm font-medium">Technicien Réseaux</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic leading-relaxed">"L'infrastructure de l'institut est moderne et
+                        adaptée aux exigences du marché. Je recommande vivement pour tous ceux qui cherchent une
+                        formation qualifiante."</p>
+                    <div class="mt-4 text-yellow-500 text-sm">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- FAQ -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Questions Fréquentes</h2>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Q1 -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden group">
+                    <button
+                        class="w-full text-left px-6 py-4 font-bold text-gray-900 flex justify-between items-center focus:outline-none">
+                        <span>Quelles sont les conditions d'accès ?</span>
+                        <i class="fas fa-plus text-primary group-hover:rotate-90 transition-transform"></i>
+                    </button>
+                    <div class="px-6 pb-4 text-gray-600 hidden group-focus-within:block animate-fade-in-down">
+                        Pour le niveau BTS, il faut avoir le niveau de 3ème année secondaire (terminale). Pour les
+                        autres niveaux, les conditions varient. Contactez-nous pour plus de détails sur chaque filière.
+                    </div>
+                </div>
+                <!-- Q2 -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden group">
+                    <button
+                        class="w-full text-left px-6 py-4 font-bold text-gray-900 flex justify-between items-center focus:outline-none">
+                        <span>La formation est-elle gratuite ?</span>
+                        <i class="fas fa-plus text-primary group-hover:rotate-90 transition-transform"></i>
+                    </button>
+                    <div class="px-6 pb-4 text-gray-600 hidden group-focus-within:block animate-fade-in-down">
+                        L'enseignement est gratuit. Des frais symboliques d'inscription et d'assurance sont demandés au
+                        début de l'année. Une bourse est également disponible pour les stagiaires éligibles.
+                    </div>
+                </div>
+                <!-- Q3 -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden group">
+                    <button
+                        class="w-full text-left px-6 py-4 font-bold text-gray-900 flex justify-between items-center focus:outline-none">
+                        <span>Y a-t-il un internat ?</span>
+                        <i class="fas fa-plus text-primary group-hover:rotate-90 transition-transform"></i>
+                    </button>
+                    <div class="px-6 pb-4 text-gray-600 hidden group-focus-within:block animate-fade-in-down">
+                        Oui, l'institut dispose d'un internat complet (hébergement et restauration) pour les stagiaires
+                        résidant loin de l'établissement, dans la limite des places disponibles.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact & Map -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <!-- Form -->
+                <div class="md:w-1/2 p-8 md:p-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Contactez-nous</h2>
+                    <p class="text-gray-500 mb-8">Une question ? N'hésitez pas à nous envoyer un message.</p>
+                    <form class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
+                            <input type="text"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                placeholder="Votre nom">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                placeholder="exemple@email.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                            <textarea rows="4"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                placeholder="Comment pouvons-nous vous aider ?"></textarea>
+                        </div>
+                        <button
+                            class="w-full py-4 bg-primary text-white font-bold rounded-lg hover:bg-secondary transition-colors shadow-lg">
+                            Envoyer le message
+                        </button>
+                    </form>
+                </div>
+                <!-- Map -->
+                <div class="md:w-1/2 bg-gray-200 min-h-[400px] relative">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d102391.22919379853!2d3.0419!3d36.7525!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x128fb2f7682f6eef%3A0x6291a82d09797bf6!2sAlger!5e0!3m2!1sfr!2sdz!4v1625000000000!5m2!1sfr!2sdz"
+                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+                        class="absolute inset-0">
+                    </iframe>
+                    <div class="absolute bottom-8 left-8 right-8 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-primary text-white p-3 rounded-full">
+                                <i class="fas fa-map-marked-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">Notre Adresse</h4>
+                                <p class="text-sm text-gray-600 mt-1">Cité 5 Juillet, Bab Ezzouar, Alger</p>
+                                <a href="#" class="text-primary text-sm font-medium hover:underline mt-2 inline-block">Y
+                                    aller <i class="fas fa-external-link-alt ml-1"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white pt-20 pb-10">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-1">
+                    <h3 class="text-3xl font-bold mb-6">INSFP</h3>
+                    <p class="text-gray-300 text-sm leading-relaxed mb-6">
+                        Institut National Spécialisé de Formation Professionnelle. Votre partenaire pour une carrière
+                        réussie et un avenir prometteur.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-primary transition-all">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-primary transition-all">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-primary transition-all">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-6 border-b border-white/20 pb-2 inline-block">Liens Rapides</h4>
+                    <ul class="space-y-3 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i
+                                    class="fas fa-chevron-right text-xs mr-2"></i> Accueil</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i
+                                    class="fas fa-chevron-right text-xs mr-2"></i> Nos Spécialités</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i
+                                    class="fas fa-chevron-right text-xs mr-2"></i> Espace Stagiaire</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i
+                                    class="fas fa-chevron-right text-xs mr-2"></i> Pré-inscription</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-6 border-b border-white/20 pb-2 inline-block">Contactez-nous
+                    </h4>
+                    <ul class="space-y-4 text-sm text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-white"></i>
+                            <span>Cité 5 Juillet, Bab Ezzouar,<br>Alger, Algérie</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone-alt mr-3 text-white"></i>
+                            <span>+213 21 00 00 00</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-3 text-white"></i>
+                            <span>contact@insfp.dz</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter (Optional visual filler) -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-6 border-b border-white/20 pb-2 inline-block">Newsletter</h4>
+                    <p class="text-gray-300 text-sm mb-4">Restez informé des dernières nouvelles et offres de formation.
+                    </p>
+                    <form class="flex">
+                        <input type="email" placeholder="Votre email"
+                            class="w-full px-4 py-2 rounded-l-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:bg-white/20">
+                        <button class="bg-secondary px-4 py-2 rounded-r-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="border-t border-white/10 pt-8 text-center text-sm text-gray-400">
+                <p>&copy; 2026 INSFP. Tous droits réservés. Design par IA.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

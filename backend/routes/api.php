@@ -22,6 +22,7 @@ Route::get('/specialties/{id}', [SpecialtyController::class, 'show']);
 Route::get('/sessions', [SessionController::class, 'index']); // Public access for registration
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/lookup-registration', [AuthController::class, 'lookupRegistrationNumber']);
 
 // Protected routes
 Route::middleware(['auth:sanctum'])->group(function () {

@@ -196,6 +196,69 @@ class AuthController extends Controller
     }
 
     /**
+     * Lookup registration number - returns session, specialty, study mode
+     */
+    public function lookupRegistrationNumber(Request $request): JsonResponse
+    {
+        $request->validate([
+            'registration_number' => 'required|string',
+        ]);
+
+        $regNum = RegistrationNumber::where('number', $request->registration_number)
+            ->with(['specialty', 'session'])
+            ->first();
+
+        if (!$regNum) {
+            return response()->json([
+                'message' => 'Numéro d\'inscription introuvable.',
+            ], 404);
+        }
+
+        if ($regNum->is_used) {
+            return response()->json([
+                'message' => 'Ce numéro d\'inscription est déjà utilisé.',
+            ], 422);
+        }
+
+        // Determine study mode from session_specialty if available
+        $studyModes = [];
+        $sessionSpecialties = SessionSpecialty::where('session_id', $regNum->session_id)
+            ->where('specialty_id', $regNum->specialty_id)
+            ->get();
+
+        $studyTypeToMode = [
+            'presential' => 'initial',
+            'apprentissage' => 'alternance',
+            'cours_soir' => 'continue',
+        ];
+
+        foreach ($sessionSpecialties as $ss) {
+            $mode = $studyTypeToMode[$ss->study_type] ?? $ss->study_type;
+            $studyModes[] = [
+                'value' => $mode,
+                'label' => SessionSpecialty::STUDY_TYPES[$ss->study_type] ?? $ss->study_type,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'registration_number' => $regNum->number,
+                'session' => $regNum->session ? [
+                    'id' => $regNum->session->id,
+                    'name' => $regNum->session->name,
+                ] : null,
+                'specialty' => $regNum->specialty ? [
+                    'id' => $regNum->specialty->id,
+                    'name' => $regNum->specialty->name,
+                    'code' => $regNum->specialty->code,
+                ] : null,
+                'study_modes' => $studyModes,
+            ],
+        ]);
+    }
+
+    /**
      * Helper: Get user data with role info
      */
     private function getUserData(User $user): array

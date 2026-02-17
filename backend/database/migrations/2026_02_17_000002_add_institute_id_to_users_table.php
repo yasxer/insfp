@@ -30,14 +30,14 @@ return new class extends Migration
         DB::table('users')->update(['institute_id' => $defaultInstituteId]);
 
         // 4. Make column non-nullable (optional, but good practice if every user MUST have an institute)
-        // Note: Changing column to non-nullable might require doctrine/dbal package in older Laravel versions, 
-        // but in newer ones it's supported natively or via raw SQL. 
-        // For simplicity and to avoid potential issues if doctrine/dbal is missing, I will leave it as nullable in definition but logically enforced, 
-        // OR try to modify it. Given the environment, I'll stick to nullable = false if I can, but to be safe I'll just leave it as is 
+        // Note: Changing column to non-nullable might require doctrine/dbal package in older Laravel versions,
+        // but in newer ones it's supported natively or via raw SQL.
+        // For simplicity and to avoid potential issues if doctrine/dbal is missing, I will leave it as nullable in definition but logically enforced,
+        // OR try to modify it. Given the environment, I'll stick to nullable = false if I can, but to be safe I'll just leave it as is
         // with the data populated. Laravel's schema builder modification sometimes requires packages.
-        
-        // Let's try to make it non-nullable using raw SQL for maximum compatibility if needed, 
-        // or just rely on application logic. 
+
+        // Let's try to make it non-nullable using raw SQL for maximum compatibility if needed,
+        // or just rely on application logic.
         // Actually, if users table is empty, update does nothing. If it has data, they are updated.
         // Let's try to alter it to not null.
         try {
@@ -45,7 +45,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('institute_id')->nullable(false)->change();
             });
         } catch (\Exception $e) {
-            // Modification might fail if required packages are missing. 
+            // Modification might fail if required packages are missing.
             // We'll proceed with the data updated.
         }
     }

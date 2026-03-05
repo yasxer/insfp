@@ -118,6 +118,20 @@ export const useSessionsStore = defineStore('sessions', {
             }
         },
 
+        async activateSession(id) {
+            this.loading = true;
+            this.error = null;
+            try {
+                await sessionsApi.activateSession(id);
+                await Promise.all([this.fetchSessions(), this.fetchArchivedSessions()]);
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Erreur lors de l\'activation de la session';
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
         async addSpecialtyToSession(sessionId, data) {
             this.loading = true;
             this.error = null;

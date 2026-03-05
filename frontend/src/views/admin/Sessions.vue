@@ -67,6 +67,15 @@
             </div>
             <div class="flex gap-2">
               <button
+                v-if="!session.is_active"
+                @click="activateSession(session)"
+                :disabled="activating"
+                class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/50 rounded-lg transition-colors disabled:opacity-50"
+                title="Activer cette session"
+              >
+                <CheckCircleIcon class="w-5 h-5" />
+              </button>
+              <button
                 @click="openSessionDetails(session)"
                 class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
                 title="Gérer les spécialités"
@@ -402,6 +411,7 @@ const selectedSession = ref(null);
 const sessionToDelete = ref(null);
 const saving = ref(false);
 const deleting = ref(false);
+const activating = ref(false);
 const addingSpecialty = ref(false);
 
 const formData = ref({
@@ -555,6 +565,19 @@ const deleteSession = async () => {
     showToast(error.response?.data?.message || 'Erreur lors de la suppression', 'error');
   } finally {
     deleting.value = false;
+  }
+};
+
+const activateSession = async (session) => {
+  if (!confirm(`Activer la session « ${session.name} » ? L'ancienne session active deviendra une archive.`)) return;
+  activating.value = true;
+  try {
+    await sessionsStore.activateSession(session.id);
+    showToast(`Session « ${session.name} » activée avec succès`, 'success');
+  } catch (error) {
+    showToast(error.response?.data?.message || 'Erreur lors de l\'activation', 'error');
+  } finally {
+    activating.value = false;
   }
 };
 

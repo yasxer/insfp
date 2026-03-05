@@ -138,11 +138,34 @@ class SessionController extends Controller
 
         $session = TrainingSession::create($validated);
 
+        // Auto-deactivate all other sessions and activate the new one
+        TrainingSession::where('id', '!=', $session->id)->update(['is_active' => false]);
+        $session->update(['is_active' => true]);
+
         return response()->json([
             'success' => true,
             'message' => 'Session créée avec succès.',
             'data' => $session
         ], 201);
+    }
+
+    /**
+     * Activate a session (deactivates all others)
+     * POST /sessions/{id}/activate
+     */
+    public function activate($id)
+    {
+        $session = TrainingSession::findOrFail($id);
+
+        // Deactivate all, then activate this one
+        TrainingSession::query()->update(['is_active' => false]);
+        $session->update(['is_active' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Session activée. Les autres sessions sont maintenant archivées.',
+            'data'    => $session,
+        ]);
     }
 
     /**

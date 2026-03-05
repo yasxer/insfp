@@ -32,6 +32,11 @@ export default {
         return api.delete(`/api/admin/sessions/${id}`);
     },
 
+    // Activate session (deactivates all others)
+    activateSession(id) {
+        return api.post(`/api/admin/sessions/${id}/activate`);
+    },
+
     // Add specialty to session
     addSpecialtyToSession(sessionId, data) {
         return api.post(`/api/admin/sessions/${sessionId}/specialties`, data);

@@ -151,6 +151,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/schedules', [ScheduleController::class, 'index']);
         Route::get('/schedules/groups', [ScheduleController::class, 'getGroups']);
         Route::get('/schedules/specialty-semesters', [ScheduleController::class, 'getSpecialtySemesters']);
+        // Session-based schedule management (must be before /{id} routes)
+        Route::get('/schedules/sessions', [ScheduleController::class, 'getSessions']);
+        Route::get('/schedules/sessions/{sessionId}/specialties', [ScheduleController::class, 'getSessionSpecialties']);
+        Route::post('/schedules/sessions/{sessionId}/publish', [ScheduleController::class, 'publishSpecialty']);
+        Route::post('/schedules/sessions/{sessionId}/unpublish', [ScheduleController::class, 'unpublishSpecialty']);
         Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
         Route::post('/schedules', [ScheduleController::class, 'store']);
         Route::put('/schedules/{id}', [ScheduleController::class, 'update']);
@@ -176,6 +181,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/sessions/specialties', [SessionController::class, 'getSpecialties']);
         Route::get('/sessions/study-types', [SessionController::class, 'getStudyTypes']);
         Route::get('/sessions/{id}', [SessionController::class, 'show']);
+        Route::post('/sessions/{id}/activate', [SessionController::class, 'activate']);
         Route::post('/sessions', [SessionController::class, 'store']);
         Route::put('/sessions/{id}', [SessionController::class, 'update']);
         Route::delete('/sessions/{id}', [SessionController::class, 'destroy']);

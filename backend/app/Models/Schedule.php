@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Schedule extends Model
 {
-    protected $fillable = ['module_id', 'teacher_id', 'specialty_id', 'study_mode', 'group', 'day', 'start_time', 'end_time', 'classroom', 'semester', 'academic_year'];
+    protected $fillable = ['session_id', 'module_id', 'teacher_id', 'specialty_id', 'study_mode', 'group', 'day', 'start_time', 'end_time', 'classroom', 'semester', 'academic_year'];
     protected $casts = [
         'semester' => 'integer',
     ];

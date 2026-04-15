@@ -90,6 +90,26 @@ export default {
     } catch (error) {
       console.error('Admin API Error (updateProfile):', error)
       throw error
+    }  },
+
+  // Exams
+  async getExams(params = {}) {
+    try {
+      const response = await apiClient.get('/api/admin/exams', { params })
+      return response.data
+    } catch (error) {
+      console.error('Admin API Error (getExams):', error)
+      throw error
+    }  
+  },
+
+  async getExamGrades(id) {
+    try {
+      const response = await apiClient.get(`/api/admin/exams/${id}/grades`)
+      return response.data
+    } catch (error) {
+      console.error('Admin API Error (getExamGrades):', error)
+      throw error
     }
   }
 }

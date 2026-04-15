@@ -260,7 +260,8 @@ const handleSendMessage = async (messageData) => {
   try {
     const payload = {
       subject: messageData.subject,
-      message: messageData.message
+      message: messageData.message,
+      target_role: 'student'
     }
 
     // Determine message type

@@ -10,23 +10,17 @@ use Illuminate\Http\JsonResponse;
 class MessageController extends Controller
 {
     /**
-     * Get all messages for authenticated student
-     * GET /api/student/messages
+     * Get all messages for authenticated user
+     * GET /api/{role}/messages
      */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $student = $user->student;
 
-        if (!$student) {
-            return response()->json(['message' => 'Student profile not found'], 404);
-        }
-
-        // Get messages for this student
-        // recipient_type 'all' = broadcast to everyone
-        // recipient_type 'individual' = direct message to this user
+        // Get messages for this user (broadcasts and direct)
         $messages = Message::where(function($query) use ($user) {
                 $query->where('recipient_type', 'all')
+                    ->orWhere('recipient_type', $user->role . 's')
                     ->orWhere(function($q) use ($user) {
                         $q->where('recipient_type', 'individual')
                           ->where('recipient_id', $user->id);
@@ -64,15 +58,15 @@ class MessageController extends Controller
 
     /**
      * Get single message details
-     * GET /api/student/messages/{id}
+     * GET /api/{role}/messages/{id}
      */
     public function show(Request $request, $id): JsonResponse
     {
         $user = $request->user();
-        $student = $user->student;
 
         $message = Message::where(function($query) use ($user) {
                 $query->where('recipient_type', 'all')
+                    ->orWhere('recipient_type', $user->role . 's')
                     ->orWhere(function($q) use ($user) {
                         $q->where('recipient_type', 'individual')
                           ->where('recipient_id', $user->id);
@@ -104,16 +98,16 @@ class MessageController extends Controller
 
     /**
      * Get unread messages count
-     * GET /api/student/messages/unread/count
+     * GET /api/{role}/messages/unread/count
      */
     public function unreadCount(Request $request): JsonResponse
     {
         $user = $request->user();
-        $student = $user->student;
 
         // Get all messages visible to this user
         $allMessages = Message::where(function($query) use ($user) {
                 $query->where('recipient_type', 'all')
+                    ->orWhere('recipient_type', $user->role . 's')
                     ->orWhere(function($q) use ($user) {
                         $q->where('recipient_type', 'individual')
                           ->where('recipient_id', $user->id);

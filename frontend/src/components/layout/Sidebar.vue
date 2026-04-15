@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import studentApi from '@/api/endpoints/student'
+import teacherApi from '@/api/endpoints/teacherPortal'
 import {
   HomeIcon,
   CalendarIcon,
@@ -12,7 +13,7 @@ import {
   ArrowLeftOnRectangleIcon,
   XMarkIcon,
   EnvelopeIcon,
-  BookOpenIcon,
+  BookOpenIcon, ClipboardDocumentListIcon,
   DocumentTextIcon,
   IdentificationIcon
 } from '@heroicons/vue/24/outline'
@@ -60,12 +61,26 @@ const fetchBadges = async () => {
         studentApi.getNewDocumentsCount()
       ])
       badges.value = {
-        messages: msgRes.count,
-        lessons: lessonRes.count,
-        documents: docRes.count
+        messages: msgRes.count || 0,
+        lessons: lessonRes.count || 0,
+        documents: docRes.count || 0
       }
     } catch (err) {
-      console.error('Failed to fetch badges', err)
+      console.error('Failed to fetch student badges', err)
+    }
+  } else if (authStore.user?.role === 'teacher') {
+    try {
+      const [msgRes, docRes] = await Promise.all([
+        teacherApi.getUnreadMessagesCount(),
+        teacherApi.getNewDocumentsCount()
+      ])
+      badges.value = {
+        messages: msgRes.count || 0,
+        lessons: 0,
+        documents: docRes.count || 0
+      }
+    } catch (err) {
+      console.error('Failed to fetch teacher badges', err)
     }
   }
 }
@@ -98,7 +113,7 @@ const navigationItems = computed(() => {
       },
       { 
         name: 'Courses', 
-        icon: BookOpenIcon, 
+        icon: BookOpenIcon, ClipboardDocumentListIcon, 
         path: '/student/courses',
         badge: badges.value.lessons
       },
@@ -108,6 +123,7 @@ const navigationItems = computed(() => {
         path: '/student/documents',
         badge: badges.value.documents
       },
+      { name: 'Tasks/Homeworks', icon: ClipboardDocumentListIcon, path: '/student/homeworks' },
       { name: 'Schedule', icon: CalendarIcon, path: '/student/schedule' },
       { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/student/attendance' },
       { name: 'Exams', icon: AcademicCapIcon, path: '/student/exams' },
@@ -119,9 +135,23 @@ const navigationItems = computed(() => {
   if (role === 'teacher') {
     return [
       { name: 'Dashboard', icon: HomeIcon, path: '/teacher/dashboard' },
+      { 
+        name: 'Messages', 
+        icon: EnvelopeIcon, 
+        path: '/teacher/messages',
+        badge: badges.value.messages 
+      },
+      { 
+        name: 'Documents', 
+        icon: DocumentTextIcon, 
+        path: '/teacher/documents',
+        badge: badges.value.documents
+      },
+      { name: 'Modules', icon: BookOpenIcon, ClipboardDocumentListIcon, path: '/teacher/modules' },
+      { name: 'Tasks/Homeworks', icon: ClipboardDocumentListIcon, path: '/teacher/homeworks' },
       { name: 'Schedule', icon: CalendarIcon, path: '/teacher/schedule' },
       { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/teacher/attendance' },
-      { name: 'Grades', icon: AcademicCapIcon, path: '/teacher/grades' },
+      { name: 'Exams & Grades', icon: AcademicCapIcon, path: '/teacher/exams' },
       { name: 'Profile', icon: UserCircleIcon, path: '/teacher/profile' },
     ]
   }
@@ -133,9 +163,10 @@ const navigationItems = computed(() => {
       { name: 'Students', icon: AcademicCapIcon, path: '/admin/students' },
       { name: 'Teachers', icon: UserCircleIcon, path: '/admin/teachers' },
       { name: 'Specialties', icon: ClipboardDocumentCheckIcon, path: '/admin/specialties' },
-      { name: 'Sessions', icon: BookOpenIcon, path: '/admin/sessions' },
+      { name: 'Sessions', icon: BookOpenIcon, ClipboardDocumentListIcon, path: '/admin/sessions' },
       { name: 'Registration Gen', icon: IdentificationIcon, path: '/admin/registration-generator' },
       { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
+      { name: 'Examens', icon: AcademicCapIcon, path: '/admin/exams' },
       { name: 'Files', icon: DocumentTextIcon, path: '/admin/files' },
       { name: 'Reports', icon: DocumentTextIcon, path: '/admin/reports' },
       { name: 'Profile', icon: UserCircleIcon, path: '/admin/profile' },
@@ -232,3 +263,5 @@ const handleLogout = async () => {
     </aside>
   </div>
 </template>
+
+

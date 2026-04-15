@@ -11,20 +11,43 @@ use Illuminate\Support\Facades\Storage;
 class DocumentController extends Controller
 {
     /**
-     * Get all documents for students
-     * GET /api/student/documents
+     * Get all documents for students or teachers
+     * GET /api/{role}/documents
      */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $student = $user->student;
 
-        // Get all public documents
-        $documents = Document::where('is_public', true)
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = Document::query();
+
+        if ($user->role === 'teacher') {
+            $query->where(function ($q) {
+                $q->where('is_public', true)
+                  ->orWhere('target_type', 'all_teachers');
+            });
+        } elseif ($user->role === 'student' && $user->student) {
+            $session_id = $user->student->session_id;
+            $query->where(function ($q) use ($session_id) {
+                $q->where('is_public', true)
+                  ->orWhere('target_type', 'all_students')
+                  ->orWhere(function ($sub) use ($session_id) {
+                      $sub->where('target_type', 'session_students')
+                          ->where('session_id', $session_id);
+                  });
+            });
+        } else {
+            $query->where('is_public', true);
+        }
+
+        $documents = $query->orderBy('created_at', 'desc')->paginate(20);
 
         $documents->getCollection()->transform(function($document) use ($user) {
+            try {
+                $fileSize = Storage::disk('public')->size($document->file_path);
+            } catch (\Exception $e) {
+                $fileSize = 0;
+            }
+
             return [
                 'id' => $document->id,
                 'title' => $document->title,
@@ -32,8 +55,10 @@ class DocumentController extends Controller
                 'category' => $document->category,
                 'file_path' => $document->file_path,
                 'file_name' => $document->file_name,
-                'is_viewed' => false, // Simplified
-                'created_at' => $document->created_at->format('Y-m-d'),
+                'original_filename' => $document->file_name,
+                'file_size' => $fileSize,
+                'is_new' => $document->created_at >= now()->subDays(7),
+                'created_at' => $document->created_at->toIso8601String(),
             ];
         });
 
@@ -42,34 +67,52 @@ class DocumentController extends Controller
 
     /**
      * Download document
-     * GET /api/student/documents/{id}/download
+     * GET /api/{role}/documents/{id}/download
      */
     public function download(Request $request, $id): mixed
     {
-        $user = $request->user();
         $document = Document::findOrFail($id);
 
         if (!Storage::disk('public')->exists($document->file_path)) {
             return response()->json(['message' => 'File not found'], 404);
         }
 
-        return Storage::disk('public')->download($document->file_path, $document->file_name);
+        $fullPath = Storage::disk('public')->path($document->file_path);
+        return response()->download($fullPath, $document->file_name);
     }
 
     /**
      * Get new documents count
-     * GET /api/student/documents/new/count
+     * GET /api/{role}/documents/new/count
      */
     public function newCount(Request $request): JsonResponse
     {
         $user = $request->user();
-        $student = $user->student;
 
-        // Count documents from last 7 days
-        $newCount = Document::where('is_public', true)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->count();
+        $query = Document::where('created_at', '>=', now()->subDays(7));
 
-        return response()->json(['new_count' => $newCount]);
+        if ($user->role === 'teacher') {
+            $query->where(function ($q) {
+                $q->where('is_public', true)
+                  ->orWhere('target_type', 'all_teachers');
+            });
+        } elseif ($user->role === 'student' && $user->student) {
+            $session_id = $user->student->session_id;
+            $query->where(function ($q) use ($session_id) {
+                $q->where('is_public', true)
+                  ->orWhere('target_type', 'all_students')
+                  ->orWhere(function ($sub) use ($session_id) {
+                      $sub->where('target_type', 'session_students')
+                          ->where('session_id', $session_id);
+                  });
+            });
+        } else {
+            $query->where('is_public', true);
+        }
+
+        $newCount = $query->count();
+
+        // Return both for compatibility just in case
+        return response()->json(['count' => $newCount, 'new_count' => $newCount]);
     }
 }

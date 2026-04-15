@@ -234,7 +234,7 @@ class TeacherController extends Controller
             return response()->json(['message' => 'Profil enseignant non trouvé'], 404);
         }
 
-        $query = $teacher->modules();
+        $query = $teacher->modules()->with('specialty');
 
         // Filters
         if ($request->search) {
@@ -265,6 +265,8 @@ class TeacherController extends Controller
                 'code' => $module->code,
                 'name' => $module->name,
                 'semester' => $module->semester,
+                'specialty_id' => $module->specialty_id,
+                'specialty_name' => $module->specialty?->name,
                 'students_count' => $studentsCount,
             ];
         });

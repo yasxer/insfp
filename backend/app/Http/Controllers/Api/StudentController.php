@@ -708,8 +708,9 @@ class StudentController extends Controller
         $query = Grade::where('student_id', $student->id)
             ->with(['exam.module']);
 
-        // Sort by exam date descending
+        // Sort by exam date descending and only show submitted or modified exams
         $query->join('exams', 'grades.exam_id', '=', 'exams.id')
+              ->whereIn('exams.status', ['submitted', 'modified'])
               ->orderBy('exams.exam_date', 'desc')
               ->select('grades.*');
 
@@ -743,10 +744,21 @@ class StudentController extends Controller
             return response()->json(['message' => 'Student profile not found'], 404);
         }
 
-        // Get exams for the student's specialty and semester that are in the future
+        // Get exams for the student's specialty, semester and group that are in the future
         $exams = Exam::whereHas('module', function($q) use ($student) {
                 $q->where('specialty_id', $student->specialty_id)
                   ->where('semester', $student->current_semester);
+            })
+            ->where(function($query) use ($student) {
+                $query->whereNull('group')
+                      ->orWhere('group', '');
+
+                if ($student->group) {
+                    $query->orWhere('group', $student->group);
+                } else {
+                    // Allow if student has no group assigned
+                    $query->orWhereNotNull('group');
+                }
             })
             ->where('exam_date', '>=', now())
             ->orderBy('exam_date', 'asc')

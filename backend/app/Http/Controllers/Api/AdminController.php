@@ -1700,4 +1700,49 @@ class AdminController extends Controller
         ]);
     }
 
+    public function exams(): JsonResponse
+    {
+        $exams = Exam::with(['module', 'teacher', 'specialty'])
+            ->withCount('grades')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return response()->json($exams);
+    }
+
+    public function examGrades($id): JsonResponse
+    {
+        $exam = \App\Models\Exam::with(['module', 'teacher', 'specialty'])->findOrFail($id);
+
+        $grades = \App\Models\Grade::with(['student'])
+            ->where('exam_id', $id)
+            ->get()
+            ->map(function ($grade) {
+                return [
+                    'id' => $grade->id,
+                    'student_id' => $grade->student_id,
+                    'student' => [
+                        'id' => $grade->student->id,
+                        'first_name' => $grade->student->first_name,
+                        'last_name' => $grade->student->last_name,
+                        'registration_number' => $grade->student->registration_number,
+                    ],
+                    'mark' => (float) $grade->grade,
+                    'grade' => (float) $grade->grade,
+                ];
+            });
+
+        return response()->json([
+            'exam' => [
+                'id' => $exam->id,
+                'title' => $exam->title,
+                'type' => $exam->exam_type,
+                'date' => $exam->exam_date,
+                'module' => $exam->module ? $exam->module->name : '-',
+                'teacher' => $exam->teacher ? $exam->teacher->last_name . ' ' . $exam->teacher->first_name : '-',
+                'group' => $exam->group_name,
+            ],
+            'grades' => $grades,
+        ]);
+    }
 }

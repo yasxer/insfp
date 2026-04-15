@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\AdminDocumentController;
 use App\Http\Controllers\Api\LessonController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\StudentHomeworkController;
+use App\Http\Controllers\Api\TeacherHomeworkController;
 
 // Public routes (no authentication)
 Route::get('/specialties', [SpecialtyController::class, 'index']);
@@ -44,7 +46,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/modules', [StudentController::class, 'modules']);
         Route::get('/grades', [StudentController::class, 'grades']);
         Route::get('/attendance', [StudentController::class, 'attendance']);
-        Route::get('/schedule', [StudentController::class, 'schedule']);
+            Route::get('/schedule', [StudentController::class, 'schedule']);
+
+    // Homework Routes for Students
+    Route::get('/homeworks', [StudentHomeworkController::class, 'index']);
+    Route::post('/homeworks/{id}/submit', [StudentHomeworkController::class, 'submit']);
         Route::get('/exams/results', [StudentController::class, 'examResults']);
         Route::get('/exams/upcoming', [StudentController::class, 'upcomingExams']);
 
@@ -81,10 +87,29 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Exam & Grades Management
         Route::get('/exams', [TeacherGradesController::class, 'exams']);
+        Route::post('/exams', [TeacherGradesController::class, 'storeExam']);
+        Route::put('/exams/{exam}', [TeacherGradesController::class, 'updateExam']);
+        Route::put('/exams/{exam}/status', [TeacherGradesController::class, 'updateStatus']);
         Route::get('/exams/history', [TeacherGradesController::class, 'history']);
         Route::get('/exams/{exam}/students', [TeacherGradesController::class, 'examStudents']);
         Route::post('/exams/{exam}/results', [TeacherGradesController::class, 'storeResults']);
-        Route::get('/schedule', [TeacherController::class, 'schedule']);
+            Route::get('/schedule', [TeacherController::class, 'schedule']);
+
+    // Homework Routes for Teachers
+    Route::get('/homeworks', [TeacherHomeworkController::class, 'index']);
+    Route::post('/homeworks', [TeacherHomeworkController::class, 'store']);
+    Route::get('/homeworks/{id}', [TeacherHomeworkController::class, 'show']);
+    Route::post('/homeworks/{homework}/submissions/{submission}/grade', [TeacherHomeworkController::class, 'gradeSubmission']);
+
+        // Messages
+        Route::get('/messages', [MessageController::class, 'index']);
+        Route::get('/messages/unread/count', [MessageController::class, 'unreadCount']);
+        Route::get('/messages/{id}', [MessageController::class, 'show']);
+
+        // Documents
+        Route::get('/documents', [DocumentController::class, 'index']);
+        Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
+        Route::get('/documents/new/count', [DocumentController::class, 'newCount']);
     });
 
     // Administration routes
@@ -174,6 +199,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/documents/sessions', [AdminDocumentController::class, 'getSessions']);
         Route::get('/documents/sessions/{sessionId}/specialties', [AdminDocumentController::class, 'getSessionSpecialties']);
 
+        // Exams
+        Route::get('/exams', [AdminController::class, 'exams']);
+        Route::get('/exams/{id}/grades', [AdminController::class, 'examGrades']);
+
         // Session Management (Promotions)
         Route::get('/sessions', [SessionController::class, 'index']);
         Route::get('/sessions/archived', [SessionController::class, 'archived']);
@@ -189,3 +218,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/sessions/{sessionId}/specialties/{sessionSpecialtyId}', [SessionController::class, 'removeSpecialty']);
     });
 });
+

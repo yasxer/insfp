@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\Student;
-use App\Models\User;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -13,17 +13,20 @@ use Illuminate\Support\Facades\DB;
 class AdminMessageController extends Controller
 {
     /**
-     * Send message to students (individual or broadcast)
+     * Send message to students or teachers (individual or broadcast)
      * POST /api/admin/messages/send
      */
     public function sendMessage(Request $request): JsonResponse
     {
+        $targetRole = $request->input('target_role', 'student');
+
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
             'recipient_type' => 'required|in:individual,all',
             'recipient_ids' => 'array',
-            'recipient_ids.*' => 'exists:students,id',
+            'recipient_ids.*' => $targetRole === 'teacher' ? 'exists:teachers,id' : 'exists:students,id',
+            'target_role' => 'nullable|string|in:student,teacher',
             'is_graduated' => 'nullable|boolean',
         ]);
 
@@ -31,6 +34,7 @@ class AdminMessageController extends Controller
         $recipientType = $validated['recipient_type'];
         $subject = $validated['subject'];
         $body = $validated['message'];
+        $targetRole = $validated['target_role'] ?? 'student';
 
         DB::beginTransaction();
 
@@ -38,22 +42,28 @@ class AdminMessageController extends Controller
             $recipientCount = 0;
 
             if ($recipientType === 'individual') {
-                // Individual: Create one message per student
+                // Individual: Create one message per user
                 if (empty($validated['recipient_ids'])) {
                     return response()->json([
                         'message' => 'No recipients specified'
                     ], 400);
                 }
 
-                $students = Student::with('user')
-                    ->whereIn('id', $validated['recipient_ids'])
-                    ->get();
+                if ($targetRole === 'teacher') {
+                    $users = Teacher::with('user')
+                        ->whereIn('id', $validated['recipient_ids'])
+                        ->get();
+                } else {
+                    $users = Student::with('user')
+                        ->whereIn('id', $validated['recipient_ids'])
+                        ->get();
+                }
 
-                foreach ($students as $student) {
-                    if ($student->user) {
+                foreach ($users as $targetUser) {
+                    if ($targetUser->user) {
                         Message::create([
                             'sender_id' => $sender->id,
-                            'recipient_id' => $student->user->id,
+                            'recipient_id' => $targetUser->user->id,
                             'recipient_type' => 'individual',
                             'subject' => $subject,
                             'body' => $body,
@@ -64,25 +74,30 @@ class AdminMessageController extends Controller
                 }
 
             } else {
-                // Broadcast (all): Create ONE message only
-                // recipient_id = null means it's for everyone
-
-                // Count how many students will receive it
-                $query = Student::with('user');
-
-                if (!empty($validated['recipient_ids'])) {
-                    $query->whereIn('id', $validated['recipient_ids']);
-                } elseif (isset($validated['is_graduated'])) {
-                    $query->where('is_graduated', $validated['is_graduated']);
+                // Broadcast: Create ONE message only
+                if ($targetRole === 'teacher') {
+                    $query = Teacher::with('user');
+                    if (!empty($validated['recipient_ids'])) {
+                        $query->whereIn('id', $validated['recipient_ids']);
+                    }
+                    $recipientCount = $query->whereHas('user')->count();
+                    $actualRecipientType = 'teachers';
+                } else {
+                    $query = Student::with('user');
+                    if (!empty($validated['recipient_ids'])) {
+                        $query->whereIn('id', $validated['recipient_ids']);
+                    } elseif (isset($validated['is_graduated'])) {
+                        $query->where('is_graduated', $validated['is_graduated']);
+                    }
+                    $recipientCount = $query->whereHas('user')->count();
+                    $actualRecipientType = 'students';
                 }
-
-                $recipientCount = $query->whereHas('user')->count();
 
                 // Create single broadcast message
                 Message::create([
                     'sender_id' => $sender->id,
                     'recipient_id' => null,
-                    'recipient_type' => 'all',
+                    'recipient_type' => $actualRecipientType, // Use specific type
                     'subject' => $subject,
                     'body' => $body,
                     'is_read' => false,
@@ -96,8 +111,9 @@ class AdminMessageController extends Controller
 
             DB::commit();
 
+            $noun = $targetRole === 'teacher' ? 'teacher(s)' : 'student(s)';
             return response()->json([
-                'message' => "Message sent successfully to {$recipientCount} student(s)",
+                'message' => "Message sent successfully to {$recipientCount} {$noun}",
                 'recipient_count' => $recipientCount,
                 'sent_at' => now()->toDateTimeString(),
             ]);
@@ -140,9 +156,10 @@ class AdminMessageController extends Controller
             'total_read' => Message::where('sender_id', $sender->id)->where('is_read', true)->count(),
             'total_unread' => Message::where('sender_id', $sender->id)->where('is_read', false)->count(),
             'individual_messages' => Message::where('sender_id', $sender->id)->where('recipient_type', 'individual')->count(),
-            'broadcast_messages' => Message::where('sender_id', $sender->id)->where('recipient_type', 'all')->count(),
+            'broadcast_messages' => Message::where('sender_id', $sender->id)->whereIn('recipient_type', ['all', 'students', 'teachers'])->count(),
         ];
 
         return response()->json($stats);
     }
 }
+

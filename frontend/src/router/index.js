@@ -26,6 +26,11 @@ const routes = [
     meta: { requiresAuth: true, role: 'student' },
     redirect: '/student/dashboard',
     children: [
+        {
+          path: 'homeworks',
+          name: 'student.homeworks',
+          component: () => import('../views/student/Homeworks.vue')
+        },
       {
         path: 'dashboard',
         name: 'StudentDashboard',
@@ -69,11 +74,86 @@ const routes = [
     ]
   },
   {
+    path: '/teacher',
+    component: () => import('@/components/layout/DashboardLayout.vue'),
+    meta: { requiresAuth: true, role: 'teacher' },
+    redirect: '/teacher/dashboard',
+    children: [
+        {
+          path: 'homeworks',
+          name: 'teacher.homeworks',
+          component: () => import('../views/teacher/Homeworks.vue')
+        },
+        {
+          path: 'homeworks/:id',
+          name: 'teacher.homeworkDetail',
+          component: () => import('../views/teacher/HomeworkDetail.vue')
+        },
+
+      {
+        path: 'dashboard',
+        name: 'TeacherDashboard',
+        component: () => import('@/views/teacher/Dashboard.vue')
+      },
+      {
+        path: 'modules',
+        name: 'TeacherModules',
+        component: () => import('@/views/teacher/Modules.vue')
+      },
+      {
+        path: 'modules/:id/students',
+        name: 'TeacherModuleStudents',
+        component: () => import('@/views/teacher/ModuleStudents.vue')
+      },
+      {
+        path: 'schedule',
+        name: 'TeacherSchedule',
+        component: () => import('@/views/teacher/Schedule.vue')
+      },
+      {
+        path: 'messages',
+        name: 'TeacherMessages',
+        component: () => import('@/views/teacher/Messages.vue')
+      },
+      {
+        path: 'documents',
+        name: 'TeacherDocuments',
+        component: () => import('@/views/teacher/Documents.vue')
+      },
+      {
+        path: 'attendance',
+        name: 'TeacherAttendance',
+        component: () => import('@/views/teacher/Attendance.vue')
+      },
+      {
+        path: 'attendance/session/:scheduleId/:date',
+        name: 'TeacherMarkAttendance',
+        component: () => import('@/views/teacher/MarkAttendance.vue')
+      },
+      {
+        path: 'exams',
+        name: 'TeacherExams',
+        component: () => import('@/views/teacher/Exams.vue')
+      },
+      {
+        path: 'exams/:id/grading',
+        name: 'TeacherGrading',
+        component: () => import('@/views/teacher/Grading.vue')
+      },
+      {
+        path: 'profile',
+        name: 'TeacherProfile',
+        component: () => import('@/views/teacher/Profile.vue')
+      }
+    ]
+  },
+  {
     path: '/admin',
     component: () => import('@/components/layout/DashboardLayout.vue'),
     meta: { requiresAuth: true, role: 'administration' },
     redirect: '/admin/dashboard',
     children: [
+
       {
         path: 'dashboard',
         name: 'AdminDashboard',
@@ -128,6 +208,16 @@ const routes = [
         path: 'files',
         name: 'AdminFiles',
         component: () => import('@/views/admin/Files.vue')
+      },
+      {
+        path: 'exams',
+        name: 'AdminExams',
+        component: () => import('@/views/admin/Exams.vue')
+      },
+      {
+        path: 'exams/:id/grades',
+        name: 'AdminExamGrades',
+        component: () => import('@/views/admin/ExamGrades.vue')
       },
       {
         path: 'profile',
@@ -218,3 +308,4 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
+

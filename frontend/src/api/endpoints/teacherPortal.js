@@ -220,6 +220,41 @@ export default {
       throw error
     }
   },
+
+  // Courses (Lessons)
+  async getCourses() {
+    try {
+      const response = await apiClient.get('/api/teacher/courses')
+      return response.data
+    } catch (error) {
+      console.error('Teacher Portal API Error (getCourses):', error)
+      throw error
+    }
+  },
+
+  async uploadCourse(formData) {
+    try {
+      const response = await apiClient.post('/api/teacher/courses', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response.data
+    } catch (error) {
+      console.error('Teacher Portal API Error (uploadCourse):', error)
+      throw error
+    }
+  },
+
+  async deleteCourse(id) {
+    try {
+      const response = await apiClient.delete(`/api/teacher/courses/${id}`)
+      return response.data
+    } catch (error) {
+      console.error('Teacher Portal API Error (deleteCourse):', error)
+      throw error
+    }
+  },
   
   async getNewDocumentsCount() {
     try {

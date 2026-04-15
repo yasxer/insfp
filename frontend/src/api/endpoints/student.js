@@ -227,5 +227,15 @@ export default {
       console.error('Student API Error (getUpcomingExams):', error)
       throw error
     }
-  }
+  },
+
+  // Deliberations
+  async getDeliberations() {
+    try {
+      const response = await apiClient.get('/api/student/deliberations')
+      return response.data
+    } catch (error) {
+      console.error('Student API Error (getDeliberations):', error)
+      throw error
+    }  }
 }

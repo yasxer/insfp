@@ -111,5 +111,26 @@ export default {
       console.error('Admin API Error (getExamGrades):', error)
       throw error
     }
+  },
+
+  // Deliberations
+  async getDeliberations(params) {
+    try {
+      const response = await apiClient.get('/api/admin/deliberations', { params })
+      return response.data
+    } catch (error) {
+      console.error('Admin API Error (getDeliberations):', error)
+      throw error
+    }
+  },
+
+  async saveDeliberation(data) {
+    try {
+      const response = await apiClient.post('/api/admin/deliberations', data)
+      return response.data
+    } catch (error) {
+      console.error('Admin API Error (saveDeliberation):', error)
+      throw error
+    }
   }
 }

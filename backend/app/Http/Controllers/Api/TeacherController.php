@@ -355,7 +355,7 @@ class TeacherController extends Controller
 
         // Get recurring schedules for teacher
         $schedules = Schedule::where('teacher_id', $teacher->id)
-            ->with(['module'])
+            ->with(['module', 'specialty'])
             ->get();
 
         // Map recurring schedules to actual dates in the week
@@ -377,13 +377,30 @@ class TeacherController extends Controller
             if ($dayOfWeek) {
                 // Find the date for this day in the requested week
                 $date = $startOfWeek->copy()->setISODate($startOfWeek->year, $startOfWeek->weekOfYear, $dayOfWeek);
+                
+                // For proper time handling, just use start_time and end_time
+                $startTimeStr = is_string($schedule->start_time) ? $schedule->start_time : Carbon::parse($schedule->start_time)->format('H:i');
+                $endTimeStr = is_string($schedule->end_time) ? $schedule->end_time : Carbon::parse($schedule->end_time)->format('H:i');
+                // if end_time doesn't exist or is empty, add 1.5 hours to start_time
+                if (empty($endTimeStr)) {
+                    $endTimeStr = Carbon::parse($startTimeStr)->addMinutes(90)->format('H:i');
+                } else {
+                    $endTimeStr = Carbon::parse($endTimeStr)->format('H:i');
+                }
+                $startTimeStr = Carbon::parse($startTimeStr)->format('H:i');
 
                 $weekLessons->push([
                     'date' => $date->format('Y-m-d'),
                     'day_name' => $date->locale('en')->isoFormat('dddd'), // Prompt requested English day names in example
-                    'start_time' => Carbon::parse($schedule->start_time)->format('H:i'),
-                    'end_time' => Carbon::parse($schedule->start_time)->addHours(1)->format('H:i'), // Assuming 1h duration
+                    'start_time' => $startTimeStr,
+                    'end_time' => $endTimeStr,
                     'room' => $schedule->classroom,
+                    'group' => $schedule->group,
+                    'specialty' => $schedule->specialty ? [
+                        'id' => $schedule->specialty->id,
+                        'name' => $schedule->specialty->name,
+                        'code' => $schedule->specialty->code,
+                    ] : null,
                     'module' => [
                         'id' => $schedule->module->id,
                         'code' => $schedule->module->code,

@@ -123,6 +123,7 @@ const navigationItems = computed(() => {
         path: '/student/documents',
         badge: badges.value.documents
       },
+      { name: 'Deliberations', icon: AcademicCapIcon, path: '/student/deliberations' },
       { name: 'Tasks/Homeworks', icon: ClipboardDocumentListIcon, path: '/student/homeworks' },
       { name: 'Schedule', icon: CalendarIcon, path: '/student/schedule' },
       { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/student/attendance' },
@@ -148,6 +149,7 @@ const navigationItems = computed(() => {
         badge: badges.value.documents
       },
       { name: 'Modules', icon: BookOpenIcon, ClipboardDocumentListIcon, path: '/teacher/modules' },
+      { name: 'Courses', icon: DocumentTextIcon, path: '/teacher/courses' },
       { name: 'Tasks/Homeworks', icon: ClipboardDocumentListIcon, path: '/teacher/homeworks' },
       { name: 'Schedule', icon: CalendarIcon, path: '/teacher/schedule' },
       { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/teacher/attendance' },
@@ -164,6 +166,7 @@ const navigationItems = computed(() => {
       { name: 'Teachers', icon: UserCircleIcon, path: '/admin/teachers' },
       { name: 'Specialties', icon: ClipboardDocumentCheckIcon, path: '/admin/specialties' },
       { name: 'Sessions', icon: BookOpenIcon, ClipboardDocumentListIcon, path: '/admin/sessions' },
+      { name: 'Deliberations', icon: AcademicCapIcon, path: '/admin/deliberations' },
       { name: 'Registration Gen', icon: IdentificationIcon, path: '/admin/registration-generator' },
       { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
       { name: 'Examens', icon: AcademicCapIcon, path: '/admin/exams' },

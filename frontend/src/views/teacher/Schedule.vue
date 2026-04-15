@@ -1,30 +1,78 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import teacherApi from '@/api/endpoints/teacherPortal'
+import { ref, onMounted } from 'vue'
+import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import { CalendarIcon, ClockIcon, MapPinIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import teacherApi from '@/api/endpoints/teacherPortal'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 const loading = ref(true)
+const scheduleData = ref([])
+const weekInfo = ref({ start_date: '', end_date: '' })
+const error = ref(null)
 const currentWeekType = ref('current') // 'current' or 'next'
-const scheduleData = ref({
-  week: { start_date: '', end_date: '' },
-  lessons: []
-})
 
-// French days for display
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-const DAYS_FR = {
-  'Monday': 'Lundi', 'Tuesday': 'Mardi', 'Wednesday': 'Mercredi', 
-  'Thursday': 'Jeudi', 'Friday': 'Vendredi', 'Saturday': 'Samedi', 'Sunday': 'Dimanche'
+// Days starting from Saturday (Algerian week)
+const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday']
+const timeSlots = [
+  '08:00 - 09:30',
+  '09:30 - 11:00',
+  '11:00 - 12:30',
+  '13:00 - 14:30',
+  '14:30 - 16:00',
+  '16:00 - 17:30'
+]
+
+// French days definition for display format logic (matching student)
+const frenchToEnglish = (frenchDay) => {
+  const map = {
+    'lundi': 'Monday',
+    'mardi': 'Tuesday',
+    'mercredi': 'Wednesday',
+    'jeudi': 'Thursday',
+    'vendredi': 'Friday',
+    'samedi': 'Saturday',
+    'dimanche': 'Sunday'
+  }
+  return map[frenchDay?.toLowerCase()] || frenchDay
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+const getClassForSlot = (day, timeSlot) => {
+  const slotStartTime = timeSlot.split(' - ')[0]
+  
+  return scheduleData.value.find(classItem => {
+    let classDay = classItem.day_name || ''
+    classDay = frenchToEnglish(classDay)
+    
+    // Handle time format - remove seconds if present
+    let classStartTime = classItem.start_time || ''
+    if (classStartTime.length > 5) {
+      classStartTime = classStartTime.substring(0, 5)
+    }
+    
+    return classDay === day && classStartTime === slotStartTime
+  })
 }
 
 const fetchSchedule = async () => {
   loading.value = true
+  error.value = null
   try {
     const data = await teacherApi.getSchedule(currentWeekType.value)
-    scheduleData.value = data
-  } catch (error) {
-    console.error('Failed to load schedule:', error)
+    if (data.lessons) {
+      scheduleData.value = data.lessons
+      weekInfo.value = data.week
+    } else {
+      scheduleData.value = []
+    }
+  } catch (err) {
+    console.error('Failed to load schedule:', err)
+    error.value = 'Failed to load schedule'
   } finally {
     loading.value = false
   }
@@ -38,52 +86,16 @@ const toggleWeek = () => {
   currentWeekType.value = currentWeekType.value === 'current' ? 'next' : 'current'
   fetchSchedule()
 }
-
-// Group lessons by day
-const groupedSchedule = computed(() => {
-  const grouped = {}
-  
-  // Initialize all days (Mon-Sat usually, maybe Sun)
-  DAYS.forEach(day => {
-    grouped[day] = []
-  })
-  
-  if (scheduleData.value.lessons) {
-    scheduleData.value.lessons.forEach(lesson => {
-      // Find the day name and add to our grouped array
-      if (grouped[lesson.day_name]) {
-        grouped[lesson.day_name].push(lesson)
-      }
-    })
-  }
-  
-  return grouped
-})
-
-// Format helpers
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-}
-
-const getDayDate = (dayName) => {
-  const lessonForDay = scheduleData.value.lessons?.find(l => l.day_name === dayName)
-  if (lessonForDay && lessonForDay.date) {
-    return new Date(lessonForDay.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-  }
-  return '' // Could compute offset from week.start_date realistically
-}
 </script>
 
 <template>
-  <div class="space-y-6 flex flex-col h-full max-h-[calc(100vh-100px)]">
+  <div>
     <!-- Header Controls -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-shrink-0">
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Emploi du temps</h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Semaine du {{ formatDate(scheduleData.week?.start_date) }} au {{ formatDate(scheduleData.week?.end_date) }}
+          Semaine du {{ formatDate(weekInfo.start_date) }} au {{ formatDate(weekInfo.end_date) }}
         </p>
       </div>
 
@@ -91,7 +103,7 @@ const getDayDate = (dayName) => {
         <button 
           @click="toggleWeek" 
           :disabled="currentWeekType === 'current'"
-          class="p-2 rounded-md transition-colors"
+          class="p-2 rounded-md transition-colors disabled:opacity-50"
           :class="currentWeekType === 'current' ? 'text-gray-300 dark:text-gray-600' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
         >
           <ChevronLeftIcon class="w-5 h-5" />
@@ -102,7 +114,7 @@ const getDayDate = (dayName) => {
         <button 
           @click="toggleWeek" 
           :disabled="currentWeekType === 'next'"
-          class="p-2 rounded-md transition-colors"
+          class="p-2 rounded-md transition-colors disabled:opacity-50"
           :class="currentWeekType === 'next' ? 'text-gray-300 dark:text-gray-600' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
         >
           <ChevronRightIcon class="w-5 h-5" />
@@ -110,107 +122,61 @@ const getDayDate = (dayName) => {
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="flex justify-center flex-1 items-center">
-      <LoadingSpinner size="lg" />
+    <div v-if="loading" class="flex justify-center items-center h-64">
+      <LoadingSpinner size="large" />
     </div>
 
-    <!-- Empty State -->
-    <div v-else-if="!scheduleData.lessons || scheduleData.lessons.length === 0" class="flex-1 flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-      <CalendarIcon class="w-16 h-16 text-gray-400 mb-4" />
-      <h3 class="text-xl font-medium text-gray-900 dark:text-white">Aucun cours planifié</h3>
-      <p class="mt-2 text-gray-500">Vous n'avez pas de créneaux programmés pour cette semaine.</p>
-    </div>
+    <div v-else>
+      <!-- Error Alert -->
+      <div v-if="error" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <p class="text-red-600 dark:text-red-400 text-sm">{{ error }}</p>
+      </div>
 
-    <!-- Desktop Grid View (hidden on small screens) -->
-    <div v-else class="hidden md:flex flex-1 overflow-hidden bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-      <!-- We divide available space into a simple horizontal layout -->
-      <div class="flex w-full divide-x divide-gray-200 dark:divide-gray-700 overflow-x-auto">
-        <!-- Day Columns (Excluding Sunday usually, but let's include if it has data) -->
-        <div 
-          v-for="day in DAYS.filter(d => d !== 'Sunday' || groupedSchedule[d].length > 0)" 
-          :key="day"
-          class="flex-1 min-w-[200px] flex flex-col"
-        >
-          <!-- Day Header -->
-          <div class="py-3 text-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 sticky top-0">
-            <h3 class="font-bold text-gray-900 dark:text-white">{{ DAYS_FR[day] }}</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ getDayDate(day) }}</p>
-          </div>
-          
-          <!-- Lessons -->
-          <div class="flex-1 p-2 space-y-3 overflow-y-auto bg-gray-50/30 dark:bg-transparent">
-            <!-- Empty day slot -->
-            <div v-if="groupedSchedule[day].length === 0" class="h-full flex items-center justify-center py-6">
-              <span class="text-sm font-medium text-gray-400 dark:text-gray-600">Libre</span>
-            </div>
+      <!-- Schedule Table -->
+      <Card no-padding>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse min-w-[800px]">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800">
+                <th class="border border-gray-200 dark:border-gray-700 p-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-32">Time</th>
+                <th v-for="day in days" :key="day" class="border border-gray-200 dark:border-gray-700 p-3 text-center font-semibold text-gray-700 dark:text-gray-300">
+                  {{ day }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="timeSlot in timeSlots" :key="timeSlot">
+                <td class="border border-gray-200 dark:border-gray-700 p-3 font-medium text-sm whitespace-nowrap bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                  {{ timeSlot }}
+                </td>
+                <td v-for="day in days" :key="day" class="border border-gray-200 dark:border-gray-700 p-2 min-w-[140px]">
+                  <div v-if="getClassForSlot(day, timeSlot)" class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded h-full relative group">
+                    <p class="font-semibold text-sm text-gray-900 dark:text-white truncate" :title="getClassForSlot(day, timeSlot).module?.name">
+                      {{ getClassForSlot(day, timeSlot).module?.name }}
+                    </p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium truncate">
+                      {{ getClassForSlot(day, timeSlot).specialty?.code || 'Spécialité N/A' }}
+                      <span v-if="getClassForSlot(day, timeSlot).group">- Gr: {{ getClassForSlot(day, timeSlot).group }}</span>
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      Salle {{ getClassForSlot(day, timeSlot).room || 'N/A' }}
+                    </p>
+                  </div>
+                  <div v-else class="h-20"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
-            <!-- Lesson Cards -->
-            <div 
-              v-for="lesson in groupedSchedule[day]" 
-              :key="`${lesson.date}-${lesson.start_time}`"
-              class="bg-white dark:bg-gray-700 p-3 rounded-lg border-l-4 border-l-blue-500 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow relative"
-            >
-              <div class="flex items-center text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1.5">
-                <ClockIcon class="w-3.5 h-3.5 mr-1" />
-                {{ lesson.start_time }} - {{ lesson.end_time }}
-              </div>
-              
-              <h4 class="font-bold text-sm text-gray-900 dark:text-white leading-snug mb-1 truncate" :title="lesson.module?.name">
-                {{ lesson.module?.name }}
-              </h4>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-3">
-                {{ lesson.module?.code }}
-              </p>
-              
-              <div class="flex items-center text-xs text-gray-600 dark:text-gray-300 mt-auto">
-                <MapPinIcon class="w-3.5 h-3.5 mr-1 text-gray-400" />
-                <span class="truncate">{{ lesson.room || 'Salle N/A' }}</span>
-              </div>
-            </div>
-          </div>
+      <!-- Legend -->
+      <div class="mt-6 flex gap-4 text-sm">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 bg-blue-500 rounded"></div>
+          <span class="text-gray-600 dark:text-gray-400">Cours planifié</span>
         </div>
       </div>
     </div>
-
-    <!-- Mobile List View (hidden on desktop) -->
-    <div v-if="!loading && scheduleData.lessons?.length > 0" class="md:hidden flex-1 overflow-y-auto space-y-6 pb-6">
-      <div 
-        v-for="day in DAYS.filter(d => groupedSchedule[d].length > 0)" 
-        :key="`mobile-${day}`"
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-      >
-        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 flex justify-between items-center">
-          <h3 class="font-bold text-gray-900 dark:text-white">{{ DAYS_FR[day] }}</h3>
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ getDayDate(day) }}</span>
-        </div>
-        
-        <div class="divide-y divide-gray-100 dark:divide-gray-700">
-          <div 
-            v-for="lesson in groupedSchedule[day]" 
-            :key="`mobile-${lesson.date}-${lesson.start_time}`"
-            class="p-4 flex gap-4"
-          >
-            <div class="flex flex-col items-center justify-center min-w-[60px] text-center border-r border-gray-100 dark:border-gray-700 pr-4">
-              <span class="text-sm font-bold text-gray-900 dark:text-white">{{ lesson.start_time }}</span>
-              <span class="text-xs text-gray-500">{{ lesson.end_time }}</span>
-            </div>
-            <div class="flex-1">
-              <h4 class="font-bold text-sm text-blue-600 dark:text-blue-400 mb-0.5">
-                {{ lesson.module?.name }}
-              </h4>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                {{ lesson.module?.code }}
-              </p>
-              <div class="flex items-center text-xs text-gray-600 dark:text-gray-300">
-                <MapPinIcon class="w-3.5 h-3.5 mr-1 text-gray-400" />
-                {{ lesson.room || 'Salle N/A' }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </template>

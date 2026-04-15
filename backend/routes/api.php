@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\SpecialtyController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\TeacherLessonController;
 use App\Http\Controllers\Api\TeacherAttendanceController;
 use App\Http\Controllers\Api\TeacherGradesController;
 use App\Http\Controllers\Api\MessageController;
@@ -17,6 +18,9 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\StudentHomeworkController;
 use App\Http\Controllers\Api\TeacherHomeworkController;
+
+use App\Http\Controllers\Api\AdminDeliberationController;
+use App\Http\Controllers\Api\StudentDeliberationController;
 
 // Public routes (no authentication)
 Route::get('/specialties', [SpecialtyController::class, 'index']);
@@ -36,6 +40,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Student routes
     Route::middleware(['approved', 'role:student'])->prefix('student')->group(function () {
+        // Deliberations
+        Route::get('/deliberations', [StudentDeliberationController::class, 'index']);
+
         // Profile completion (accessible even if profile incomplete)
         Route::post('/complete-profile', [StudentController::class, 'completeProfile']);
 
@@ -79,6 +86,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/modules', [TeacherController::class, 'modules']);
         Route::get('/modules/{module}/students', [TeacherController::class, 'moduleStudents']);
 
+        // Teacher Courses (Lessons)
+        Route::get('/courses', [TeacherLessonController::class, 'index']);
+        Route::post('/courses', [TeacherLessonController::class, 'store']);
+        Route::delete('/courses/{id}', [TeacherLessonController::class, 'destroy']);
+
         // Attendance Management
         Route::get('/attendance/sessions', [TeacherAttendanceController::class, 'sessions']);
         Route::get('/attendance/sessions/{schedule}/students', [TeacherAttendanceController::class, 'sessionStudents']);
@@ -114,6 +126,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Administration routes
     Route::middleware(['approved', 'role:administration'])->prefix('admin')->group(function () {
+
+        // Deliberations
+        Route::get('/deliberations', [AdminDeliberationController::class, 'index']);
+        Route::post('/deliberations', [AdminDeliberationController::class, 'storeOrUpdate']);
 
         // Profile
         Route::get('/profile', [AdminController::class, 'profile']);

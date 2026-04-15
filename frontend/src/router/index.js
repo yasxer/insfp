@@ -52,6 +52,11 @@ const routes = [
         component: () => import('@/views/student/Documents.vue')
       },
       {
+        path: 'deliberations',
+        name: 'StudentDeliberations',
+        component: () => import('@/views/student/Deliberations.vue')
+      },
+      {
         path: 'schedule',
         name: 'Schedule',
         component: () => import('@/views/student/Schedule.vue')
@@ -94,6 +99,11 @@ const routes = [
         path: 'dashboard',
         name: 'TeacherDashboard',
         component: () => import('@/views/teacher/Dashboard.vue')
+      },
+      {
+        path: 'courses',
+        name: 'TeacherCourses',
+        component: () => import('@/views/teacher/Courses.vue')
       },
       {
         path: 'modules',
@@ -158,6 +168,11 @@ const routes = [
         path: 'dashboard',
         name: 'AdminDashboard',
         component: () => import('@/views/admin/Dashboard.vue')
+      },
+      {
+        path: 'deliberations',
+        name: 'AdminDeliberations',
+        component: () => import('@/views/admin/Deliberations.vue')
       },
       {
         path: 'students',
@@ -238,7 +253,8 @@ const routes = [
   },
   {
     path: '/',
-    redirect: '/login'
+    name: 'Home',
+    component: () => import('@/views/Home.vue')
   }
 ]
 

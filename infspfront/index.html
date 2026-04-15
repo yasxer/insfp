@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="INFSP – Institute of Numerical and Formal Sciences Paris. Engrained in Excellence since 2004." />
+  <title>INFSP – Institute of Numerical and Formal Sciences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════ NAVBAR ═══════════════════════ -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo" id="nav-logo-link">
+        <div class="logo-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#0A1E3C"/>
+            <path d="M8 10h4v12H8zM14 10h4l6 6-6 6h-4l6-6-6-6z" fill="#FFD700"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">INFSP</span>
+          <span class="logo-sub">Institute of Numerical &amp; Formal Sciences</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" id="nav-links">
+        <a href="#specialities" class="nav-link">Formations</a>
+        <a href="#admissions" class="nav-link">Admissions</a>
+        <a href="#research" class="nav-link">Recherche</a>
+        <a href="#student-life" class="nav-link">Vie Étudiante</a>
+        <a href="#about" class="nav-link">À Propos</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+
+      <a href="#admissions" class="btn btn-yellow nav-cta" id="nav-apply-btn">POSTULER</a>
+
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════ HERO ═══════════════════════ -->
+  <section class="hero" id="hero">
+    <div class="hero-overlay"></div>
+    <img src="assets/images/hero_campus.png" alt="INFSP Campus" class="hero-bg" />
+    <div class="container hero-content">
+      <h1 class="hero-title hero-anim-title">
+        INFSP <span class="accent-yellow" dir="rtl">محمد الطيب بوسنة</span>
+      </h1>
+      <p class="hero-subtitle hero-anim-subtitle">
+        <strong style="color: #FFD700; letter-spacing: 1px;">INSTITUT LOCAL D'INFORMATIQUE</strong><br>
+        Former la prochaine génération de professionnels de la technologie avec une formation professionnelle hautement spécialisée, des ressources de pointe et une expertise pratique adaptée au marché du travail moderne.
+      </p>
+      <div class="hero-actions hero-anim-actions">
+        <a href="#specialities" class="btn btn-yellow" id="hero-explore-btn">DÉCOUVRIR LES PROGRAMMES</a>
+        <a href="#about" class="btn btn-outline-white" id="hero-tour-btn">VISITE VIRTUELLE</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ SPECIALITIES FLOATING CARD ═══════════════════ -->
+  <section class="specialities-wrapper" id="specialities">
+    <div class="container">
+      <div class="specialities-card reveal">
+        
+        <div class="speciality-item">
+          <div class="speciality-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <rect x="15" y="15" width="10" height="10" fill="#29B6F6"/>
+              <rect x="35" y="15" width="10" height="10" fill="#29B6F6"/>
+              <rect x="15" y="35" width="10" height="10" fill="#29B6F6"/>
+              <rect x="35" y="35" width="10" height="10" fill="#29B6F6"/>
+              <rect x="25" y="5" width="10" height="10" fill="#29B6F6"/>
+              <rect x="25" y="45" width="10" height="10" fill="#29B6F6"/>
+              <rect x="5" y="25" width="10" height="10" fill="#29B6F6"/>
+              <rect x="45" y="25" width="10" height="10" fill="#29B6F6"/>
+              <rect x="25" y="25" width="10" height="10" fill="#fff"/>
+              <path d="M25 25h10v10H25z" fill="#E1F5FE"/>
+            </svg>
+          </div>
+          <h3 class="speciality-name">Développement Web</h3>
+        </div>
+
+        <div class="speciality-item">
+          <div class="speciality-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <path d="M10 10l10 10-10 10 10 10-10 10M30 10l10 10-10 10 10 10-10 10M50 10L40 20l10 10-10 10 10 10" stroke="#D4AF37" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="speciality-name">ASRI</h3>
+        </div>
+
+        <div class="speciality-item">
+          <div class="speciality-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <circle cx="20" cy="20" r="12" stroke="#1565C0" stroke-width="4"/>
+              <circle cx="40" cy="20" r="12" stroke="#1565C0" stroke-width="4"/>
+              <circle cx="20" cy="40" r="12" stroke="#1565C0" stroke-width="4"/>
+              <circle cx="40" cy="40" r="12" stroke="#1565C0" stroke-width="4"/>
+              <path d="M28 28h4v4h-4z" fill="#1565C0"/>
+            </svg>
+          </div>
+          <h3 class="speciality-name">Base de Données</h3>
+        </div>
+
+        <div class="speciality-item">
+          <div class="speciality-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <circle cx="30" cy="30" r="18" stroke="#424242" stroke-width="5" stroke-dasharray="10 6"/>
+              <circle cx="30" cy="30" r="8" fill="#424242"/>
+            </svg>
+          </div>
+          <h3 class="speciality-name">Cybersécurité</h3>
+        </div>
+
+        <div class="speciality-item">
+          <div class="speciality-icon">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <rect x="15" y="15" width="6" height="6" fill="#F57C00"/>
+              <rect x="27" y="15" width="6" height="6" fill="#F57C00"/>
+              <rect x="39" y="15" width="6" height="6" fill="#F57C00"/>
+              <rect x="15" y="27" width="6" height="6" fill="#F57C00"/>
+              <rect x="27" y="27" width="6" height="6" fill="#F57C00"/>
+              <rect x="39" y="27" width="6" height="6" fill="#F57C00"/>
+              <rect x="15" y="39" width="6" height="6" fill="#F57C00"/>
+              <rect x="27" y="39" width="6" height="6" fill="#F57C00"/>
+              <rect x="39" y="39" width="6" height="6" fill="#F57C00"/>
+            </svg>
+          </div>
+          <h3 class="speciality-name">Maintenance</h3>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ ABOUT / VIDEO ═══════════════════ -->
+  <section class="section about-section" id="about">
+    <div class="container about-grid">
+
+      <!-- Left: stacked images -->
+      <div class="about-images">
+        <div class="about-img-main">
+          <img src="assets/images/about_students.png" alt="INFSP Students" />
+        </div>
+        <div class="about-img-badge">
+          <span class="badge-number">20<sup>+</sup></span>
+          <span class="badge-label">Années d'Excellence</span>
+        </div>
+      </div>
+
+      <!-- Right: text + video -->
+      <div class="about-content">
+        <h2 class="section-title about-title">QUI SOMMES-NOUS?</h2>
+        <div class="title-bar"></div>
+        <p class="about-text">
+          L'INFSP — Institut National Spécialisé de Formation Professionnelle Mohamed Tayeb Boucenna — est une institution pionnière dédiée à l'enseignement supérieur et à la formation continue. Nous nous efforçons de former la prochaine génération d'innovateurs en informatique, en offrant des programmes adaptés aux exigences du marché du travail.
+        </p>
+
+        <!-- Video placeholder -->
+        <div class="video-wrap" id="video-wrap">
+          <div class="video-thumbnail">
+            <img src="assets/images/about_students.png" alt="Vidéo d'introduction INFSP" class="video-thumb-img" />
+            <div class="video-overlay">
+              <button class="play-btn" id="play-btn" aria-label="Play video">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <polygon points="8,5 19,12 8,19" fill="white"/>
+                </svg>
+              </button>
+            </div>
+            <span class="video-label">VIDÉO D'INTRODUCTION</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════ STATISTIQUES ═══════════════════ -->
+  <section class="section custom-stats-section" id="stats">
+    <div class="container">
+      <div class="section-header text-center" style="text-align:center; margin-bottom: 60px;">
+        <h2 class="section-title">STATISTIQUES</h2>
+        <div class="title-bar" style="margin: 0 auto;"></div>
+      </div>
+
+      <div class="connected-stats-wrapper reveal">
+        <div class="connecting-line"></div>
+        <div class="stats-timeline">
+          
+          <div class="timeline-stat stat-top">
+            <div class="stat-text-box">
+              <span class="stat-label">Enseignants</span>
+              <span class="stat-number" data-target="50" data-suffix="+">0+</span>
+            </div>
+            <div class="stat-circle">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00BCD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+          </div>
+
+          <div class="timeline-stat stat-bottom">
+            <div class="stat-circle">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00BCD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="stat-text-box">
+              <span class="stat-number" data-target="1000" data-suffix="+">0+</span>
+              <span class="stat-label">Étudiants</span>
+            </div>
+          </div>
+
+          <div class="timeline-stat stat-top">
+            <div class="stat-text-box">
+              <span class="stat-label" style="max-width: 120px;">Années d'enseignement</span>
+              <span class="stat-number" data-target="100" data-suffix="+">0+</span>
+            </div>
+            <div class="stat-circle">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00BCD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <div class="timeline-stat stat-bottom">
+            <div class="stat-circle">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00BCD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+              </svg>
+            </div>
+            <div class="stat-text-box">
+              <span class="stat-number" data-target="50" data-suffix="+">0+</span>
+              <span class="stat-label">Classes</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ FOOTER ══════════════════════ -->
+  <footer class="footer" id="contact">
+    <div class="container footer-grid">
+
+      <!-- Brand + Contact -->
+      <div class="footer-col footer-brand">
+        <div class="footer-logo">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#FFD700"/>
+            <path d="M8 10h4v12H8zM14 10h4l6 6-6 6h-4l6-6-6-6z" fill="#0A1E3C"/>
+          </svg>
+          <span>INFSP</span>
+        </div>
+        <p class="footer-place">Algérie, Algérie</p>
+        <ul class="footer-contact-list">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 11a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            +112 335 7720
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            infasion@gmail.com
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Adresse Horrimet, Algérie
+          </li>
+        </ul>
+        <div class="footer-socials">
+          <a href="#" class="social-icon" aria-label="Twitter" id="social-twitter">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+          </a>
+          <a href="#" class="social-icon" aria-label="YouTube" id="social-youtube">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.4a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#0A1E3C"/></svg>
+          </a>
+          <a href="#" class="social-icon" aria-label="Facebook" id="social-facebook">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-col footer-links-col">
+        <h4 class="footer-heading">Liens Utiles</h4>
+        <ul class="footer-links">
+          <li><a href="#specialities">Formations</a></li>
+          <li><a href="#research">Recherche</a></li>
+          <li><a href="#student-life">Vie Étudiante</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="footer-col footer-newsletter-col">
+        <h4 class="footer-heading">Newsletter</h4>
+        <p class="footer-newsletter-text">Restez informé des actualités et annonces de l'INFSP.</p>
+        <form class="newsletter-form" id="newsletter-form" onsubmit="return false;">
+          <input type="email" id="newsletter-email" placeholder="Entrez votre adresse email" class="newsletter-input" aria-label="Adresse email" />
+          <button type="submit" class="btn btn-yellow newsletter-btn" id="newsletter-submit">S'abonner</button>
+        </form>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p>Copyright INFSP 2026. Tous droits réservés.</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

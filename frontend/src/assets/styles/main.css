@@ -1,3 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+  
+  body {
+    @apply bg-white text-gray-900 font-sans tracking-tighter antialiased;
+  }
+  h1 {
+    @apply text-[80px] leading-[1.04] font-semibold tracking-tightest;
+  }
+  h2 {
+    @apply text-[56px] leading-[1.04] font-semibold;
+  }
+  h3 {
+    @apply text-[32px] leading-[1.30] font-medium;
+  }
+  h4 {
+    @apply text-[24px] leading-[1.30] font-medium;
+  }
+  p {
+    @apply text-[16px] leading-[1.60] font-normal;
+  }
+  
+  label {
+    @apply text-[15px] uppercase tracking-widest font-medium text-gray-800;
+  }
+  
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], select, textarea {
+    @apply border-gray-300 rounded-[4px] bg-white text-[16px] py-3 px-4 shadow-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-colors text-gray-900 outline-none;
+  }
+  
+  th {
+    @apply text-[12.8px] font-semibold uppercase text-gray-600 tracking-widest;
+  }
+}
+
+@layer components {
+  button, .btn {
+    @apply font-medium text-[16px] rounded-[4px] transition-transform duration-200 tracking-tighter;
+  }
+  button:hover:not(:disabled), .btn:hover:not(:disabled) {
+    transform: translateY(-6px);
+  }
+  
+  .badge {
+    @apply bg-indigo-600/10 text-indigo-600 rounded-[4px] px-2 py-1 text-[12.8px] font-semibold uppercase tracking-wide;
+  }
+  
+  .card {
+    @apply border border-gray-300 rounded-[4px] bg-white !important;
+    box-shadow: 0px 3px 7px rgba(0,0,0,0.09) !important;
+  }
+}

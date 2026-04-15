@@ -91,11 +91,18 @@ class LessonController extends Controller
         $user = $request->user();
         $lesson = Lesson::findOrFail($id);
 
-        if (!Storage::exists($lesson->file_path)) {
-            return response()->json(['message' => 'File not found'], 404);
+        $filePath = str_replace('public/', '', $lesson->file_path);
+
+        if (!Storage::disk('public')->exists($filePath)) {
+            // Also try the original just in case
+            if (!Storage::exists($lesson->file_path)) {
+                return response()->json(['message' => 'File not found'], 404);
+            } else {
+                return Storage::download($lesson->file_path, $lesson->file_name);
+            }
         }
 
-        return Storage::download($lesson->file_path, $lesson->file_name);
+        return Storage::disk('public')->download($filePath, $lesson->file_name);
     }
 
     /**

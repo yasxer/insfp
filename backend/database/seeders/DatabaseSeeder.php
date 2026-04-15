@@ -9,7 +9,7 @@ class DatabaseSeeder extends Seeder
     {
         // Disable foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        
+
         // Truncate all tables
         \App\Models\Administration::truncate();
         \App\Models\Attendance::truncate();
@@ -25,9 +25,10 @@ class DatabaseSeeder extends Seeder
         \App\Models\Module::truncate();
         \App\Models\Specialty::truncate();
         \App\Models\User::truncate();
-        
+
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $this->call(ITDataSeeder::class);
+        $this->call(SessionSpecialtyStudentSeeder::class);
     }
 }

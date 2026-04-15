@@ -29,6 +29,7 @@ Route::get('/sessions', [SessionController::class, 'index']); // Public access f
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/lookup-registration', [AuthController::class, 'lookupRegistrationNumber']);
+Route::post('/chatbot', [\App\Http\Controllers\Api\ChatbotController::class, 'chat']);
 
 // Protected routes
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -234,4 +235,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/sessions/{sessionId}/specialties/{sessionSpecialtyId}', [SessionController::class, 'removeSpecialty']);
     });
 });
+
 

@@ -377,7 +377,7 @@ class TeacherController extends Controller
             if ($dayOfWeek) {
                 // Find the date for this day in the requested week
                 $date = $startOfWeek->copy()->setISODate($startOfWeek->year, $startOfWeek->weekOfYear, $dayOfWeek);
-                
+
                 // For proper time handling, just use start_time and end_time
                 $startTimeStr = is_string($schedule->start_time) ? $schedule->start_time : Carbon::parse($schedule->start_time)->format('H:i');
                 $endTimeStr = is_string($schedule->end_time) ? $schedule->end_time : Carbon::parse($schedule->end_time)->format('H:i');

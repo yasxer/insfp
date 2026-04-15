@@ -23,12 +23,13 @@
           <a href="#student-life" class="nav-link" @click="closeMenu">Vie Étudiante</a>
           <a href="#about" class="nav-link" @click="closeMenu">À Propos</a>
           <a href="#contact" class="nav-link" @click="closeMenu">Contact</a>
+            <a href="#" class="nav-link highlight-ai" @click.prevent="openAssistant">Assistant IA ✨</a>
           <!-- Mobile CTAs -->
           <router-link to="/register" class="nav-link mobile-only" @click="closeMenu">S'inscrire</router-link>
           <router-link to="/login" class="nav-link mobile-only" @click="closeMenu">Connexion</router-link>
         </nav>
 
-        <div class="desktop-only" style="display: flex; gap: 8px;">
+        <div class="desktop-only" style="display: flex; gap: 4px;">
             <router-link to="/register" class="btn btn-outline-white nav-cta" :style="isScrolled ? 'border-color: #0A1E3C; color: #0A1E3C;' : ''">S'INSCRIRE</router-link>
             <router-link to="/login" class="btn btn-yellow nav-cta">CONNEXION</router-link>
         </div>
@@ -391,11 +392,85 @@
       </div>
     </footer>
 
+    
+    <!-- ASSISTANT MODAL -->
+    <div class="assistant-overlay" :class="{ 'is-open': isAssistantOpen }" @click.self="closeAssistant">
+      <div class="assistant-modal">
+        <div class="assistant-header">
+          <div class="header-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#00BCD4"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <h3>Ask Me / IA Assistant</h3>
+          </div>
+          <button @click="closeAssistant" class="close-assistant-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        
+        <div class="assistant-body" ref="assistantMessagesContainer">
+          <div v-if="!hasStartedChatting" class="assistant-idle">
+              <div class="ai-orb-wrapper">
+                <div class="ai-orb-glow"></div>
+                <div class="ai-particles">
+                  <svg viewBox="0 0 200 200" width="100%" height="100%">
+                    <circle cx="100" cy="10" r="4" class="ai-dot d1" />
+                    <circle cx="135" cy="18" r="2" class="ai-dot d2" />
+                    <circle cx="165" cy="40" r="5" class="ai-dot d3" />
+                    <circle cx="185" cy="70" r="3" class="ai-dot d1" />
+                    <circle cx="192" cy="105" r="4" class="ai-dot d2" />
+                    <circle cx="182" cy="140" r="3" class="ai-dot d3" />
+                    <circle cx="155" cy="172" r="5" class="ai-dot d1" />
+                    <circle cx="120" cy="190" r="2" class="ai-dot d2" />
+                    <circle cx="85" cy="192" r="4" class="ai-dot d3" />
+                    <circle cx="45" cy="175" r="3" class="ai-dot d1" />
+                    <circle cx="20" cy="145" r="5" class="ai-dot d2" />
+                    <circle cx="8" cy="105" r="2" class="ai-dot d3" />
+                    <circle cx="15" cy="65" r="4" class="ai-dot d1" />
+                    <circle cx="38" cy="32" r="3" class="ai-dot d2" />
+                    <circle cx="70" cy="12" r="5" class="ai-dot d3" />
+                    
+                    <!-- inner ring -->
+                    <circle cx="100" cy="40" r="2" class="ai-dot d2" />
+                    <circle cx="150" cy="70" r="3" class="ai-dot d1" />
+                    <circle cx="155" cy="120" r="2.5" class="ai-dot d3" />
+                    <circle cx="120" cy="155" r="2" class="ai-dot d2" />
+                    <circle cx="70" cy="145" r="3" class="ai-dot d1" />
+                    <circle cx="45" cy="100" r="2.5" class="ai-dot d3" />
+                    <circle cx="60" cy="60" r="2" class="ai-dot d2" />
+                  </svg>
+                </div>
+                <div class="ai-orb-text">
+                  Bonjour,<br/>puis-je vous aider ?
+                </div>
+              </div>
+            </div>
+
+            <div v-if="hasStartedChatting" class="chat-messages">
+            <div v-for="(msg, index) in chatMessages" :key="index" :class="['chat-bubble', msg.isBot ? 'bot' : 'user']">
+              {{ msg.text }}
+            </div>
+            <div v-if="isBotTyping" class="chat-bubble bot typing">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="assistant-footer">
+          <input type="text" v-model="chatInput" @keyup.enter="sendMessage" placeholder="Écrivez votre question..." />
+          <button @click="sendMessage" :disabled="!chatInput.trim()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- FIN ASSISTANT MODAL -->
+
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
+import apiClient from '@/api/axios'
 
 const isScrolled = ref(false)
 const isMenuOpen = ref(false)
@@ -407,8 +482,67 @@ const newsletterSuccess = ref(false)
 
 const statsWrapper = ref(null)
 const specialitiesCard = ref(null)
+  
+  const isAssistantOpen = ref(false)
+  const hasStartedChatting = ref(false)
+  const chatInput = ref('')
+  const isBotTyping = ref(false)
+  const assistantMessagesContainer = ref(null)
+  const chatMessages = ref([])
 
-const stats = reactive({
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      if (assistantMessagesContainer.value) {
+        assistantMessagesContainer.value.scrollTop = assistantMessagesContainer.value.scrollHeight
+      }
+    }, 50)
+  }
+
+  const openAssistant = () => {
+    isAssistantOpen.value = true
+    closeMenu()
+  }
+
+  const closeAssistant = () => {
+    isAssistantOpen.value = false
+  }
+
+  const sendMessage = async () => {
+    if (!chatInput.value.trim()) return
+
+    if (!hasStartedChatting.value) {
+      hasStartedChatting.value = true
+    }
+
+    const userQuestion = chatInput.value.trim()
+    chatMessages.value.push({ text: userQuestion, isBot: false })
+    chatInput.value = ''
+    scrollToBottom()
+
+    isBotTyping.value = true
+    scrollToBottom()
+
+    try {
+      const response = await apiClient.post('/api/chatbot', { message: userQuestion })
+      isBotTyping.value = false
+      chatMessages.value.push({ 
+        text: response.data.reply || "Désolé, je n'ai pas pu vous répondre.", 
+        isBot: true 
+      })
+      scrollToBottom()
+    } catch (error) {
+      isBotTyping.value = false
+      console.error("Erreur Chatbot:", error)
+      chatMessages.value.push({ 
+        text: "Désolé, une erreur s'est produite lors de la connexion au serveur.", 
+        isBot: true 
+      })
+      scrollToBottom()
+    }
+  }
+
+  const stats = reactive({
+
   facultes: 0,
   programmes: 0,
   etudiants: 0,
@@ -517,8 +651,8 @@ onUnmounted(() => {
 
 .landing-page { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1E293B; background: #FFFFFF; line-height: 1.6; }
 * { box-sizing: border-box; }
-.container { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 24px; }
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 8px; font-size: 0.875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; cursor: pointer; border: 2px solid transparent; transition: all 0.3s cubic-bezier(.4,0,.2,1); white-space: nowrap; }
+.container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 24px; }
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 14px 28px; border-radius: 8px; font-size: 0.875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; cursor: pointer; border: 2px solid transparent; transition: all 0.3s cubic-bezier(.4,0,.2,1); white-space: nowrap; }
 .btn-yellow { background: #FFD700; color: #0A1E3C; border-color: #FFD700; }
 .btn-yellow:hover { background: #E6C200; border-color: #E6C200; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,215,0,.35); }
 .btn-outline-white { background: transparent; color: #FFFFFF; border-color: rgba(255,255,255,.6); }
@@ -538,12 +672,12 @@ onUnmounted(() => {
 .navbar.scrolled .logo-name { color: #0A1E3C; }
 .logo-sub { font-size: 0.6rem; font-weight: 500; color: rgba(255,255,255,.8); letter-spacing: .04em; text-transform: uppercase; transition: color 0.3s; white-space: nowrap; }
 .navbar.scrolled .logo-sub { color: #94A3B8; }
-.nav-links { display: flex; align-items: center; gap: 2px; }
-.nav-link { padding: 8px 10px; font-size: 0.875rem; font-weight: 500; color: #FFFFFF; text-decoration: none; border-radius: 8px; transition: all 0.3s; white-space: nowrap; }
+.nav-links { display: flex; align-items: center; gap: 4px; }
+.nav-link { padding: 4px 8px; font-size: 0.8rem; font-weight: 600; color: #F8FAFC; text-decoration: none; border-radius: 8px; transition: all 0.3s; white-space: nowrap; }
 .nav-link:hover { background: rgba(255,255,255,.1); color: #FFD700; }
 .navbar.scrolled .nav-link { color: #1E293B; }
 .navbar.scrolled .nav-link:hover { background: rgba(10,30,60,.06); color: #0A1E3C; }
-.nav-cta { padding: 10px 18px; font-size: 0.8rem; }
+.nav-cta { padding: 6px 12px; font-size: 0.75rem; }
 
 .desktop-only { display: flex; }
 .mobile-only { display: none; }
@@ -646,7 +780,7 @@ onUnmounted(() => {
 .footer-links a { font-size: 0.9rem; color: rgba(255,255,255,.65); text-decoration: none; transition: color 0.3s, padding-left 0.3s; }
 .footer-links a:hover { color: #FFD700; padding-left: 4px; }
 .footer-newsletter-text { font-size: 0.875rem; color: rgba(255,255,255,.6); line-height: 1.6; margin-bottom: 16px; }
-.newsletter-form { display: flex; gap: 8px; }
+.newsletter-form { display: flex; gap: 4px; }
 .newsletter-input { flex: 1; min-width: 0; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); color: #FFFFFF; font-size: 0.875rem; font-family: inherit; outline: none; transition: border-color 0.3s, background 0.3s; }
 .newsletter-input::placeholder { color: rgba(255,255,255,.4); }
 .newsletter-input:focus { border-color: #FFD700; background: rgba(255,255,255,.1); }
@@ -700,6 +834,67 @@ onUnmounted(() => {
   .specialities-card { grid-template-columns: 1fr; }
   .specialities-wrapper { margin-top: -30px; }
 }
+
+/* ========== ASSISTANT MODAL ============ */
+.highlight-ai { color: #FFD700 !important; font-weight: 800 !important; display: inline-flex; align-items: center; background: rgba(255,215,0,0.1); border-radius: 8px; margin-left: 8px; padding: 6px 12px; border: 1px solid rgba(255,215,0,0.2); }
+.navbar.scrolled .highlight-ai { background: rgba(10,30,60,0.06); color: #0A1E3C !important; }
+
+.assistant-overlay { position: fixed; inset: 0; background: rgba(10,30,60,0.6); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.assistant-overlay.is-open { opacity: 1; pointer-events: all; }
+
+.assistant-modal { width: 90%; max-width: 600px; height: 80vh; max-height: 700px; background: #FFFFFF; border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95) translateY(20px); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.assistant-overlay.is-open .assistant-modal { transform: scale(1) translateY(0); }
+
+.assistant-header { background: #0A1E3C; padding: 20px 24px; color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #FFD700; }
+.header-title { display: flex; align-items: center; gap: 12px; }
+.header-title h3 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px; }
+.close-assistant-btn { background: rgba(255,255,255,0.1); border: none; width: 36px; height: 36px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+.close-assistant-btn:hover { background: #FFD700; color: #0A1E3C; }
+
+.assistant-body { flex: 1; overflow-y: auto; background: #F8FAFC; position: relative; display: flex; flex-direction: column; }
+.assistant-idle { margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; width: 100%; height: 100%; }
+
+.ai-orb-wrapper { position: relative; width: 260px; height: 260px; display: flex; align-items: center; justify-content: center; }
+.ai-orb-glow { position: absolute; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(0,188,212,0.8) 0%, rgba(10,30,60,0.5) 50%, rgba(255,215,0,0.3) 100%); filter: blur(25px); animation: pulseGlow 4s ease-in-out infinite alternate; pointer-events: none; }
+.ai-orb-text { position: relative; z-index: 2; font-size: 1.6rem; font-weight: 700; color: #FFFFFF; line-height: 1.3; text-shadow: 0 4px 10px rgba(10,30,60,0.8); pointer-events: none; }
+.ai-particles { position: absolute; inset: 0; animation: spinOrb 30s linear infinite; pointer-events: none; }
+.ai-dot { fill: #00BCD4; animation: scaleDot 3s ease-in-out infinite alternate; transform-origin: center; transform-box: fill-box; }
+.ai-dot.d2 { fill: #FFD700; }
+.ai-dot.d3 { fill: #0A1E3C; }
+.ai-dot.d1 { animation-delay: 0s; }
+.ai-dot.d2 { animation-delay: 1.2s; }
+.ai-dot.d3 { animation-delay: 2.5s; }
+
+@keyframes pulseGlow { 0% { transform: scale(1); opacity: 0.6; filter: blur(20px); } 100% { transform: scale(1.3); opacity: 1; filter: blur(35px); } }
+@keyframes spinOrb { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes scaleDot { 0% { transform: scale(0.6); opacity: 0.4; } 100% { transform: scale(1.3); opacity: 0.9; } }
+
+.chat-messages { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.chat-bubble { max-width: 80%; padding: 16px; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; }
+.chat-bubble.bot { background: #fff; color: #1E293B; align-self: flex-start; border-bottom-left-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); }
+.chat-bubble.user { background: #0A1E3C; color: #fff; align-self: flex-end; border-bottom-right-radius: 6px; box-shadow: 0 4px 15px rgba(10,30,60,0.2); }
+
+.assistant-footer { padding: 20px 24px; background: #fff; border-top: 1px solid rgba(0,0,0,0.05); display: flex; gap: 12px; }
+.assistant-footer input { flex: 1; padding: 16px 20px; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; outline: none; font-size: 1rem; background: #F8FAFC; color: #1E293B; transition: border-color 0.3s, box-shadow 0.3s; }
+.assistant-footer input:focus { border-color: #FFD700; background: #fff; box-shadow: 0 0 0 3px rgba(255,215,0,0.15); }
+.assistant-footer button { width: 54px; height: 54px; border-radius: 12px; background: #FFD700; border: none; color: #0A1E3C; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 4px 15px rgba(255,215,0,0.3); }
+.assistant-footer button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,215,0,0.4); }
+.assistant-footer button:disabled { background: #E2E8F0; color: #94A3B8; box-shadow: none; cursor: not-allowed; }
+
+.typing .dot { display: inline-block; width: 8px; height: 8px; background: #94A3B8; border-radius: 50%; margin-right: 5px; animation: chatBounce 1.4s infinite ease-in-out both; }
+.typing .dot:nth-child(1) { animation-delay: -0.32s; }
+.typing .dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes chatBounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+@media (max-width: 600px) {
+  .assistant-modal { width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
+  .assistant-header { padding: 16px; border-radius: 0; }
+  .assistant-overlay { padding: 0; }
+}
 </style>
+
+
+
+
 
 

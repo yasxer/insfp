@@ -146,6 +146,9 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import adminApi from '@/api/endpoints/admin'
 import sessionApi from '@/api/endpoints/sessions'
+import { useToastStore } from '@/stores/toast'
+
+const toastStore = useToastStore()
 
 const filters = ref({
   session_id: '',
@@ -232,7 +235,7 @@ const fetchStudents = async () => {
     students.value = res.students
     searched.value = true
   } catch (error) {
-    alert('Error fetching students')
+    toastStore.error('Error fetching students')
   } finally {
     loading.value = false
   }
@@ -266,7 +269,7 @@ const closeModal = () => {
 }
 
 const saveDeliberation = async () => {
-  if (formData.value.average === '') return alert('Average is required')
+  if (formData.value.average === '') return toastStore.warning('Average is required')
 
   saving.value = true
   try {
@@ -280,7 +283,7 @@ const saveDeliberation = async () => {
     await fetchStudents()
     closeModal()
   } catch(error) {
-    alert('Error saving deliberation')
+    toastStore.error('Error saving deliberation')
   } finally {
     saving.value = false
   }
@@ -304,7 +307,7 @@ const confirmDeliberation = async (student) => {
     })
     await fetchStudents()
   } catch(error) {
-    alert('Error confirming calculation')
+    toastStore.error('Error confirming calculation')
   }
 }
 </script>

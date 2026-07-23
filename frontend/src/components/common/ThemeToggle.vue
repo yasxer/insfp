@@ -1,7 +1,10 @@
 <script setup>
-import { useTheme } from '@/composables/useTheme'
+import { storeToRefs } from 'pinia'
+import { useThemeStore } from '@/stores/theme'
 
-const { isDark, toggleTheme } = useTheme()
+const themeStore = useThemeStore()
+const { isDark } = storeToRefs(themeStore)
+const { toggleTheme } = themeStore
 </script>
 
 <template>

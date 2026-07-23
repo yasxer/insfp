@@ -21,9 +21,18 @@
         </tr>
       </thead>
       <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-        <tr v-if="loading">
-          <td colspan="8" class="px-6 py-5 text-center text-gray-500 dark:text-gray-400">Loading...</td>
-        </tr>
+        <template v-if="loading">
+          <tr v-for="n in 6" :key="`skeleton-${n}`" class="animate-pulse">
+            <td class="px-4 py-5 w-12"><div class="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+            <td class="px-6 py-5"><div class="h-4 w-40 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+            <td class="px-6 py-5"><div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+            <td class="px-6 py-5"><div class="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+            <td class="px-6 py-5"><div class="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+            <td class="px-6 py-5"><div class="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+            <td class="px-6 py-5"><div class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+            <td class="px-6 py-5"><div class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"></div></td>
+          </tr>
+        </template>
         <tr v-else-if="students.length === 0">
           <td colspan="8" class="px-6 py-5 text-center text-gray-500 dark:text-gray-400">No graduated students found</td>
         </tr>

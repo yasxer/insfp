@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import studentApi from '@/api/endpoints/student'
 import teacherApi from '@/api/endpoints/teacherPortal'
+import adminApi from '@/api/endpoints/admin'
 import {
   HomeIcon,
   CalendarIcon,
@@ -15,7 +16,8 @@ import {
   EnvelopeIcon,
   BookOpenIcon, ClipboardDocumentListIcon,
   DocumentTextIcon,
-  IdentificationIcon
+  IdentificationIcon,
+  ArrowTrendingUpIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -34,7 +36,8 @@ const authStore = useAuthStore()
 const badges = ref({
   messages: 0,
   lessons: 0,
-  documents: 0
+  documents: 0,
+  advancementReviews: 0
 })
 
 const userDisplay = ref({
@@ -81,6 +84,13 @@ const fetchBadges = async () => {
       }
     } catch (err) {
       console.error('Failed to fetch teacher badges', err)
+    }
+  } else if (authStore.user?.role === 'administration') {
+    try {
+      const res = await adminApi.getAdvancementReviews('pending')
+      badges.value.advancementReviews = res.pending_count || 0
+    } catch (err) {
+      console.error('Failed to fetch admin badges', err)
     }
   }
 }
@@ -167,6 +177,7 @@ const navigationItems = computed(() => {
       { name: 'Specialties', icon: ClipboardDocumentCheckIcon, path: '/admin/specialties' },
       { name: 'Sessions', icon: BookOpenIcon, ClipboardDocumentListIcon, path: '/admin/sessions' },
       { name: 'Deliberations', icon: AcademicCapIcon, path: '/admin/deliberations' },
+      { name: 'Passages', icon: ArrowTrendingUpIcon, path: '/admin/advancement-reviews', badge: badges.value.advancementReviews },
       { name: 'Registration Gen', icon: IdentificationIcon, path: '/admin/registration-generator' },
       { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
       { name: 'Examens', icon: AcademicCapIcon, path: '/admin/exams' },

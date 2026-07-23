@@ -162,6 +162,15 @@ class ScheduleController extends Controller
             'session_id'    => 'nullable|exists:sessions,id',
         ]);
 
+        // The academic year is derived from the session so conflict detection can
+        // never be silently bypassed by a client-side typo or an inconsistent
+        // format. The client-provided value is only kept for legacy sessionless rows.
+        if (!empty($validated['session_id'])) {
+            $validated['academic_year'] = $this->academicYearFromSession(
+                TrainingSession::findOrFail($validated['session_id'])
+            );
+        }
+
         // ── Teacher conflict ──────────────────────────────────────────────────
         $teacherConflict = $this->checkTeacherConflict(
             $validated['teacher_id'], $validated['day'],
@@ -218,6 +227,17 @@ class ScheduleController extends Controller
             'academic_year' => 'sometimes|string|max:9',
             'session_id'    => 'sometimes|nullable|exists:sessions,id',
         ]);
+
+        // Keep the academic year in sync with the (effective) session — same
+        // reasoning as store(): the session is the single source of truth.
+        $effectiveSessionId = array_key_exists('session_id', $validated)
+            ? $validated['session_id']
+            : $schedule->session_id;
+        if (!empty($effectiveSessionId)) {
+            $validated['academic_year'] = $this->academicYearFromSession(
+                TrainingSession::findOrFail($effectiveSessionId)
+            );
+        }
 
         $day        = $validated['day']          ?? $schedule->day;
         $start      = $validated['start_time']   ?? substr($schedule->start_time, 0, 5);
@@ -276,15 +296,113 @@ class ScheduleController extends Controller
                 'name'          => $s->name,
                 'is_active'     => $s->is_active,
                 'status'        => $s->status,
+                'status_label'  => $s->status_label,
+                'is_activatable'=> $s->is_activatable,
                 'start_date'    => $s->start_date,
                 'academic_year' => $this->academicYearFromSession($s),
             ]);
 
         return response()->json([
             'sessions' => $sessions,
-            'current'  => $sessions->firstWhere('is_active', true),
-            'archives' => $sessions->filter(fn($s) => !$s['is_active'])->values(),
+            'current'  => $sessions->firstWhere('status', 'active'),
+            'pending'  => $sessions->filter(fn($s) => $s['status'] === 'pending')->values(),
+            'archives' => $sessions->filter(fn($s) => $s['status'] === 'archived')->values(),
         ]);
+    }
+
+    private const STUDY_TYPE_TO_MODE = [
+        'presential'    => 'initial',
+        'apprentissage' => 'alternance',
+        'cours_soir'    => 'continue',
+    ];
+
+    /**
+     * Active cohorts (all intakes) at their current semester — the students who
+     * are actually studying during the active period.
+     */
+    private function activeCombos()
+    {
+        return Student::select(
+                'specialty_id', 'study_mode',
+                DB::raw('current_semester as semester'),
+                DB::raw('COUNT(*) as students_count'),
+                DB::raw('GROUP_CONCAT(DISTINCT COALESCE(`group`, "") ORDER BY `group` SEPARATOR ",") as groups_list')
+            )
+            ->where('is_graduated', false)
+            ->where('is_excluded', false)
+            ->whereNotNull('specialty_id')
+            ->whereNotNull('current_semester')
+            ->groupBy('specialty_id', 'study_mode', 'current_semester')
+            ->get()
+            ->map(fn ($r) => (object) array_merge($r->toArray(), ['is_new' => false]));
+    }
+
+    /**
+     * Draft for a pending session: a projection of what the cohorts WILL be once
+     * it is activated — every active cohort advanced one semester (those who
+     * would graduate are dropped), plus the brand-new S1 intake declared by the
+     * session's specialties.
+     */
+    private function projectedCombos(TrainingSession $session)
+    {
+        // Existing cohorts, advanced +1 (skip those reaching the last semester → graduating)
+        $advanced = Student::query()
+            ->join('specialties', 'students.specialty_id', '=', 'specialties.id')
+            ->where('students.is_graduated', false)
+            ->where('students.is_excluded', false)
+            ->whereNotNull('students.specialty_id')
+            ->whereNotNull('students.current_semester')
+            ->whereColumn('students.current_semester', '<', 'specialties.duration_semesters')
+            ->groupBy('students.specialty_id', 'students.study_mode', 'students.current_semester')
+            ->selectRaw('students.specialty_id, students.study_mode, students.current_semester,
+                COUNT(*) as students_count,
+                GROUP_CONCAT(DISTINCT COALESCE(students.`group`, "") ORDER BY students.`group` SEPARATOR ",") as groups_list')
+            ->get()
+            ->map(fn ($r) => (object) [
+                'specialty_id'   => $r->specialty_id,
+                'study_mode'     => $r->study_mode,
+                'semester'       => $r->current_semester + 1,
+                'students_count' => $r->students_count,
+                'groups_list'    => $r->groups_list,
+                'is_new'         => false,
+            ]);
+
+        // Brand-new S1 intake declared by this session's specialties
+        $newIntake = SessionSpecialty::where('session_id', $session->id)->get()
+            ->map(fn ($ss) => (object) [
+                'specialty_id'   => $ss->specialty_id,
+                'study_mode'     => self::STUDY_TYPE_TO_MODE[$ss->study_type] ?? 'initial',
+                'semester'       => 1,
+                'students_count' => 0,
+                'groups_list'    => '',
+                'is_new'         => true,
+            ]);
+
+        return $advanced->concat($newIntake);
+    }
+
+    /**
+     * Historical snapshot for an archived session: whatever was actually
+     * scheduled under it, derived from its schedule rows.
+     */
+    private function archivedCombos($sessionId)
+    {
+        return Schedule::where('session_id', $sessionId)
+            ->select(
+                'specialty_id', 'study_mode', 'semester',
+                DB::raw('COUNT(*) as students_count'),
+                DB::raw('GROUP_CONCAT(DISTINCT COALESCE(`group`, "") ORDER BY `group` SEPARATOR ",") as groups_list')
+            )
+            ->groupBy('specialty_id', 'study_mode', 'semester')
+            ->get()
+            ->map(fn ($r) => (object) [
+                'specialty_id'   => $r->specialty_id,
+                'study_mode'     => $r->study_mode,
+                'semester'       => $r->semester,
+                'students_count' => 0,
+                'groups_list'    => $r->groups_list,
+                'is_new'         => false,
+            ]);
     }
 
     /**
@@ -294,20 +412,17 @@ class ScheduleController extends Controller
     {
         $session = TrainingSession::findOrFail($sessionId);
 
-        // Get specialty IDs belonging to this session
-        $sessionSpecialtyIds = SessionSpecialty::where('session_id', $sessionId)->pluck('specialty_id');
-
-        $combinations = Student::select(
-                'specialty_id', 'study_mode', 'current_semester',
-                DB::raw('COUNT(*) as students_count'),
-                DB::raw('GROUP_CONCAT(DISTINCT COALESCE(`group`, "") ORDER BY `group` SEPARATOR ",") as groups_list')
-            )
-            ->where('is_graduated', false)
-            ->whereIn('specialty_id', $sessionSpecialtyIds)
-            ->whereNotNull('specialty_id')
-            ->whereNotNull('current_semester')
-            ->groupBy('specialty_id', 'study_mode', 'current_semester')
-            ->get();
+        // The cards depend on the session's lifecycle stage:
+        //  - pending  : a projected draft (cohorts +1) + the new S1 intake
+        //  - active   : all active cohorts at their real current semester
+        //  - archived : the historical schedule snapshot
+        if ($session->status === 'pending') {
+            $combinations = $this->projectedCombos($session);
+        } elseif ($session->status === 'archived') {
+            $combinations = $this->archivedCombos($sessionId);
+        } else {
+            $combinations = $this->activeCombos();
+        }
 
         $specialtyIds = $combinations->pluck('specialty_id')->unique();
         $specialties  = Specialty::whereIn('id', $specialtyIds)->get()->keyBy('id');
@@ -324,7 +439,7 @@ class ScheduleController extends Controller
                 : [];
 
             $specStatuses = $statuses->get($item->specialty_id, collect())
-                ->where('semester', $item->current_semester)
+                ->where('semester', $item->semester)
                 ->where('study_mode', $item->study_mode);
 
             if (count($groups) > 0) {
@@ -339,18 +454,19 @@ class ScheduleController extends Controller
 
             $schedulesCount = Schedule::where('session_id', $sessionId)
                 ->where('specialty_id', $item->specialty_id)
-                ->where('semester', $item->current_semester)
+                ->where('semester', $item->semester)
                 ->where('study_mode', $item->study_mode)
                 ->count();
 
             return [
-                'id'             => $item->specialty_id . '_' . $item->study_mode . '_' . $item->current_semester,
+                'id'             => $item->specialty_id . '_' . $item->study_mode . '_' . $item->semester,
                 'specialty_id'   => $item->specialty_id,
                 'specialty_name' => $specialty?->name ?? 'Unknown',
                 'specialty_code' => $specialty?->code ?? '',
                 'study_mode'     => $item->study_mode,
-                'semester'       => $item->current_semester,
+                'semester'       => $item->semester,
                 'students_count' => $item->students_count,
+                'is_new'         => $item->is_new ?? false,
                 'groups'         => $groups,
                 'groups_count'   => count($groups),
                 'schedules_count'=> $schedulesCount,
@@ -445,6 +561,7 @@ class ScheduleController extends Controller
                 DB::raw('GROUP_CONCAT(DISTINCT COALESCE(`group`, "") SEPARATOR ",") as groups_list')
             )
             ->where('is_graduated', false)
+            ->where('is_excluded', false)
             ->whereNotNull('specialty_id')->whereNotNull('current_semester')
             ->groupBy('specialty_id', 'study_mode', 'current_semester')
             ->get();

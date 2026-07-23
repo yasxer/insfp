@@ -25,7 +25,7 @@
           Imprimer
         </button>
         <button
-          v-if="session.is_active"
+          v-if="session.status === 'active'"
           @click="$emit('notify')"
           class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm"
         >
@@ -36,7 +36,7 @@
           Notifier
         </button>
         <button
-          v-if="session.is_active"
+          v-if="session.status !== 'archived'"
           @click="$emit('edit')"
           class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm"
         >
@@ -163,6 +163,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import schedulesApi from '@/api/endpoints/schedules'
+import { useToastStore } from '@/stores/toast'
+
+const toastStore = useToastStore()
 
 // ── Props & Emits ─────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -365,7 +368,7 @@ function printTimetable() {
   })
 
   if (!sections) {
-    alert('Aucune séance à imprimer.')
+    toastStore.warning('Aucune séance à imprimer.')
     return
   }
 

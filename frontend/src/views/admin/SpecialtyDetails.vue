@@ -192,10 +192,12 @@ import SpecialtyForm from '@/components/admin/specialties/SpecialtyForm.vue'
 import ModuleForm from '@/components/admin/specialties/ModuleForm.vue'
 import AssignTeacherModal from '@/components/admin/specialties/AssignTeacherModal.vue'
 import modulesApi from '@/api/endpoints/modules'
+import { useToastStore } from '@/stores/toast'
 
 const route = useRoute()
 const router = useRouter()
 const store = useSpecialtiesStore()
+const toastStore = useToastStore()
 
 const isModalOpen = ref(false)
 const isModuleModalOpen = ref(false)
@@ -263,7 +265,7 @@ const handleModuleSave = async (moduleData) => {
     closeModuleModal()
   } catch (error) {
     console.error('Failed to save module:', error)
-    alert(error.response?.data?.message || 'Failed to save module')
+    toastStore.error(error.response?.data?.message || 'Failed to save module')
   }
 }
 
@@ -275,7 +277,7 @@ const deleteModule = async (module) => {
       await store.fetchSpecialty(route.params.id)
     } catch (error) {
       console.error('Failed to delete module:', error)
-      alert(error.response?.data?.message || 'Failed to delete module')
+      toastStore.error(error.response?.data?.message || 'Failed to delete module')
     }
   }
 }
@@ -298,7 +300,7 @@ const handleAssignTeacher = async (data) => {
     closeAssignTeacherModal()
   } catch (error) {
     console.error('Failed to assign teacher:', error)
-    alert(error.response?.data?.message || 'Failed to assign teacher')
+    toastStore.error(error.response?.data?.message || 'Failed to assign teacher')
   }
 }
 
@@ -312,7 +314,7 @@ const removeTeacherFromModule = async (module, teacher) => {
       await store.fetchSpecialty(route.params.id)
     } catch (error) {
       console.error('Failed to remove teacher:', error)
-      alert(error.response?.data?.message || 'Failed to remove teacher')
+      toastStore.error(error.response?.data?.message || 'Failed to remove teacher')
     }
   }
 }

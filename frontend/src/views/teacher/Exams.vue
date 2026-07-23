@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import teacherApi from '@/api/endpoints/teacherPortal'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { useToastStore } from '@/stores/toast'
 import { 
   AcademicCapIcon, 
   PencilSquareIcon, 
@@ -14,6 +15,7 @@ import {
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
+const toastStore = useToastStore()
 const loading = ref(true)
 const exams = ref([])
 const modules = ref([])
@@ -163,7 +165,7 @@ const submitExam = async () => {
     fetchExams()
   } catch (error) {
     console.error('Failed to create exam:', error)
-    alert('Erreur lors de la création de l\'examen')
+    toastStore.error('Erreur lors de la création de l\'examen')
   } finally {
     isSubmitting.value = false
   }
@@ -175,7 +177,7 @@ const updateExamStatus = async (examId, newStatus) => {
     fetchExams()
   } catch (error) {
     console.error('Failed to update status:', error)
-    alert('Erreur lors de la soumission de l\'examen')
+    toastStore.error('Erreur lors de la soumission de l\'examen')
   }
 }
 </script>

@@ -43,7 +43,7 @@ onMounted(async () => {
       modulesCount: data.statistics?.modules_count || 0,
       currentGPA: data.statistics?.gpa || 0,
       classesThisWeek: data.statistics?.classes_this_week || 0,
-      pendingTasks: data.statistics?.pending_tasks || 0
+      pendingTasks: data.statistics?.pending_homeworks ?? data.statistics?.pending_tasks ?? 0
     }
     
     attendanceData.value = {

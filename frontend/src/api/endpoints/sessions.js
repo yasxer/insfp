@@ -12,6 +12,16 @@ export default {
         return api.get('/api/admin/sessions/archived');
     },
 
+    // Sessions pending activation whose month has arrived
+    getPendingAlerts() {
+        return api.get('/api/admin/sessions/pending-alerts');
+    },
+
+    // Preview of the next Février/Septembre intake to be opened
+    getNextSlot() {
+        return api.get('/api/admin/sessions/next-slot');
+    },
+
     // Get single session
     getSession(id) {
         return api.get(`/api/admin/sessions/${id}`);

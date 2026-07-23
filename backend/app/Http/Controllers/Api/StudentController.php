@@ -9,6 +9,8 @@ use App\Models\Grade;
 use App\Models\Attendance;
 use App\Models\Schedule;
 use App\Models\Exam;
+use App\Models\Homework;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +18,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Http\Requests\StudentProfileUpdateRequest;
+use App\Http\Requests\StudentProfileCompleteRequest;
 
 class StudentController extends Controller
 {
@@ -79,6 +83,27 @@ class StudentController extends Controller
             ->with('module')
             ->get();
 
+        // Pending homeworks: due in the future, not yet submitted by this student
+        $pendingHomeworksCount = Homework::whereIn('module_id', $modules->pluck('id'))
+            ->where('due_date', '>=', now())
+            ->whereDoesntHave('submissions', function($q) use ($student) {
+                $q->where('student_id', $student->id);
+            })
+            ->count();
+
+        // Unread messages (broadcast + individual) visible to this student
+        $unreadMessagesCount = Message::where(function($query) use ($user) {
+                $query->where('recipient_type', 'all')
+                    ->orWhere('recipient_type', $user->role . 's')
+                    ->orWhere(function($q) use ($user) {
+                        $q->where('recipient_type', 'individual')
+                          ->where('recipient_id', $user->id);
+                    });
+            })
+            ->get()
+            ->reject(fn($message) => $message->isReadBy($user->id))
+            ->count();
+
         return response()->json([
             'student' => [
                 'id' => $student->id,
@@ -107,6 +132,8 @@ class StudentController extends Controller
                 ],
                 'grades_count' => $recentGrades->count(),
                 'upcoming_exams' => $upcomingExams->count(),
+                'pending_homeworks' => $pendingHomeworksCount,
+                'unread_messages' => $unreadMessagesCount,
             ],
             'modules' => $modules->map(function($module) {
                 return [
@@ -196,7 +223,7 @@ class StudentController extends Controller
      * Update student profile
      * PUT /api/student/profile
      */
-    public function updateProfile(Request $request): JsonResponse
+    public function updateProfile(StudentProfileUpdateRequest $request): JsonResponse
     {
         $user = $request->user();
         $student = $user->student;
@@ -205,12 +232,7 @@ class StudentController extends Controller
             return response()->json(['message' => 'Student profile not found'], 404);
         }
 
-        // Validate only editable fields
-        $validated = $request->validate([
-            'phone' => ['sometimes', 'nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($user->id)],
-            'date_of_birth' => ['sometimes', 'nullable', 'date', 'before:today'],
-            'address' => ['sometimes', 'nullable', 'string', 'max:500'],
-        ]);
+        $validated = $request->validated();
 
         // Update User model (only phone)
         if (isset($validated['phone'])) {
@@ -286,7 +308,7 @@ class StudentController extends Controller
      * Complete student profile (first time)
      * POST /api/student/complete-profile
      */
-    public function completeProfile(Request $request): JsonResponse
+    public function completeProfile(StudentProfileCompleteRequest $request): JsonResponse
     {
         $user = $request->user();
         $student = $user->student()->with('specialty')->first();
@@ -302,12 +324,7 @@ class StudentController extends Controller
             'data' => $request->all()
         ]);
 
-        // Validate required fields
-        $validated = $request->validate([
-            'date_of_birth' => ['required', 'date', 'before:today', 'after:1950-01-01'],
-            'address' => ['required', 'string', 'min:10', 'max:500'],
-            'phone' => ['nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($user->id)],
-        ]);
+        $validated = $request->validated();
 
         // Update student (saves to database)
         $student->update([

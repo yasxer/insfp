@@ -26,13 +26,18 @@ use App\Http\Controllers\Api\StudentDeliberationController;
 Route::get('/specialties', [SpecialtyController::class, 'index']);
 Route::get('/specialties/{id}', [SpecialtyController::class, 'show']);
 Route::get('/sessions', [SessionController::class, 'index']); // Public access for registration
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/lookup-registration', [AuthController::class, 'lookupRegistrationNumber']);
-Route::post('/chatbot', [\App\Http\Controllers\Api\ChatbotController::class, 'chat']);
 
-// Protected routes
-Route::middleware(['auth:sanctum'])->group(function () {
+// Rate limited auth routes
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1'); // 10 attempts per minute (brute-force protection)
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:3,60'); // 3 attempts per hour
+Route::post('/lookup-registration', [AuthController::class, 'lookupRegistrationNumber'])->middleware('throttle:10,1'); // 10 per minute
+
+// Public chatbot route — throttled: it is unauthenticated and each call hits the
+// paid Gemini API, so cap it to avoid cost-drain / DoS abuse.
+Route::post('/chatbot', [\App\Http\Controllers\Api\ChatbotController::class, 'chat'])->middleware('throttle:15,1');
+
+// Protected routes with rate limiting (60 requests per minute)
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     // Auth routes (all users)
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -54,11 +59,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/modules', [StudentController::class, 'modules']);
         Route::get('/grades', [StudentController::class, 'grades']);
         Route::get('/attendance', [StudentController::class, 'attendance']);
-            Route::get('/schedule', [StudentController::class, 'schedule']);
+        Route::get('/schedule', [StudentController::class, 'schedule']);
 
-    // Homework Routes for Students
-    Route::get('/homeworks', [StudentHomeworkController::class, 'index']);
-    Route::post('/homeworks/{id}/submit', [StudentHomeworkController::class, 'submit']);
+        // Homework Routes for Students
+        Route::get('/homeworks', [StudentHomeworkController::class, 'index']);
+        Route::post('/homeworks/{id}/submit', [StudentHomeworkController::class, 'submit']);
+
+        // Exams
         Route::get('/exams/results', [StudentController::class, 'examResults']);
         Route::get('/exams/upcoming', [StudentController::class, 'upcomingExams']);
 
@@ -86,6 +93,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/profile', [TeacherController::class, 'updateProfile']);
         Route::get('/modules', [TeacherController::class, 'modules']);
         Route::get('/modules/{module}/students', [TeacherController::class, 'moduleStudents']);
+        Route::get('/schedule', [TeacherController::class, 'schedule']);
 
         // Teacher Courses (Lessons)
         Route::get('/courses', [TeacherLessonController::class, 'index']);
@@ -106,13 +114,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/exams/history', [TeacherGradesController::class, 'history']);
         Route::get('/exams/{exam}/students', [TeacherGradesController::class, 'examStudents']);
         Route::post('/exams/{exam}/results', [TeacherGradesController::class, 'storeResults']);
-            Route::get('/schedule', [TeacherController::class, 'schedule']);
 
-    // Homework Routes for Teachers
-    Route::get('/homeworks', [TeacherHomeworkController::class, 'index']);
-    Route::post('/homeworks', [TeacherHomeworkController::class, 'store']);
-    Route::get('/homeworks/{id}', [TeacherHomeworkController::class, 'show']);
-    Route::post('/homeworks/{homework}/submissions/{submission}/grade', [TeacherHomeworkController::class, 'gradeSubmission']);
+        // Homework Routes for Teachers
+        Route::get('/homeworks', [TeacherHomeworkController::class, 'index']);
+        Route::post('/homeworks', [TeacherHomeworkController::class, 'store']);
+        Route::get('/homeworks/{id}', [TeacherHomeworkController::class, 'show']);
+        Route::post('/homeworks/{homework}/submissions/{submission}/grade', [TeacherHomeworkController::class, 'gradeSubmission']);
 
         // Messages
         Route::get('/messages', [MessageController::class, 'index']);
@@ -131,6 +138,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // Deliberations
         Route::get('/deliberations', [AdminDeliberationController::class, 'index']);
         Route::post('/deliberations', [AdminDeliberationController::class, 'storeOrUpdate']);
+
+        // Semester advancement reviews (students who failed a semester)
+        Route::get('/advancement-reviews', [\App\Http\Controllers\Api\AdvancementReviewController::class, 'index']);
+        Route::post('/advancement-reviews/{id}/resolve', [\App\Http\Controllers\Api\AdvancementReviewController::class, 'resolve']);
 
         // Profile
         Route::get('/profile', [AdminController::class, 'profile']);
@@ -223,6 +234,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // Session Management (Promotions)
         Route::get('/sessions', [SessionController::class, 'index']);
         Route::get('/sessions/archived', [SessionController::class, 'archived']);
+        Route::get('/sessions/pending-alerts', [SessionController::class, 'pendingAlerts']);
+        Route::get('/sessions/next-slot', [SessionController::class, 'nextSlot']);
         Route::get('/sessions/dropdown', [SessionController::class, 'getSessionsForDropdown']);
         Route::get('/sessions/specialties', [SessionController::class, 'getSpecialties']);
         Route::get('/sessions/study-types', [SessionController::class, 'getStudyTypes']);

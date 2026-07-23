@@ -88,13 +88,15 @@ class AuthController extends Controller
                 ]);
             }
 
-            $user = User::create([
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
-                'role' => 'student',
-                'is_approved' => false,
-            ]);
+            // The registration number is issued for a specific session + specialty.
+            // The student must register under exactly those — this prevents both
+            // mismatched enrollments and orphan students (a combo that isn't offered).
+            if ((int) $request->session_id !== (int) $registrationNumber->session_id
+                || (int) $request->specialty_id !== (int) $registrationNumber->specialty_id) {
+                throw ValidationException::withMessages([
+                    'registration_number' => ['Ce numéro ne correspond pas à la session ou à la spécialité choisie.'],
+                ]);
+            }
 
             $studyTypeMap = [
                 'initial' => 'presential',
@@ -103,15 +105,34 @@ class AuthController extends Controller
             ];
             $studyType = $studyTypeMap[$request->study_mode] ?? 'presential';
 
-            $sessionSpecialty = SessionSpecialty::where('session_id', $request->session_id)
-                ->where('specialty_id', $request->specialty_id)
+            // The chosen study mode must actually be offered for this specialty in
+            // this session. Without this, session_specialty_id could be null and the
+            // student would never be linked to any cohort.
+            $sessionSpecialty = SessionSpecialty::where('session_id', $registrationNumber->session_id)
+                ->where('specialty_id', $registrationNumber->specialty_id)
                 ->where('study_type', $studyType)
                 ->first();
 
+            if (!$sessionSpecialty) {
+                throw ValidationException::withMessages([
+                    'study_mode' => ['Ce mode d\'étude n\'est pas proposé pour cette spécialité dans cette session.'],
+                ]);
+            }
+
+            $user = User::create([
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'role' => 'student',
+                'is_approved' => false,
+            ]);
+
             $student = Student::create([
                 'user_id' => $user->id,
-                'specialty_id' => $request->specialty_id,
-                'session_specialty_id' => $sessionSpecialty ? $sessionSpecialty->id : null,
+                'specialty_id' => $registrationNumber->specialty_id,
+                'session_specialty_id' => $sessionSpecialty->id,
                 'registration_number' => $request->registration_number,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -267,6 +288,9 @@ class AuthController extends Controller
             'id' => $user->id,
             'email' => $user->email,
             'phone' => $user->phone,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'full_name' => $user->full_name,
             'role' => $user->role,
             'is_approved' => $user->is_approved,
         ];

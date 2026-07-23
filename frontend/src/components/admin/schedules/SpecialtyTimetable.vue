@@ -161,6 +161,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import schedulesApi from '@/api/endpoints/schedules'
 import ScheduleEntryModal from './ScheduleEntryModal.vue'
+import { useToastStore } from '@/stores/toast'
+
+const toastStore = useToastStore()
 
 // ── Props & Emits ─────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -262,7 +265,7 @@ async function deleteEntry(schedule) {
     await schedulesApi.deleteSchedule(schedule.id)
     await fetchSchedules()
   } catch (e) {
-    alert(e.response?.data?.message || 'Erreur lors de la suppression.')
+    toastStore.error(e.response?.data?.message || 'Erreur lors de la suppression.')
   }
 }
 
@@ -279,7 +282,7 @@ async function publish() {
     isPublished.value = true
     emit('published')
   } catch (e) {
-    alert(e.response?.data?.message || 'Erreur lors de la finalisation.')
+    toastStore.error(e.response?.data?.message || 'Erreur lors de la finalisation.')
   } finally {
     saving.value = false
   }
@@ -296,7 +299,7 @@ async function unpublish() {
     })
     isPublished.value = false
   } catch (e) {
-    alert(e.response?.data?.message || 'Erreur.')
+    toastStore.error(e.response?.data?.message || 'Erreur.')
   } finally {
     saving.value = false
   }

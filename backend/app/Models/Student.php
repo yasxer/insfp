@@ -21,7 +21,10 @@ class Student extends Model
         'is_graduated',
         'graduation_year',
         'graduation_semester',
-        'final_gpa'
+        'final_gpa',
+        'is_excluded',
+        'excluded_at',
+        'exclusion_reason'
     ];
     protected $casts = [
         'current_semester' => 'integer',
@@ -30,9 +33,32 @@ class Student extends Model
         'date_of_birth' => 'date',
         'graduation_year' => 'integer',
         'graduation_semester' => 'integer',
-        'final_gpa' => 'decimal:2'
+        'final_gpa' => 'decimal:2',
+        'is_excluded' => 'boolean',
+        'excluded_at' => 'datetime'
     ];
     protected $appends = ['full_name', 'promotion', 'study_type'];
+
+    // Sanitize input fields to prevent XSS
+    public function setFirstNameAttribute($value)
+    {
+        $this->attributes['first_name'] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
+
+    public function setLastNameAttribute($value)
+    {
+        $this->attributes['last_name'] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
+
+    public function setAddressAttribute($value)
+    {
+        $this->attributes['address'] = $value ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : null;
+    }
+
+    public function setGroupAttribute($value)
+    {
+        $this->attributes['group'] = $value ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : null;
+    }
 
     public function user() { return $this->belongsTo(User::class); }
     public function specialty() { return $this->belongsTo(Specialty::class); }
@@ -61,7 +87,9 @@ class Student extends Model
         return null;
     }
 
-    public function scopeActive($query) { return $query->where('is_graduated', false); }
+    public function advancementReviews() { return $this->hasMany(AdvancementReview::class); }
+
+    public function scopeActive($query) { return $query->where('is_graduated', false)->where('is_excluded', false); }
     public function scopeGraduated($query) { return $query->where('is_graduated', true); }
     public function scopeBySemester($query, $semester) { return $query->where('current_semester', $semester); }
     public function scopeBySpecialty($query, $specialtyId) { return $query->where('specialty_id', $specialtyId); }

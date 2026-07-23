@@ -18,7 +18,8 @@ class ChatbotController extends Controller
         ]);
 
         $userMessage = $request->message;
-        $apiKey = env('GEMINI_API_KEY');
+        // Read via config (not env()) so it still works once config is cached in prod.
+        $apiKey = config('services.gemini.key');
         if (empty($apiKey)) {
             Log::error("API KEY IS MISSING IN CONTROLLER");
         }
@@ -114,8 +115,6 @@ Voici la question de l'utilisateur : \"{$userMessage}\""]
         } else {
              $reply = "Mmm... Je réfléchis encore à votre question. (Astuce: ajoutez votre GEMINI_API_KEY dans le fichier .env du backend pour que je puisse vraiment réfléchir avec l'IA !) 😊";
         }
-
-        sleep(1); // Simulate realistic bot processing delay
 
         return response()->json([
             'reply' => $reply

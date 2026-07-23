@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
-import { useTheme } from '@/composables/useTheme'
+import { storeToRefs } from 'pinia'
+import { useThemeStore } from '@/stores/theme'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -18,7 +19,7 @@ const props = defineProps({
   }
 })
 
-const { isDark } = useTheme()
+const { isDark } = storeToRefs(useThemeStore())
 
 const chartData = computed(() => {
   return {

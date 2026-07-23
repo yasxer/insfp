@@ -70,9 +70,9 @@ let debounceTimeout = null
 
 const fetchSpecializations = async () => {
   try {
-    const response = await axios.get('/api/admin/teachers')
+    const response = await axios.get('/api/admin/teachers', { params: { per_page: 1000 } })
     // Extract unique specializations from teachers
-    const teachers = response.data.teachers || []
+    const teachers = response.data.data || []
     const uniqueSpecs = [...new Set(teachers.map(t => t.specialization).filter(Boolean))]
     specializations.value = uniqueSpecs.sort()
   } catch (error) {

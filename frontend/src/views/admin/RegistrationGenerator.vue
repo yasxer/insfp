@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import axios from '@/api/axios'
+import { useToastStore } from '@/stores/toast'
 
+const toastStore = useToastStore()
 const sessions = ref([])
 const selectedSession = ref('')
 const specialties = ref([])
@@ -60,7 +62,7 @@ watch(selectedSession, async (newSessionId) => {
 // Function to generate the registration number
 const generateNumber = async (specialtyId, specialtyName) => {
   if (!selectedSession.value) {
-    alert('Please select a session first.')
+    toastStore.warning('Please select a session first.')
     return
   }
   
@@ -85,7 +87,7 @@ const generateNumber = async (specialtyId, specialtyName) => {
     
   } catch (err) {
     console.error(err)
-    alert('An error occurred while generating the number.')
+    toastStore.error('An error occurred while generating the number.')
   }
 }
 

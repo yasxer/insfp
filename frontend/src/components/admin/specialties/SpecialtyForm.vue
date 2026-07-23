@@ -16,13 +16,15 @@
                 <!-- Name -->
                 <div>
                   <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                  <input type="text" v-model="form.name" id="name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md" placeholder="Computer Science">
+                  <input type="text" v-model="form.name" id="name" :class="['mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white rounded-md', errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']" placeholder="Computer Science">
+                  <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
                 </div>
 
                 <!-- Code -->
                 <div>
                   <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Code</label>
-                  <input type="text" v-model="form.code" id="code" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md" placeholder="CS">
+                  <input type="text" v-model="form.code" id="code" :class="['mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white rounded-md', errors.code ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']" placeholder="CS">
+                  <p v-if="errors.code" class="mt-1 text-sm text-red-600">{{ errors.code }}</p>
                 </div>
 
                 <!-- Description -->
@@ -34,7 +36,8 @@
                 <!-- Duration -->
                 <div>
                   <label for="duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Duration (Years)</label>
-                  <input type="number" step="0.5" v-model="form.duration_years" id="duration" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md">
+                  <input type="number" step="0.5" v-model="form.duration_years" id="duration" :class="['mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white rounded-md', errors.duration_years ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                  <p v-if="errors.duration_years" class="mt-1 text-sm text-red-600">{{ errors.duration_years }}</p>
                 </div>
 
                 <!-- PDF Upload -->
@@ -97,6 +100,7 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
+import { specialtySchema } from '@/validations/schemas'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -109,6 +113,7 @@ const isEditing = ref(false)
 const loading = ref(false)
 const selectedFile = ref(null)
 const selectedImage = ref(null)
+const errors = ref({})
 
 const form = reactive({
   name: '',
@@ -145,9 +150,22 @@ const close = () => {
   emit('close')
   selectedFile.value = null
   selectedImage.value = null
+  errors.value = {}
 }
 
 const submit = async () => {
+  errors.value = {}
+  try {
+    await specialtySchema.validate(form, { abortEarly: false })
+  } catch (validationError) {
+    const fieldErrors = {}
+    for (const issue of validationError.inner) {
+      if (!fieldErrors[issue.path]) fieldErrors[issue.path] = issue.message
+    }
+    errors.value = fieldErrors
+    return
+  }
+
   loading.value = true
   try {
     const formData = new FormData()

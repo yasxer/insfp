@@ -18,27 +18,33 @@
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
-                      <input v-model="form.first_name" type="text" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      <input v-model="form.first_name" type="text" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.first_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <p v-if="fieldErrors.first_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.first_name }}</p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</label>
-                      <input v-model="form.last_name" type="text" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      <input v-model="form.last_name" type="text" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.last_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <p v-if="fieldErrors.last_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.last_name }}</p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                      <input v-model="form.email" type="email" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      <input v-model="form.email" type="email" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <p v-if="fieldErrors.email" class="mt-1 text-xs text-red-600">{{ fieldErrors.email }}</p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
-                      <input v-model="form.phone" type="tel" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      <input v-model="form.phone" type="tel" placeholder="0612345678" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <p v-if="fieldErrors.phone" class="mt-1 text-xs text-red-600">{{ fieldErrors.phone }}</p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
-                      <input v-model="form.date_of_birth" type="date" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      <input v-model="form.date_of_birth" type="date" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.date_of_birth ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <p v-if="fieldErrors.date_of_birth" class="mt-1 text-xs text-red-600">{{ fieldErrors.date_of_birth }}</p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
-                      <input v-model="form.address" type="text" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      <input v-model="form.address" type="text" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <p v-if="fieldErrors.address" class="mt-1 text-xs text-red-600">{{ fieldErrors.address }}</p>
                     </div>
                   </div>
 
@@ -48,7 +54,8 @@
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Registration Number</label>
-                      <input v-model="form.registration_number" type="text" required :disabled="isEditing" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-600">
+                      <input v-model="form.registration_number" type="text" :disabled="isEditing" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-600', fieldErrors.registration_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <p v-if="fieldErrors.registration_number" class="mt-1 text-xs text-red-600">{{ fieldErrors.registration_number }}</p>
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Specialty</label>
@@ -112,6 +119,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from '@/api/axios'
+import { studentSchema } from '@/validations/schemas'
 
 const props = defineProps({
   student: {
@@ -124,6 +132,7 @@ const emit = defineEmits(['close', 'save'])
 
 const loading = ref(false)
 const error = ref(null)
+const fieldErrors = ref({})
 const specialties = ref([])
 
 const isEditing = computed(() => !!props.student)
@@ -161,8 +170,22 @@ onMounted(async () => {
 })
 
 const handleSubmit = async () => {
-  loading.value = true
   error.value = null
+  fieldErrors.value = {}
+
+  try {
+    await studentSchema.validate(form.value, { abortEarly: false })
+  } catch (validationError) {
+    const errors = {}
+    for (const issue of validationError.inner) {
+      if (!errors[issue.path]) errors[issue.path] = issue.message
+    }
+    fieldErrors.value = errors
+    error.value = 'Please correct the errors below.'
+    return
+  }
+
+  loading.value = true
   try {
     emit('save', form.value)
   } catch (e) {

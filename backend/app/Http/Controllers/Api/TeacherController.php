@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Http\Requests\TeacherProfileUpdateRequest;
 
 class TeacherController extends Controller
 {
@@ -159,7 +160,7 @@ class TeacherController extends Controller
      * Update teacher profile
      * PUT /api/teacher/profile
      */
-    public function updateProfile(Request $request): JsonResponse
+    public function updateProfile(TeacherProfileUpdateRequest $request): JsonResponse
     {
         $user = $request->user();
         $teacher = $user->teacher;
@@ -170,15 +171,7 @@ class TeacherController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string|min:3|max:100',
-            'email' => ['sometimes', 'email', Rule::unique('users')->ignore($user->id)],
-            'phone' => 'sometimes|nullable|string|max:30',
-            'password' => 'sometimes|nullable|string|min:8|confirmed',
-            'specialty_id' => 'sometimes|nullable|exists:specialties,id',
-            'can_teach_module_ids' => 'sometimes|array',
-            'can_teach_module_ids.*' => 'exists:modules,id',
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($user, $teacher, $validated) {
             // Update User

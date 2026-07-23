@@ -10,7 +10,7 @@ export const useTeachersStore = defineStore('teachers', {
     error: null,
     pagination: {
       total: 0,
-      per_page: 1000,
+      per_page: 10,
       current_page: 1,
       last_page: 1
     },
@@ -33,8 +33,8 @@ export const useTeachersStore = defineStore('teachers', {
       this.error = null
       try {
         const params = {
-          page: 1,
-          per_page: 1000,
+          page,
+          per_page: this.pagination.per_page,
           ...this.filters
         }
         // Remove null/empty filters
@@ -45,18 +45,28 @@ export const useTeachersStore = defineStore('teachers', {
         })
 
         const response = await axios.get('/api/admin/teachers', { params })
-        this.teachers = response.data.teachers || []
+        this.teachers = response.data.data || []
         this.pagination = {
-          total: response.data.count || 0,
-          per_page: 1000,
-          current_page: 1,
-          last_page: 1
+          total: response.data.total,
+          per_page: response.data.per_page,
+          current_page: response.data.current_page,
+          last_page: response.data.last_page
         }
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to fetch teachers'
         throw error
       } finally {
         this.loading = false
+      }
+    },
+
+    // Fetches the full teacher list for dropdowns/selectors (does not touch paginated list state)
+    async fetchAllTeachers() {
+      try {
+        const response = await axios.get('/api/admin/teachers', { params: { per_page: 1000 } })
+        return response.data.data || []
+      } catch (error) {
+        throw error
       }
     },
 

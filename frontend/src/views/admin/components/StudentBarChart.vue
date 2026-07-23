@@ -2,7 +2,8 @@
 import { computed, ref, watchEffect } from 'vue'
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
-import { useTheme } from '@/composables/useTheme'
+import { storeToRefs } from 'pinia'
+import { useThemeStore } from '@/stores/theme'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -13,7 +14,7 @@ const props = defineProps({
   }
 })
 
-const { isDark } = useTheme()
+const { isDark } = storeToRefs(useThemeStore())
 const chartKey = ref(0)
 
 // Force chart re-render when theme changes

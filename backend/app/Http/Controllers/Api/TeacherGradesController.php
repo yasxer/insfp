@@ -152,13 +152,28 @@ class TeacherGradesController extends Controller
             'results.*.note' => 'nullable|string|max:255',
         ]);
 
+        // Only students of this exam's specialty AND current semester may be
+        // graded. Without this a teacher could post a mark for ANY student in the
+        // database (another specialty / semester), corrupting deliberations.
+        $eligibleStudents = Student::where('specialty_id', $exam->specialty_id)
+            ->where('current_semester', $exam->semester)
+            ->get()
+            ->keyBy('id');
+
+        $invalidIds = collect($validated['results'])
+            ->pluck('student_id')
+            ->reject(fn ($id) => $eligibleStudents->has($id));
+
+        if ($invalidIds->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Certains étudiants ne font pas partie de cet examen.',
+            ], 422);
+        }
+
         $updatedStudents = [];
 
-        DB::transaction(function () use ($exam, $validated, &$updatedStudents) {
+        DB::transaction(function () use ($exam, $validated, $eligibleStudents, &$updatedStudents) {
             foreach ($validated['results'] as $result) {
-                // Verify student belongs to the module's specialty (optional but good practice)
-                // For now, we assume the frontend sends valid student IDs from the examStudents list.
-
                 Grade::updateOrCreate(
                     [
                         'exam_id' => $exam->id,
@@ -173,7 +188,7 @@ class TeacherGradesController extends Controller
                     ]
                 );
 
-                $student = Student::find($result['student_id']);
+                $student = $eligibleStudents->get($result['student_id']);
                 if ($student) {
                     $updatedStudents[] = [
                         'id' => $student->id,

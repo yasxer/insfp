@@ -1,6 +1,17 @@
 import apiClient from '../axios'
 
 export default {
+  // Semester advancement reviews
+  async getAdvancementReviews(status = 'pending') {
+    const response = await apiClient.get(`/api/admin/advancement-reviews?status=${status}`)
+    return response.data
+  },
+
+  async resolveAdvancementReview(id, decision, reason = null) {
+    const response = await apiClient.post(`/api/admin/advancement-reviews/${id}/resolve`, { decision, reason })
+    return response.data
+  },
+
   // Documents/Files
   async getDocuments(page = 1, targetType = 'all') {
     try {

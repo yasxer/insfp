@@ -3,13 +3,15 @@ import { ref, onMounted } from 'vue'
 import studentApi from '@/api/endpoints/student'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import { 
-  BookOpenIcon, 
+import { useToastStore } from '@/stores/toast'
+import {
+  BookOpenIcon,
   DocumentArrowDownIcon,
   FolderIcon,
   ChevronRightIcon
 } from '@heroicons/vue/24/outline'
 
+const toastStore = useToastStore()
 const loading = ref(true)
 const modules = ref([])
 const selectedModule = ref(null)
@@ -76,7 +78,7 @@ const downloadLesson = async (lesson) => {
     }
   } catch (err) {
     console.error('Failed to download lesson:', err)
-    alert('Failed to download file')
+    toastStore.error('Failed to download file')
   }
 }
 

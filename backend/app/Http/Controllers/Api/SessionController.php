@@ -44,7 +44,9 @@ class SessionController extends Controller
                     'start_date' => $session->start_date->format('Y-m-d'),
                     'end_date' => $session->end_date->format('Y-m-d'),
                     'status' => $session->status,
+                    'status_label' => $session->status_label,
                     'is_active' => $session->is_active,
+                    'is_activatable' => $session->is_activatable,
                     'students_count' => $session->students_count,
                     'specialties_by_type' => $this->groupSpecialtiesByType($session->sessionSpecialties)
                 ];
@@ -76,7 +78,9 @@ class SessionController extends Controller
                     'start_date' => $session->start_date->format('Y-m-d'),
                     'end_date' => $session->end_date->format('Y-m-d'),
                     'status' => $session->status,
+                    'status_label' => $session->status_label,
                     'is_active' => $session->is_active,
+                    'is_activatable' => $session->is_activatable,
                     'students_count' => $session->students_count,
                     'specialties_by_type' => $this->groupSpecialtiesByType($session->sessionSpecialties)
                 ];
@@ -107,7 +111,9 @@ class SessionController extends Controller
                 'start_date' => $session->start_date->format('Y-m-d'),
                 'end_date' => $session->end_date->format('Y-m-d'),
                 'status' => $session->status,
+                'status_label' => $session->status_label,
                 'is_active' => $session->is_active,
+                'is_activatable' => $session->is_activatable,
                 'students_count' => $session->students_count,
                 'specialties_by_type' => $this->groupSpecialtiesByType($session->sessionSpecialties)
             ]
@@ -115,56 +121,102 @@ class SessionController extends Controller
     }
 
     /**
-     * Create a new session
+     * Preview the next Février/Septembre intake to be opened, computed from
+     * today's date. GET /admin/sessions/next-slot
+     */
+    public function nextSlot()
+    {
+        $slot = TrainingSession::nextSlot();
+        $exists = TrainingSession::where('month', $slot['month'])
+            ->where('year', $slot['year'])
+            ->exists();
+
+        $months = [2 => 'Février', 9 => 'Septembre'];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'month' => $slot['month'],
+                'year' => $slot['year'],
+                'name' => "Session {$months[$slot['month']]} {$slot['year']}",
+                'already_exists' => $exists,
+            ]
+        ]);
+    }
+
+    /**
+     * Create a new session. The month/year are never chosen manually — the
+     * next Février/Septembre intake is always computed from today's date,
+     * so it's impossible to open a session in a slot that has already passed.
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'month' => 'required|integer|between:1,12',
-            'year' => 'required|integer|min:2020|max:2100',
-        ]);
+        $slot = TrainingSession::nextSlot();
 
         // Check if session already exists
-        $exists = TrainingSession::where('month', $validated['month'])
-            ->where('year', $validated['year'])
+        $exists = TrainingSession::where('month', $slot['month'])
+            ->where('year', $slot['year'])
             ->exists();
 
         if ($exists) {
             return response()->json([
                 'success' => false,
-                'message' => 'Une session existe déjà pour ce mois et cette année.'
+                'message' => 'La prochaine session est déjà créée.'
             ], 422);
         }
 
-        $session = TrainingSession::create($validated);
-
-        // Auto-deactivate all other sessions and activate the new one
-        TrainingSession::where('id', '!=', $session->id)->update(['is_active' => false]);
-        $session->update(['is_active' => true]);
+        // New sessions start as "en attente" — the admin must activate them
+        // manually once their month arrives (see activate()).
+        $session = TrainingSession::create([
+            'month' => $slot['month'],
+            'year' => $slot['year'],
+            'is_active' => false,
+            'status' => 'pending',
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Session créée avec succès.',
+            'message' => 'Session créée avec succès. Elle est en attente et pourra être activée à partir du mois de la session.',
             'data' => $session
         ], 201);
     }
 
     /**
-     * Activate a session (deactivates all others)
+     * Activate a session (only once its month has arrived). Deactivates/archives
+     * whichever session was active before.
      * POST /sessions/{id}/activate
      */
     public function activate($id)
     {
         $session = TrainingSession::findOrFail($id);
 
-        // Deactivate all, then activate this one
-        TrainingSession::query()->update(['is_active' => false]);
-        $session->update(['is_active' => true]);
+        if ($session->status === 'active') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cette session est déjà active.'
+            ], 422);
+        }
+
+        if ($session->start_date > now()) {
+            return response()->json([
+                'success' => false,
+                'message' => "Cette session ne pourra être activée qu'à partir du " . $session->start_date->format('d/m/Y') . "."
+            ], 422);
+        }
+
+        // Archive whichever session is currently active, then activate this one
+        TrainingSession::where('status', 'active')->update(['status' => 'archived', 'is_active' => false]);
+        $session->update(['status' => 'active', 'is_active' => true]);
+
+        // Opening a new intake = a new academic period: advance every current
+        // student one semester (passed -> next/graduate, failed -> review list).
+        $advancement = app(\App\Services\SemesterAdvancementService::class)->run();
 
         return response()->json([
             'success' => true,
-            'message' => 'Session activée. Les autres sessions sont maintenant archivées.',
+            'message' => 'Session activée. La session précédente a été archivée.',
             'data'    => $session,
+            'advancement' => $advancement,
         ]);
     }
 
@@ -176,9 +228,10 @@ class SessionController extends Controller
         $session = TrainingSession::findOrFail($id);
 
         $validated = $request->validate([
-            'month' => 'sometimes|integer|between:1,12',
+            'month' => ['sometimes', 'integer', Rule::in(TrainingSession::ALLOWED_MONTHS)],
             'year' => 'sometimes|integer|min:2020|max:2100',
-            'is_active' => 'sometimes|boolean'
+        ], [
+            'month.in' => 'Une session ne peut être ouverte qu\'en Février ou en Septembre.',
         ]);
 
         // Check for duplicate if month/year changed
@@ -308,6 +361,24 @@ class SessionController extends Controller
         return response()->json([
             'success' => true,
             'data' => $specialties
+        ]);
+    }
+
+    /**
+     * Sessions that are pending and whose month has arrived — used to show an
+     * "activate this session" banner/alert on the admin dashboard.
+     * GET /admin/sessions/pending-alerts
+     */
+    public function pendingAlerts()
+    {
+        $sessions = TrainingSession::pending()
+            ->where('start_date', '<=', now())
+            ->orderBy('start_date')
+            ->get(['id', 'name', 'month', 'year', 'start_date']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $sessions
         ]);
     }
 

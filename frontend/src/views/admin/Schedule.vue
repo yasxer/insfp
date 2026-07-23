@@ -27,11 +27,13 @@
             {{ session.name }}
             <span
               class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
-              :class="session.is_active
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'"
+              :class="{
+                'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': session.status === 'active',
+                'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200': session.status === 'pending',
+                'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400': session.status === 'archived',
+              }"
             >
-              {{ session.is_active ? 'Actuel' : 'Archive' }}
+              {{ session.status === 'active' ? 'Actuel' : session.status === 'pending' ? 'En attente' : 'Archive' }}
             </span>
           </button>
         </nav>
@@ -55,14 +57,14 @@
           :session="selectedSession"
           :specialty="selectedSpecialty"
           :group="selectedGroup"
-          :is-readonly="!selectedSession.is_active"
+          :is-readonly="isArchived"
           @back="clearSpecialtySelection"
           @published="onSpecialtyPublished"
         />
 
-        <!-- Full combined timetable: always for archives, for active when all published -->
+        <!-- Full combined timetable: always for archives, for active/pending when all published -->
         <FullSessionTimetable
-          v-else-if="!selectedSession.is_active || (allPublished && specialties.length > 0 && viewMode === 'timetable')"
+          v-else-if="isArchived || (allPublished && specialties.length > 0 && viewMode === 'timetable')"
           :session="selectedSession"
           @edit="enterEditMode"
           @notify="showNotifyDialog = true"
@@ -72,7 +74,7 @@
         <template v-else>
           <!-- All published + notify banner -->
           <div
-            v-if="selectedSession.is_active && allPublished && specialties.length > 0"
+            v-if="isSessionActive && allPublished && specialties.length > 0"
             class="flex items-center justify-between rounded-lg bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700 p-4"
           >
             <div class="flex items-center space-x-2">
@@ -96,17 +98,75 @@
             <p class="text-gray-500 dark:text-gray-400">Aucune spécialité avec des étudiants actifs dans cette session.</p>
           </div>
 
-          <!-- Specialty cards grid -->
-          <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <template v-else>
+            <!-- Projection notice for a pending (draft) session -->
             <div
-              v-for="item in specialties"
+              v-if="selectedSession.status === 'pending'"
+              class="flex items-start gap-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm text-amber-800 dark:text-amber-200"
+            >
+              <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>
+                Brouillon (projection) : les cohortes sont affichées <strong>au semestre qu'elles auront après activation</strong> (+1), et la nouvelle promotion apparaît en <strong>S1</strong>. L'emploi du temps préparé ici deviendra l'emploi du temps actif une fois la session activée.
+              </span>
+            </div>
+
+            <!-- Filters: semester + study mode -->
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Semestre :</label>
+                <select
+                  v-model="filterSemester"
+                  class="text-sm py-1.5 px-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Tous</option>
+                  <option v-for="s in availableSemesters" :key="s" :value="s">S{{ s }}</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Mode d'étude :</label>
+                <select
+                  v-model="filterStudyMode"
+                  class="text-sm py-1.5 px-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">Tous</option>
+                  <option v-for="m in availableStudyModes" :key="m" :value="m">{{ studyModeLabel(m) }}</option>
+                </select>
+              </div>
+              <button
+                v-if="filterSemester || filterStudyMode"
+                @click="filterSemester = ''; filterStudyMode = ''"
+                class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                Réinitialiser
+              </button>
+              <span class="ml-auto text-xs text-gray-400 dark:text-gray-500">
+                {{ filteredSpecialties.length }} / {{ specialties.length }} affichée(s)
+              </span>
+            </div>
+
+            <!-- No results after filtering -->
+            <div v-if="filteredSpecialties.length === 0" class="text-center py-12">
+              <p class="text-gray-500 dark:text-gray-400">Aucune spécialité ne correspond aux filtres.</p>
+            </div>
+
+            <!-- Specialty cards grid -->
+            <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              v-for="item in filteredSpecialties"
               :key="item.id"
               class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-col"
             >
               <!-- Card header -->
               <div class="flex items-start justify-between mb-2">
                 <div class="min-w-0">
-                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ item.specialty_name }}</h3>
+                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                    {{ item.specialty_name }}
+                    <span v-if="item.is_new" class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 align-middle">
+                      Nouvelle promo
+                    </span>
+                  </h3>
                   <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ item.specialty_code }} · S{{ item.semester }}</p>
                 </div>
                 <!-- Status badge -->
@@ -137,7 +197,7 @@
               <!-- Group buttons (when has groups) -->
               <div v-if="item.groups_count > 0" class="mb-3">
                 <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                  {{ selectedSession.is_active ? 'Gérer par groupe :' : 'Voir par groupe :' }}
+                  {{ !isArchived ? 'Gérer par groupe :' : 'Voir par groupe :' }}
                 </p>
                 <div class="flex flex-wrap gap-1.5">
                   <button
@@ -145,7 +205,7 @@
                     :key="grp"
                     @click="openTimetable(item, grp)"
                     class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                    :class="selectedSession.is_active
+                    :class="!isArchived
                       ? 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200'"
                   >
@@ -159,19 +219,20 @@
                 <button
                   @click="openTimetable(item, null)"
                   class="w-full py-1.5 text-sm font-medium rounded-md transition-colors"
-                  :class="selectedSession.is_active
+                  :class="!isArchived
                     ? item.is_published
                       ? 'text-amber-700 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300 hover:bg-amber-100'
                       : 'text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 hover:bg-indigo-100'
                     : 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200'"
                 >
-                  {{ selectedSession.is_active
+                  {{ !isArchived
                       ? (item.is_published ? '✎ Modifier' : '+ Éditer')
                       : '👁 Voir' }}
                 </button>
               </div>
             </div>
-          </div>
+            </div>
+          </template>
         </template>
       </template>
     </template>
@@ -212,6 +273,9 @@ import schedulesApi from '@/api/endpoints/schedules'
 import SpecialtyTimetable from '@/components/admin/schedules/SpecialtyTimetable.vue'
 import FullSessionTimetable from '@/components/admin/schedules/FullSessionTimetable.vue'
 import axios from '@/api/axios'
+import { useToastStore } from '@/stores/toast'
+
+const toastStore = useToastStore()
 
 // ── State ────────────────────────────────────────────────────────────────────
 const loadingSessions    = ref(false)
@@ -224,10 +288,32 @@ const selectedGroup      = ref(null)
 const showNotifyDialog   = ref(false)
 const notifying          = ref(false)
 const viewMode           = ref('timetable') // 'timetable' | 'cards'
+const filterSemester     = ref('')
+const filterStudyMode    = ref('')
+
+// Distinct semesters / study modes present in the current session's cards
+const availableSemesters = computed(() =>
+  [...new Set(specialties.value.map(s => s.semester))].sort((a, b) => a - b)
+)
+const availableStudyModes = computed(() =>
+  [...new Set(specialties.value.map(s => s.study_mode))]
+)
+
+const filteredSpecialties = computed(() =>
+  specialties.value.filter(s =>
+    (filterSemester.value === '' || s.semester === Number(filterSemester.value)) &&
+    (filterStudyMode.value === '' || s.study_mode === filterStudyMode.value)
+  )
+)
 
 const allPublished = computed(() =>
   specialties.value.length > 0 && specialties.value.every(s => s.is_published)
 )
+
+// Only a truly archived session is read-only — a pending (not-yet-activated)
+// session must remain fully editable just like the active one.
+const isArchived = computed(() => selectedSession.value?.status === 'archived')
+const isSessionActive = computed(() => selectedSession.value?.status === 'active')
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 onMounted(fetchSessions)
@@ -237,8 +323,8 @@ async function fetchSessions() {
   try {
     const res = await schedulesApi.getSessions()
     sessions.value = res.data.sessions || []
-    // Auto-select current (active) session
-    const current = sessions.value.find(s => s.is_active)
+    // Auto-select the active session, falling back to the next pending one
+    const current = sessions.value.find(s => s.status === 'active') || sessions.value.find(s => s.status === 'pending')
     if (current) await selectSession(current)
     else if (sessions.value.length > 0) await selectSession(sessions.value[0])
   } catch (e) {
@@ -253,6 +339,8 @@ async function selectSession(session) {
   selectedSpecialty.value = null
   selectedGroup.value    = null
   viewMode.value         = 'timetable'
+  filterSemester.value   = ''
+  filterStudyMode.value  = ''
   await fetchSpecialties(session.id)
 }
 
@@ -307,9 +395,9 @@ async function sendNotification() {
       recipient_type: 'all',
     })
     showNotifyDialog.value = false
-    alert('Notifications envoyées avec succès !')
+    toastStore.success('Notifications envoyées avec succès !')
   } catch (e) {
-    alert('Erreur lors de l\'envoi des notifications.')
+    toastStore.error('Erreur lors de l\'envoi des notifications.')
   } finally {
     notifying.value = false
   }

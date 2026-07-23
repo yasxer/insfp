@@ -9,7 +9,7 @@ export const useStudentsStore = defineStore('students', {
     error: null,
     pagination: {
       total: 0,
-      per_page: 1000,
+      per_page: 10,
       current_page: 1,
       last_page: 1
     },
@@ -76,8 +76,8 @@ export const useStudentsStore = defineStore('students', {
       this.error = null
       try {
         const params = {
-          page: 1,
-          per_page: 1000,
+          page,
+          per_page: this.pagination.per_page,
           ...this.filters
         }
         // Remove null/empty filters

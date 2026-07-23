@@ -1,87 +1,70 @@
-a# Cahier des Charges / دفتر الشروط : INSFP Management System
+# Cahier des Charges
 
----
+## 1. Présentation du Projet
+Ce document décrit les spécifications générales d'une application intégrée destinée à gérer toutes les activités de l'institut formateur (INSFP). Son but est de fournir une solution numérique complète et centralisée couvrant la gestion administrative, pédagogique, et la communication interne.
 
-## 🇫🇷 Version Française
+## 2. Problématique
+Actuellement, la gestion des activités de l'institut (inscriptions, assiduité, plannings, évaluations) se fait souvent de manière classique (sur papier ou fichiers séparés peu synchronisés). 
+Cela soulève d'importants défis au quotidien :
+* **Perte de temps et lourdeur administrative** : Saisies répétitives et délais longs pour traiter les dossiers et les notes.
+* **Accès limité à l'information** : Les étudiants et professeurs ont du mal à consulter rapidement leurs emplois du temps ou leurs notes à distance.
+* **Difficulté de communication** : Manque d'un canal direct et officiel pour la communication entre professeurs, administration, et étudiants.
+* **Risques d'erreurs** : Dispatching manuel des salles de cours et gestion des données favorisant les chevauchements ou les pertes d'archives.
+C’est ainsi qu'a émergé le besoin de développer une plateforme web unifiée accompagnée d'une application mobile, capable de résoudre toutes ces contraintes et de fluidifier l'échange d’informations.
 
-### 1. Contexte et Objectifs
-L'Institut National Spécialisé de la Formation Professionnelle (INSFP) gère un grand nombre de stagiaires, de professeurs et de filières. Actuellement, la gestion administrative et pédagogique nécessite une numérisation pour optimiser le temps et réduire les erreurs. L'objectif de ce projet est de concevoir et développer une plateforme web complète (SPA) qui centralise toutes les opérations de l'institut.
+## 3. Objectifs Visés
+* Numériser, centraliser et automatiser les processus manuels et fastidieux de l'institut.
+* Assurer une meilleure traçabilité (historique des notes, absences, documents).
+* Faciliter la communication à travers une interface dédiée (messagerie / alertes).
+* Garantir l'accessibilité à l'information n'importe où et n'importe quand grâce à des interfaces web et mobiles adaptées.
 
-### 2. Public Cible (Acteurs du Système)
-Le système prévoit trois types d'utilisateurs principaux :
-1. **Administrateurs :** Le personnel de direction et de la scolarité.
-2. **Professeurs (Formateurs) :** L'équipe pédagogique.
-3. **Stagiaires (Étudiants) :** Les personnes inscrites aux formations.
+## 4. Périmètre du Projet (Scope)
+L'application couvrira les modules principaux suivants :
+* **Gestion des Utilisateurs** : Inscriptions, authentification (login/mot de passe), et gestion des habilitations (rôles).
+* **Gestion de la Pédagogie** : Modules, filières, spécialités et groupes (sections).
+* **Gestion des Plannings** : Emplois du temps interactifs des classes, professeurs, et suivi de l’affectation des salles.
+* **Gestion des Évaluations** : Saisie et consultation des notes, examens, bulletins de fin de cycle.
+* **Espace de Communication** : Messagerie interne ou système de diffusions/notifications (administration vers formateurs/stagiaires).
 
-### 3. Exigences Fonctionnelles (Besoins Métiers)
+## 5. Acteurs et Rôles
+Les utilisateurs du système se divisent en plusieurs profils :
+1. **Administrateur** : Contrôle total, vue globale du système, et gestion de tous les autres comptes.
+2. **Professeurs / Formateurs** : Carnet de notes interactif, suivi des présences, et consultation de leurs emplois du temps.
+3. **Étudiants / Stagiaires** : Accès personnel pour consulter les emplois du temps, relevés de notes, et réception de notifications importantes (Web et Mobile).
+4. **Personnel Administratif** : Gestion courante (scolarité, attestations).
 
-#### A. Espace Administration
-* **Gestion de la structure :** Création et gestion des sessions de formation, des spécialités, des matières (Modules), et des coefficients.
-* **Gestion des Utilisateurs :** Ajout, modification, et attribution des rôles (Professeurs, Stagiaires).
-* **Emplois du temps :** Planification et publication des emplois du temps (Schedules) et des congés (Holidays).
-* **Délibérations et Examens :** Collecte des notes, calcul automatique des moyennes, statistiques, et édition des fiches de délibérations (Admis/Ajourné).
-* **Communication :** Envoi de messages et de notifications ciblées.
+## 6. Fonctionnalités Principales (Exigences Fonctionnelles)
+* **Système d'Authentification** : Sécurisé par rôles (JWT / tokens).
+* **Tableau de Bord (Dashboard)** : Vue synthétique et statistiques, différente pour un étudiant, un professeur et l'administration.
+* **Opérations sur les données (CRUD)** : Ajout, modification, suppression pour le personnel habilité.
+* **Génération et Export** : Capacité de générer des PDF (attestations, relevés) ou de faire de l'export/import Excel pour les listes.
+* **Notifications Push** : Déclenchement d’alertes lors de l'ajout d'une nouvelle note ou d'une modification d'emploi du temps.
 
-#### B. Espace Professeur
-* **Espace Pédagogique :** Téléchargement de supports de cours (Lessons), création de devoirs (Homework).
-* **Suivi et Évaluation :** Saisie des notes d'examens (Grades), correction des devoirs (Homework Submissions).
-* **Assiduité :** Enregistrement des présences et absences des stagiaires (Attendance).
+## 7. Technologies Utilisées (Stack Technique)
+L'architecture de l'application sera découpée en Micro-services / API pour une meilleure performance et évolutivité :
+* **Backend (API + Logique métier)** : **Laravel (PHP)** - Robuste, sécurisé et idéal pour créer une API RESTful solide.
+* **Base de Données** : **MySQL** - Pour un stockage relationnel fortement structuré des entités de l'institut.
+* **Frontend Web (Administration et Bureautique)** : **Vue.js** (vite.js) couplé à **Tailwind CSS** pour l’UI, assurant des interfaces modernes, réactives (Single Page Application).
+* **Application Mobile (Étudiants et Professeurs)** : **Flutter (Dart)** - Pour une compilation native Android / iOS à partir d'un seul code source.
 
-#### C. Espace Stagiaire
-* **Consultation Pédagogique :** Accès aux emplois du temps, cours, et consignes de devoirs.
-* **Interactions :** Remise des devoirs en ligne (Upload de fichiers).
-* **Suivi Scolaire :** Consultation des notes d'examens (une fois publiées) et des messages administratifs.
+## 8. Plan de Travail (Méthodologie de réalisation)
+La réalisation suivra une méthodologie itérative divisée en différents "sprints" (phases) :
+* **Phase 1 : Analyse et Conception** 
+  * Étude détaillée, modélisation de la base de données (MLD/MCD). 
+  * Création des maquettes graphiques (Wireframes/UI).
+* **Phase 2 : Développement Backend (Laravel)**
+  * Configuration de l'environnement, développement de la base de données et des routes de l'API (Endpoints).
+* **Phase 3 : Développement Frontend (Vue.js)**
+  * Connexion de l'interface Web à l'API, développement des dashboards administrateur et de la logique côté client.
+* **Phase 4 : Développement Mobile (Flutter)**
+  * Création des écrans mobile, liaison avec l'authentification et l'API pour les espaces professeurs/stagiaires.
+* **Phase 5 : Tests et Validation**
+  * Tests d'intégration, vérification de la sécurité, tests de charge.
+* **Phase 6 : Déploiement et Formation**
+  * Mise en production sur serveur (Hébergement), et rédaction du manuel utilisateur ou session de formation du personnel.
 
-### 4. Exigences Non Fonctionnelles
-* **Sécurité :** Authentification robuste (Token JWT / Sanctum), mots de passe hachés, protection des routes API et vérification des rôles (Role-Based Access Control).
-* **Interface Utilisateur (UI/UX) :** Design moderne, ergonomique et "Responsive" (adapté aux smartphones, tablettes et ordinateurs).
-* **Performance :** Temps de réponse minimal grâce à une architecture SPA (Single Page Application).
-
-### 5. Contraintes Techniques
-* **Backend :** Laravel Framework (PHP).
-* **Frontend :** Vue.js 3 avec l'outil de build Vite.
-* **Design :** Tailwind CSS.
-* **Base de données :** MySQL.
-
----
-
-## 🇩🇿 النسخة العربية
-
-### 1. سياق المشروع والأهداف
-يسير المعهد المتخصص في التكوين المهني (INSFP) عدداً كبيراً من المتربصين، الأساتذة، والشعب للتدريب. الهدف من هذا المشروع هو رقمنة عملية التسيير البيداغوجي والإداري بالكامل عبر بناء منصة ويب مركزية سريعة وحديثة، تهدف إلى ربح الوقت، وتسهيل تداول المعلومات التربوية، وتقليل نسبة الأخطاء في حساب المعدلات وتسجيل الغيابات.
-
-### 2. الفئات المستهدفة (مستخدمو النظام)
-يصنف مستخدمو المنصة إلى ثلاثة أدوار رئيسية:
-1. **الإدارة (Administrateurs):** مديرية الدراسات وطاقم الإدارة.
-2. **الأساتذة/المكونون (Professeurs):** الطاقم البيداغوجي.
-3. **المتربصون/الطلبة (Stagiaires):** المسجلون في مختلف دورات التكوين.
-
-### 3. المتطلبات الوظيفية (Besoins Fonctionnels)
-
-#### أ. فضاء الإدارة
-* **تسيير الهيكلة المعهد:** إعداد الدورات التكوينية، الشعب (Specialties)، المعاملات، والمواد (Modules).
-* **تسيير المستخدمين:** إضافة وتسجيل الطلبة (توليد أرقام التسجيل) والأساتذة.
-* **الجداول الزمنية:** إعداد ونشر استعمال الزمن (Emploi du temps) وإدارة العطل.
-* **المداولات والامتحانات:** حساب آلي للمعدلات الفردية انطلاقاً من النقاط المدخلة ومعاملات المواد، إصدار نتائج المداولات بشكل فوري وتحديد وضعية الطالب (ناجح/مؤجل).
-* **التواصل:** إرسال رسائل أو إشعارات وتعميم الوثائق الإدارية.
-
-#### ب. فضاء الأستاذ
-* **المحتوى البيداغوجي:** رفع الدروس (PDF, Word وغيرها)، وإصدار الواجبات (Homeworks).
-* **التقييم والمتابعة:** رصد علامات الامتحانات وتصحيح واجبات الطلبة.
-* **المواظبة:** التدوين الرقمي لغيابات وحضور الطلبة في كل حصة دراسية.
-
-#### ج. فضاء المتربص
-* **المتابعة الدراسية:** الاطلاع على جدول التوقيت، تحميل محتوى الدروس.
-* **الواجبات والتفاعل:** تسليم الواجبات رقمياً.
-* **النتائج:** الاطلاع على كشوف النقاط وإشعارات المعهد.
-
-### 4. المتطلبات غير الوظيفية (Besoins Non-Fonctionnels)
-* **تأمين البيانات (Sécurité):** حماية الاتصال بواسطة (Sanctum/JWT)، تشفير كلمات المرور، وتقييد الصلاحيات كل حسب دوره.
-* **تجربة المستخدم (UI/UX):** واجهة مستخدم عصرية وسريعة (تعمل دون إعادة تحميل الصفحة - SPA)، تتجاوب مع كل مقاسات الشاشات (الهواتف، اللوحات، الحواسيب).
-* **السرعة والفعالية:** استجابة سريعة للطلبات من خلال معمارية الـ API المعتمدة.
-
-### 5. القيود والتكنولوجيات المعتمدة
-* **الواجهة الخلفية (الخادم):** إطار عمل لارافل (Laravel 11/10 - PHP).
-* **الواجهة الأمامية (المستخدم):** فيو جي إس (Vue.js 3) مع مجمع حزم (Vite).
-* **تصميم الواجهات:** تيلويند (Tailwind CSS).
-* **قاعدة البيانات:** ماي إس كيو إل (MySQL).
+## 9. Livrables Attendus
+* Le code source structuré et documenté.
+* La base de données complète et peuplée (données de test).
+* Un manuel d'utilisation / d'installation clair.
+* Plateforme entièrement déployée et fonctionnelle.

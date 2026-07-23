@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import apiClient from '@/api/axios'
 import authApi from '@/api/endpoints/auth'
 import studentApi from '@/api/endpoints/student'
+import teacherApi from '@/api/endpoints/teacherPortal'
+import adminApi from '@/api/endpoints/admin'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user')) || null)
@@ -15,7 +17,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isStudent = computed(() => user.value?.role === 'student')
   const isTeacher = computed(() => user.value?.role === 'teacher')
   const isAdmin = computed(() => user.value?.role === 'administration')
-  const userName = computed(() => user.value?.name || '')
+  // The user object exposes full_name (or first_name/last_name) — never `name`.
+  const userName = computed(() => {
+    const u = user.value
+    if (!u) return ''
+    return u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || ''
+  })
   
   // Check if student profile is actually complete (has date_of_birth and address)
   const isProfileComplete = computed(() => {
@@ -53,31 +60,46 @@ export const useAuthStore = defineStore('auth', () => {
         sessionStorage.setItem('user', JSON.stringify(data.user))
       }
       
-      // For students, fetch full profile to check if complete
-      if (data.user?.role === 'student') {
-        console.log('👨‍🎓 User is student, fetching full profile...')
-        try {
-          const profileData = await studentApi.getProfile()
+      // Fetch full profile based on role
+      try {
+        let profileData = null
+
+        if (data.user?.role === 'student') {
+          console.log('👨‍🎓 User is student, fetching full profile...')
+          const response = await studentApi.getProfile()
+          profileData = response.data || response
+        } else if (data.user?.role === 'teacher') {
+          console.log('👨‍🏫 User is teacher, fetching full profile...')
+          const response = await teacherApi.getProfile()
+          profileData = response.data || response
+        } else if (data.user?.role === 'administration') {
+          console.log('👨‍💼 User is admin, fetching full profile...')
+          const response = await adminApi.getProfile()
+          profileData = response.data || response
+        }
+
+        if (profileData) {
           console.log('📦 Profile data:', profileData)
-          
+
           // Merge profile data with existing user data (preserve role!)
           user.value = {
             ...user.value,
             ...profileData,
             role: data.user.role  // Keep the role from login response!
           }
-          
+
           console.log('✅ User after merge:', user.value)
-          
+
           // Update storage with full profile data
           if (remember) {
             localStorage.setItem('user', JSON.stringify(user.value))
           } else {
             sessionStorage.setItem('user', JSON.stringify(user.value))
           }
-        } catch (err) {
-          console.error('Failed to fetch profile:', err)
         }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err)
+        // Don't fail login if profile fetch fails - user is still authenticated
       }
       
       console.log('✅ Final user value:', user.value)
@@ -115,14 +137,50 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchUser() {
-    if (!token.value) return
+    if (!token.value || !user.value) return
     try {
-      const data = await studentApi.getProfile()
+      let data
+
+      console.log('📡 Fetching user profile for role:', user.value?.role)
+
+      // Call the appropriate API based on user role
+      if (user.value?.role === 'student') {
+        console.log('👨‍🎓 Fetching student profile...')
+        data = await studentApi.getProfile()
+      } else if (user.value?.role === 'teacher') {
+        console.log('👨‍🏫 Fetching teacher profile...')
+        data = await teacherApi.getProfile()
+      } else if (user.value?.role === 'administration') {
+        console.log('👨‍💼 Fetching admin profile...')
+        data = await adminApi.getProfile()
+      } else {
+        console.warn('⚠️ Unknown user role:', user.value?.role)
+        return
+      }
+
       // data can be { data: {...} } or plain object; support both
-      user.value = data.data || data
+      const profileData = data.data || data
+
+      // Merge with existing user data while preserving role and token
+      user.value = {
+        ...user.value,
+        ...profileData,
+        role: user.value.role // Preserve the role!
+      }
+
+      console.log('✅ User profile updated:', user.value)
+
+      // Update storage with new profile data
+      const remember = localStorage.getItem('token')
+      if (remember) {
+        localStorage.setItem('user', JSON.stringify(user.value))
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(user.value))
+      }
     } catch (err) {
       console.error('Fetch user error:', err)
       if (err?.response?.status === 401) {
+        console.log('🔑 Token expired or invalid, logging out...')
         token.value = null
         user.value = null
         localStorage.removeItem('token')

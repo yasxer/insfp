@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useTeachersStore } from '@/stores/teachers'
 
 const props = defineProps({
@@ -67,10 +67,10 @@ const selectedTeacherId = ref('')
 const loading = ref(false)
 const error = ref('')
 
-const teachers = computed(() => teachersStore.teachers)
+const teachers = ref([])
 
-onMounted(() => {
-  teachersStore.fetchTeachers()
+onMounted(async () => {
+  teachers.value = await teachersStore.fetchAllTeachers()
 })
 
 watch(() => props.isOpen, (val) => {

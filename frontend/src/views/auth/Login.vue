@@ -1,27 +1,31 @@
 <script setup>
 import { ref } from 'vue'
+import { useForm } from 'vee-validate'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { loginSchema } from '@/validations/schemas'
 import { AcademicCapIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const credentials = ref({
-  registration_number: '',
-  password: ''
+const { defineField, errors, handleSubmit } = useForm({
+  validationSchema: loginSchema,
+  initialValues: { registration_number: '', password: '' }
 })
+
+const [registration_number, registration_numberAttrs] = defineField('registration_number')
+const [password, passwordAttrs] = defineField('password')
+
 const rememberMe = ref(false)
 const loading = ref(false)
 
-const handleLogin = async () => {
-  if (!credentials.value.registration_number || !credentials.value.password) return
-
+const handleLogin = handleSubmit(async (credentials) => {
   loading.value = true
-  console.log('🔐 Starting login with:', credentials.value.registration_number)
-  
+  console.log('🔐 Starting login with:', credentials.registration_number)
+
   try {
-    const result = await authStore.login(credentials.value, rememberMe.value)
+    const result = await authStore.login(credentials, rememberMe.value)
     console.log('✅ Login result:', result)
     
     if (result.success) {
@@ -57,7 +61,7 @@ const handleLogin = async () => {
   } finally {
     loading.value = false
   }
-}
+})
 </script>
 
 <template>
@@ -80,24 +84,32 @@ const handleLogin = async () => {
           </label>
           <input
             id="registration_number"
-            v-model="credentials.registration_number"
+            v-model="registration_number"
+            v-bind="registration_numberAttrs"
             type="text"
-            required
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            :class="[
+              'w-full px-4 py-3 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors',
+              errors.registration_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            ]"
             placeholder="student@insfp.dz or 2025001"
           />
+          <p v-if="errors.registration_number" class="mt-1 text-xs text-red-600">{{ errors.registration_number }}</p>
         </div>
 
         <div>
           <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
           <input
             id="password"
-            v-model="credentials.password"
+            v-model="password"
+            v-bind="passwordAttrs"
             type="password"
-            required
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            :class="[
+              'w-full px-4 py-3 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors',
+              errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            ]"
             placeholder="••••••••"
           />
+          <p v-if="errors.password" class="mt-1 text-xs text-red-600">{{ errors.password }}</p>
         </div>
 
         <div class="flex items-center justify-between">

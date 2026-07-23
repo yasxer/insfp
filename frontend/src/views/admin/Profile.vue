@@ -183,9 +183,11 @@ import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import adminApi from '@/api/endpoints/admin'
 import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toast'
 import apiClient from '@/api/axios'
 
 const authStore = useAuthStore()
+const toastStore = useToastStore()
 const loading = ref(true)
 const saving = ref(false)
 const editMode = ref(false)
@@ -256,7 +258,7 @@ const saveProfile = async () => {
     // You might want to use a toast notification here
   } catch (err) {
     console.error('Failed to update profile', err)
-    alert('Erreur lors de la mise à jour du profil')
+    toastStore.error('Erreur lors de la mise à jour du profil')
   } finally {
     saving.value = false
   }
@@ -264,7 +266,7 @@ const saveProfile = async () => {
 
 const updatePassword = async () => {
   if (passwordForm.value.new_password !== passwordForm.value.confirm_password) {
-    alert('Les mots de passe ne correspondent pas')
+    toastStore.warning('Les mots de passe ne correspondent pas')
     return
   }
   
@@ -277,10 +279,10 @@ const updatePassword = async () => {
     })
     
     passwordForm.value = { current_password: '', new_password: '', confirm_password: '' }
-    alert('Mot de passe modifié avec succès')
+    toastStore.success('Mot de passe modifié avec succès')
   } catch (err) {
     console.error('Failed to update password', err)
-    alert('Erreur lors du changement de mot de passe: ' + (err.response?.data?.message || 'Erreur inconnue'))
+    toastStore.error('Erreur lors du changement de mot de passe: ' + (err.response?.data?.message || 'Erreur inconnue'))
   } finally {
     saving.value = false
   }

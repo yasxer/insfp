@@ -20,6 +20,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\StudentStoreRequest;
+use App\Http\Requests\TeacherStoreRequest;
+use App\Http\Requests\ModuleStoreRequest;
 
 class AdminController extends Controller
 {
@@ -241,27 +244,74 @@ class AdminController extends Controller
         // Get session year
         $year = $session->year;
 
-        // Find last number for this specialty and session year
-        $lastNumber = RegistrationNumber::where('specialty_id', $request->specialty_id)
-            ->where('number', 'like', $specialty->code . $year . '%') // Use session year
-            ->orderBy('number', 'desc')
-            ->first();
+        // ── Registration number format ──────────────────────────────
+        // NNNN: 4-digit sequential number
+        // 1/2 : session intake (Février -> 1, Septembre -> 2)
+        // YY  : last 2 digits of the session year (2025 -> 25)
+        // P/C/A : study type (Présentiel / Cours du soir / Apprentissage)
+        // 16  : Wilaya code (fixed)
+        // 47  : INSFP code (fixed)
+        // Example: 0001125P1647
+        $insfpCode = '47';
+        $wilayaCode = '16';
 
-        // Sequence calculation
-        $sequence = $lastNumber
-            ? intval(substr($lastNumber->number, -4)) + 1 // 4 digits
-            : 1;
+        // Study type is defined on the session/specialty pivot
+        $sessionSpecialty = SessionSpecialty::where('session_id', $session->id)
+            ->where('specialty_id', $specialty->id)
+            ->firstOrFail();
 
-        // Final Format: CODE + YEAR + 0001
-        $number = $specialty->code . $year . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        $typeMap = [
+            'presential'    => 'P',
+            'cours_soir'    => 'C',
+            'apprentissage' => 'A',
+        ];
+        $typeChar = $typeMap[$sessionSpecialty->study_type] ?? 'P';
 
-        $registrationNumber = RegistrationNumber::create([
-            'number' => $number,
-            'specialty_id' => $request->specialty_id,
-            'session_id' => $session->id,
-            'academic_year' => $year . '-' . ($year + 1), // Optional but good to keep
-            'is_used' => false,
-        ]);
+        $yy = substr((string) $year, -2);
+        $sessionChar = $session->month == 2 ? '1' : '2'; // Février = 1, Septembre = 2
+
+        // Everything after the sequence is a fixed suffix per (session + study type)
+        $suffix = $sessionChar . $yy . $typeChar . $wilayaCode . $insfpCode;
+
+        // Find last number with this suffix. Sequence is at the front, and all
+        // matching numbers share the same suffix + length, so ordering desc
+        // puts the highest sequence first.
+        // The sequence is computed from the current max, so two admins generating
+        // the same suffix at the same time could compute the same number. The DB
+        // unique index on `number` guarantees only one ever lands; on the rare
+        // collision we simply recompute and retry instead of failing with a 500.
+        $registrationNumber = null;
+        $number = null;
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $lastNumber = RegistrationNumber::where('number', 'like', '%' . $suffix)
+                ->orderBy('number', 'desc')
+                ->first();
+
+            // Sequence calculation (first 4 digits)
+            $sequence = $lastNumber
+                ? intval(substr($lastNumber->number, 0, 4)) + 1 // 4 digits
+                : 1;
+
+            // Final Format: NNNN + 1/2 + YY + P/C/A + 16 + 47
+            $number = str_pad($sequence, 4, '0', STR_PAD_LEFT) . $suffix;
+
+            try {
+                $registrationNumber = RegistrationNumber::create([
+                    'number' => $number,
+                    'specialty_id' => $request->specialty_id,
+                    'session_id' => $session->id,
+                    'academic_year' => $year . '-' . ($year + 1), // Optional but good to keep
+                    'is_used' => false,
+                ]);
+                break;
+            } catch (\Illuminate\Database\QueryException $e) {
+                // 23000 = integrity constraint violation (duplicate number). Retry.
+                if ($e->getCode() !== '23000' || $attempt === 4) {
+                    throw $e;
+                }
+            }
+        }
 
         return response()->json([
             'message' => 'Registration number generated successfully',
@@ -302,18 +352,19 @@ class AdminController extends Controller
 
         $numbers = $query->orderBy('created_at', 'desc')->paginate(20);
 
+        // Preload the students for the used numbers on this page in a single query
+        // (avoids an N+1) and keys them by registration number for O(1) lookup.
+        $usedNumbers = $numbers->getCollection()->where('is_used', true)->pluck('number');
+        $studentsByNumber = Student::whereIn('registration_number', $usedNumbers)
+            ->get()
+            ->keyBy('registration_number');
+
         // Transform the collection but keep pagination
-        $numbers->getCollection()->transform(function ($regNum) {
+        $numbers->getCollection()->transform(function ($regNum) use ($studentsByNumber) {
             $studentName = null;
             if ($regNum->is_used) {
-                // Try to find student efficiently?
-                // Note: Ideally we should have a relationship on RegistrationNumber model
-                // but direct query is fine for now or if we added relation
-                 $student = \App\Models\Student::where('registration_number', $regNum->number)
-                    ->join('users', 'students.user_id', '=', 'users.id')
-                    ->select('users.name')
-                    ->first();
-                 $studentName = $student ? $student->name : 'Unknown';
+                $student = $studentsByNumber->get($regNum->number);
+                $studentName = $student ? $student->full_name : 'Unknown';
             }
 
             return [
@@ -511,32 +562,19 @@ class AdminController extends Controller
     /**
      * Create new student
      */
-    public function createStudent(Request $request): JsonResponse
+    public function createStudent(StudentStoreRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'phone' => ['nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', 'unique:users,phone'],
-            'date_of_birth' => 'required|date',
-            'address' => 'required|string',
-            'specialty_id' => 'required|exists:specialties,id',
-            'registration_number' => 'required|unique:students,registration_number',
-            'study_mode' => 'required|in:initial,alternance,continue',
-            'current_semester' => 'required|integer|min:1|max:6',
-            'group' => 'nullable|string|max:10',
-            'years_enrolled' => 'integer|min:1',
-            'password' => 'nullable|string|min:8', // Optional, default to reg number
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
 
         try {
             // Create User
             $user = User::create([
-                'name' => $validated['first_name'] . ' ' . $validated['last_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
                 'password' => Hash::make($validated['password'] ?? $validated['registration_number']),
                 'role' => 'student',
                 'is_approved' => true, // Admin created students are approved by default
@@ -681,27 +719,10 @@ class AdminController extends Controller
     /**
      * Update student
      */
-    public function updateStudent(Request $request, $id): JsonResponse
+    public function updateStudent(StudentStoreRequest $request, $id): JsonResponse
     {
         $student = Student::with('user')->findOrFail($id);
-
-        $validated = $request->validate([
-            'first_name' => 'sometimes|string|max:100',
-            'last_name' => 'sometimes|string|max:100',
-            'email' => ['sometimes', 'email', Rule::unique('users')->ignore($student->user_id)],
-            'phone' => ['sometimes', 'nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($student->user_id)],
-            'date_of_birth' => 'sometimes|date',
-            'address' => 'sometimes|string',
-            'specialty_id' => 'sometimes|exists:specialties,id',
-            'study_mode' => 'sometimes|in:initial,alternance,continue',
-            'current_semester' => 'sometimes|integer|min:1|max:6',
-            'group' => 'nullable|string|max:10',
-            'years_enrolled' => 'sometimes|integer|min:1',
-            'is_graduated' => 'sometimes|boolean',
-            'graduation_year' => 'nullable|integer',
-            'graduation_semester' => 'nullable|integer',
-            'final_gpa' => 'nullable|numeric|between:0,20',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
 
@@ -711,9 +732,8 @@ class AdminController extends Controller
                 $userUpdate = [];
                 if (isset($validated['email'])) $userUpdate['email'] = $validated['email'];
                 if (isset($validated['phone'])) $userUpdate['phone'] = $validated['phone'];
-                if (isset($validated['first_name']) || isset($validated['last_name'])) {
-                    $userUpdate['name'] = ($validated['first_name'] ?? $student->first_name) . ' ' . ($validated['last_name'] ?? $student->last_name);
-                }
+                if (isset($validated['first_name'])) $userUpdate['first_name'] = $validated['first_name'];
+                if (isset($validated['last_name'])) $userUpdate['last_name'] = $validated['last_name'];
 
                 if (!empty($userUpdate)) {
                     $student->user->update($userUpdate);
@@ -918,7 +938,6 @@ class AdminController extends Controller
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès',
             'registration_number' => $student->registration_number,
-            'new_password' => $request->new_password,
         ]);
     }
 
@@ -951,7 +970,10 @@ class AdminController extends Controller
             });
         }
 
-        $teachers = $query->orderBy('last_name')->get()->map(function ($teacher) {
+        $perPage = $request->input('per_page', 10);
+        $teachers = $query->orderBy('last_name')->paginate($perPage);
+
+        $teachers->getCollection()->transform(function ($teacher) {
             return [
                 'id' => $teacher->id,
                 'full_name' => $teacher->full_name,
@@ -966,10 +988,7 @@ class AdminController extends Controller
             ];
         });
 
-        return response()->json([
-            'teachers' => $teachers,
-            'count' => $teachers->count(),
-        ]);
+        return response()->json($teachers);
     }
 
     /**
@@ -1040,33 +1059,28 @@ class AdminController extends Controller
     /**
      * Create teacher
      */
-    public function createTeacher(Request $request): JsonResponse
+    public function createTeacher(TeacherStoreRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|regex:/^0[5-7][0-9]{8}$/|unique:users,phone',
-            'password' => 'required|string|min:6',
-            'specialization' => 'required|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
 
         try {
             $user = User::create([
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
                 'role' => 'teacher',
                 'is_approved' => true,
             ]);
 
             $teacher = Teacher::create([
                 'user_id' => $user->id,
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'specialization' => $request->specialization,
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'specialization' => $validated['specialization'],
             ]);
 
             DB::commit();
@@ -1090,17 +1104,10 @@ class AdminController extends Controller
     /**
      * Update teacher
      */
-    public function updateTeacher(Request $request, $id): JsonResponse
+    public function updateTeacher(TeacherStoreRequest $request, $id): JsonResponse
     {
         $teacher = Teacher::with('user')->findOrFail($id);
-
-        $validated = $request->validate([
-            'first_name' => 'sometimes|string|max:100',
-            'last_name' => 'sometimes|string|max:100',
-            'email' => ['sometimes', 'email', Rule::unique('users')->ignore($teacher->user_id)],
-            'phone' => ['sometimes', 'nullable', 'string', 'regex:/^0[5-7][0-9]{8}$/', Rule::unique('users')->ignore($teacher->user_id)],
-            'specialization' => 'sometimes|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
 
@@ -1109,6 +1116,8 @@ class AdminController extends Controller
                 $userUpdate = [];
                 if (isset($validated['email'])) $userUpdate['email'] = $validated['email'];
                 if (isset($validated['phone'])) $userUpdate['phone'] = $validated['phone'];
+                if (isset($validated['first_name'])) $userUpdate['first_name'] = $validated['first_name'];
+                if (isset($validated['last_name'])) $userUpdate['last_name'] = $validated['last_name'];
 
                 if (!empty($userUpdate)) {
                     $teacher->user->update($userUpdate);
@@ -1199,7 +1208,6 @@ class AdminController extends Controller
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès',
             'teacher' => $teacher->full_name,
-            'new_password' => $request->new_password,
         ]);
     }
 
@@ -1490,17 +1498,9 @@ class AdminController extends Controller
     /**
      * Create module
      */
-    public function createModule(Request $request): JsonResponse
+    public function createModule(ModuleStoreRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:modules,code',
-            'description' => 'nullable|string',
-            'specialty_id' => 'required|exists:specialties,id',
-            'semester' => 'required|integer|min:1|max:6',
-            'coefficient' => 'required|numeric|min:0.5|max:10',
-            'hours_per_week' => 'required|integer|min:1|max:40',
-        ]);
+        $validated = $request->validated();
 
         $module = Module::create($validated);
 
@@ -1519,19 +1519,10 @@ class AdminController extends Controller
     /**
      * Update module
      */
-    public function updateModule(Request $request, $id): JsonResponse
+    public function updateModule(ModuleStoreRequest $request, $id): JsonResponse
     {
         $module = Module::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'code' => ['sometimes', 'string', 'max:50', Rule::unique('modules')->ignore($id)],
-            'description' => 'sometimes|nullable|string',
-            'specialty_id' => 'sometimes|exists:specialties,id',
-            'semester' => 'sometimes|integer|min:1|max:6',
-            'coefficient' => 'sometimes|numeric|min:0.5|max:10',
-            'hours_per_week' => 'sometimes|integer|min:1|max:40',
-        ]);
+        $validated = $request->validated();
 
         $module->update($validated);
 

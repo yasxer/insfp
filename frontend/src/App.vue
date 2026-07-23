@@ -1,14 +1,14 @@
 <script setup>
-import { onMounted } from 'vue'
-import { useTheme } from '@/composables/useTheme'
+import { useThemeStore } from '@/stores/theme'
+import ToastContainer from '@/components/common/ToastContainer.vue'
+import GlobalLoader from '@/components/common/GlobalLoader.vue'
 
-const { initTheme } = useTheme()
-
-onMounted(() => {
-  initTheme()
-})
+// Instantiating the store applies the persisted/system theme on app start
+useThemeStore()
 </script>
 
 <template>
+  <GlobalLoader />
   <router-view />
+  <ToastContainer />
 </template>

@@ -215,6 +215,11 @@ const routes = [
         component: () => import('@/views/admin/Sessions.vue')
       },
       {
+        path: 'advancement-reviews',
+        name: 'AdminAdvancementReviews',
+        component: () => import('@/views/admin/AdvancementReviews.vue')
+      },
+      {
         path: 'registration-generator',
         name: 'AdminRegistrationGenerator',
         component: () => import('@/views/admin/RegistrationGenerator.vue')

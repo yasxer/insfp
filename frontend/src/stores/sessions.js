@@ -5,6 +5,8 @@ export const useSessionsStore = defineStore('sessions', {
     state: () => ({
         sessions: [],
         archivedSessions: [],
+        pendingAlerts: [],
+        nextSlot: null,
         currentSession: null,
         specialties: [],
         studyTypes: {},
@@ -13,9 +15,9 @@ export const useSessionsStore = defineStore('sessions', {
     }),
 
     getters: {
-        currentSessions: (state) => state.sessions.filter(s => s.status !== 'terminée'),
-        upcomingSessions: (state) => state.sessions.filter(s => s.status === 'à venir'),
-        activeSessions: (state) => state.sessions.filter(s => s.status === 'en cours'),
+        currentSessions: (state) => state.sessions.filter(s => s.status !== 'archived'),
+        upcomingSessions: (state) => state.sessions.filter(s => s.status === 'pending'),
+        activeSessions: (state) => state.sessions.filter(s => s.status === 'active'),
         
         getSessionById: (state) => (id) => {
             return state.sessions.find(s => s.id === id) || 
@@ -56,6 +58,25 @@ export const useSessionsStore = defineStore('sessions', {
                 throw error;
             } finally {
                 this.loading = false;
+            }
+        },
+
+        async fetchPendingAlerts() {
+            try {
+                const response = await sessionsApi.getPendingAlerts();
+                this.pendingAlerts = response.data.data;
+            } catch (error) {
+                console.error('Error fetching pending session alerts:', error);
+            }
+        },
+
+        async fetchNextSlot() {
+            try {
+                const response = await sessionsApi.getNextSlot();
+                this.nextSlot = response.data.data;
+                return this.nextSlot;
+            } catch (error) {
+                console.error('Error fetching next session slot:', error);
             }
         },
 
@@ -122,8 +143,9 @@ export const useSessionsStore = defineStore('sessions', {
             this.loading = true;
             this.error = null;
             try {
-                await sessionsApi.activateSession(id);
-                await Promise.all([this.fetchSessions(), this.fetchArchivedSessions()]);
+                const response = await sessionsApi.activateSession(id);
+                await Promise.all([this.fetchSessions(), this.fetchArchivedSessions(), this.fetchPendingAlerts()]);
+                return response.data;
             } catch (error) {
                 this.error = error.response?.data?.message || 'Erreur lors de l\'activation de la session';
                 throw error;

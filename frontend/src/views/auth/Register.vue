@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import apiClient from '@/api/axios'
+import { registerSchema } from '@/validations/schemas'
 import { AcademicCapIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -42,6 +43,12 @@ const error = ref(null)
 const successMessage = ref(null)
 const fieldErrors = ref({})
 
+// Registration number lookup state
+const lookupLoading = ref(false)
+const lookupError = ref(null)
+const lookupData = ref(null) // { session, specialty, study_modes }
+let lookupTimer = null
+
 // Type mapping: Backend Type -> Frontend Value
 const typeMapping = {
   presential: 'initial',
@@ -74,47 +81,95 @@ const selectedSession = computed(() => {
   return sessions.value.find(s => s.id === form.value.session_id)
 })
 
-const availableStudyModes = computed(() => {
-  if (!selectedSession.value) return []
-  
-  return selectedSession.value.specialties_by_type
-    .filter(group => group.specialties.length > 0)
-    .map(group => ({
-      value: typeMapping[group.type],
-      label: group.label
-    }))
-})
+// Display labels for the auto-filled (read-only) fields
+const sessionLabel = computed(() =>
+  selectedSession.value?.name || lookupData.value?.session?.name || ''
+)
 
-// Update study mode when session changes if current mode not available
-watch(() => form.value.session_id, () => {
-  form.value.specialty_id = ''
-  form.value.study_mode = ''
+const studyModeLabel = computed(() => {
+  if (!form.value.study_mode) return ''
+  const match = (lookupData.value?.study_modes || []).find(m => m.value === form.value.study_mode)
+  return match?.label || ''
 })
 
 const availableSpecialties = computed(() => {
   if (!selectedSession.value || !form.value.study_mode) return []
-  
+
   const backendType = reverseTypeMapping[form.value.study_mode]
   const group = selectedSession.value.specialties_by_type.find(g => g.type === backendType)
-  
+
   return group ? group.specialties : []
 })
 
-// Clear specialty if study mode changes
+// Reset everything that depends on the registration number
+const clearLookup = () => {
+  lookupData.value = null
+  lookupError.value = null
+  form.value.session_id = ''
+  form.value.study_mode = ''
+  form.value.specialty_id = ''
+}
+
+// Look up the registration number and auto-fill session + study mode
+const lookupRegistration = async (number) => {
+  lookupLoading.value = true
+  lookupError.value = null
+  try {
+    const response = await apiClient.post('/api/lookup-registration', {
+      registration_number: number
+    })
+    const data = response.data.data
+    lookupData.value = data
+
+    // Auto-fill session + study mode (read-only for the student)
+    form.value.session_id = data.session?.id || ''
+    form.value.study_mode = data.study_modes?.[0]?.value || ''
+    form.value.specialty_id = '' // student chooses the specialty
+  } catch (err) {
+    lookupData.value = null
+    form.value.session_id = ''
+    form.value.study_mode = ''
+    form.value.specialty_id = ''
+    lookupError.value = err.response?.data?.message || 'Numéro d\'inscription invalide.'
+  } finally {
+    lookupLoading.value = false
+  }
+}
+
+// Debounced lookup whenever the registration number changes
+watch(() => form.value.registration_number, (number) => {
+  clearTimeout(lookupTimer)
+  const trimmed = (number || '').trim()
+  if (!trimmed) {
+    clearLookup()
+    return
+  }
+  lookupTimer = setTimeout(() => lookupRegistration(trimmed), 500)
+})
+
+// Clear specialty if study mode changes (e.g. after a new lookup)
 watch(() => form.value.study_mode, () => {
   form.value.specialty_id = ''
 })
 
 const handleRegister = async () => {
-  if (form.value.password !== form.value.password_confirmation) {
-    error.value = 'Passwords do not match'
+  error.value = null
+  fieldErrors.value = {}
+  successMessage.value = null
+
+  try {
+    await registerSchema.validate(form.value, { abortEarly: false })
+  } catch (validationError) {
+    const errors = {}
+    for (const issue of validationError.inner) {
+      if (!errors[issue.path]) errors[issue.path] = [issue.message]
+    }
+    fieldErrors.value = errors
+    error.value = 'Please correct the errors below.'
     return
   }
 
   loading.value = true
-  error.value = null
-  fieldErrors.value = {}
-  successMessage.value = null
 
   try {
     await apiClient.post('/api/register', form.value)
@@ -177,44 +232,45 @@ onMounted(() => {
       <!-- Form -->
       <form v-else @submit.prevent="handleRegister" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Session -->
-          <div class="md:col-span-2">
-            <label for="session_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Session</label>
-            <div class="relative">
-                <select
-                id="session_id"
-                v-model="form.session_id"
-                required
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none"
-                    :class="{'border-red-500': fieldErrors.session_id, 'opacity-50': loadingSessions}"
-                :disabled="loadingSessions"
-                >
-                <option value="" disabled>Select Session</option>
-                <option v-for="session in sessions" :key="session.id" :value="session.id">
-                    {{ session.name }} ({{ session.month }} {{ session.year }})
-                </option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
-                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                </svg>
-                </div>
-            </div>
-          </div>
-
-          <!-- Registration Number -->
+          <!-- Registration Number (drives session + study mode) -->
           <div class="md:col-span-2">
             <label for="registration_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Registration Number</label>
-            <input
-              id="registration_number"
-              v-model="form.registration_number"
-              type="text"
-              required
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              :class="{'border-red-500': fieldErrors.registration_number}"
-              placeholder="2025001"
-            />
+            <div class="relative">
+              <input
+                id="registration_number"
+                v-model="form.registration_number"
+                type="text"
+                required
+                class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors font-mono"
+                :class="{'border-red-500': fieldErrors.registration_number || lookupError, 'border-green-500': lookupData}"
+                placeholder="0001125P1647"
+                autocomplete="off"
+              />
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
+                <svg v-if="lookupLoading" class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <svg v-else-if="lookupData" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <p v-if="lookupError" class="mt-1 text-xs text-red-600">{{ lookupError }}</p>
+            <p v-else-if="!form.registration_number" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Entrez votre numéro d'inscription pour remplir automatiquement la session et le mode d'étude.</p>
             <p v-if="fieldErrors.registration_number" class="mt-1 text-xs text-red-600">{{ fieldErrors.registration_number[0] }}</p>
+          </div>
+
+          <!-- Session (auto-filled, read-only) -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Session <span class="text-gray-400 font-normal">(automatique)</span></label>
+            <input
+              type="text"
+              readonly
+              :value="sessionLabel"
+              placeholder="—"
+              class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+            />
           </div>
 
           <!-- First Name -->
@@ -247,29 +303,17 @@ onMounted(() => {
             <p v-if="fieldErrors.last_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.last_name[0] }}</p>
           </div>
 
-          <!-- Study Mode -->
+          <!-- Study Mode (auto-filled, read-only) -->
           <div class="md:col-span-2">
-            <label for="study_mode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mode d'étude</label>
-            <div class="relative">
-              <select
-                id="study_mode"
-                v-model="form.study_mode"
-                required
-                :disabled="!form.session_id"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="{'border-red-500': fieldErrors.study_mode}"
-              >
-                <option value="" disabled>Select Study Mode</option>
-                <option v-for="mode in availableStudyModes" :key="mode.value" :value="mode.value">
-                  {{ mode.label }}
-                </option>
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
-                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                </svg>
-              </div>
-            </div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mode d'étude <span class="text-gray-400 font-normal">(automatique)</span></label>
+            <input
+              type="text"
+              readonly
+              :value="studyModeLabel"
+              placeholder="—"
+              class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+              :class="{'border-red-500': fieldErrors.study_mode}"
+            />
             <p v-if="fieldErrors.study_mode" class="mt-1 text-xs text-red-600">{{ fieldErrors.study_mode[0] }}</p>
           </div>
 

@@ -3,11 +3,13 @@ import { ref, onMounted } from 'vue'
 import studentApi from '@/api/endpoints/student'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import { 
-  DocumentTextIcon, 
-  ArrowDownTrayIcon 
+import { useToastStore } from '@/stores/toast'
+import {
+  DocumentTextIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/vue/24/outline'
 
+const toastStore = useToastStore()
 const loading = ref(true)
 const documents = ref([])
 const error = ref(null)
@@ -49,7 +51,7 @@ const downloadDocument = async (doc) => {
     }
   } catch (err) {
     console.error('Failed to download document:', err)
-    alert('Failed to download file')
+    toastStore.error('Failed to download file')
   }
 }
 

@@ -303,8 +303,10 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from '@/api/axios'
+import { useToastStore } from '@/stores/toast'
 
 const route = useRoute()
+const toastStore = useToastStore()
 
 const loading = ref(true)
 const error = ref(null)
@@ -365,8 +367,11 @@ const handleResetPassword = async () => {
   resetting.value = true
 
   try {
-    const response = await axios.post(`/api/admin/students/${route.params.id}/reset-password`, passwordForm.value)
-    newPassword.value = response.data.new_password
+    // The password is what the admin just typed — display it locally instead of
+    // having the server echo it back (avoids leaking it in logs / the network tab).
+    const typedPassword = passwordForm.value.new_password
+    await axios.post(`/api/admin/students/${route.params.id}/reset-password`, passwordForm.value)
+    newPassword.value = typedPassword
     passwordForm.value = { new_password: '' }
   } catch (err) {
     console.error('Error resetting password:', err)
@@ -379,7 +384,7 @@ const handleResetPassword = async () => {
 const copyPassword = async () => {
   try {
     await navigator.clipboard.writeText(newPassword.value)
-    alert('Password copied to clipboard!')
+    toastStore.success('Password copied to clipboard!')
   } catch (err) {
     console.error('Failed to copy password:', err)
   }

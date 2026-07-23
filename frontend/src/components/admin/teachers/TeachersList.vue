@@ -72,6 +72,12 @@
       @message-individual="handleMessageIndividual"
     />
 
+    <!-- Pagination -->
+    <PaginationBar
+      :pagination="pagination"
+      @change-page="changePage"
+    />
+
     <!-- Message Composer Modal -->
     <MessageComposer
       v-if="showMessageModal"
@@ -90,12 +96,16 @@ import axios from '@/api/axios'
 import TeacherFilters from './TeacherFilters.vue'
 import TeachersTable from './TeachersTable.vue'
 import MessageComposer from './MessageComposer.vue'
+import PaginationBar from '@/components/common/PaginationBar.vue'
+import { useToastStore } from '@/stores/toast'
 
 const router = useRouter()
 const teachersStore = useTeachersStore()
+const toastStore = useToastStore()
 
 const teachers = computed(() => teachersStore.teachers)
 const loading = computed(() => teachersStore.loading)
+const pagination = computed(() => teachersStore.pagination)
 
 const selectedTeacherIds = ref([])
 const showMessageModal = ref(false)
@@ -118,7 +128,11 @@ const updateFilters = (filters) => {
 }
 
 const refreshList = () => {
-  teachersStore.fetchTeachers()
+  teachersStore.fetchTeachers(pagination.value.current_page)
+}
+
+const changePage = (page) => {
+  teachersStore.fetchTeachers(page)
 }
 
 // Selection methods
@@ -181,7 +195,7 @@ const handleSendMessage = async (messageData) => {
 
     const response = await axios.post('/api/admin/messages/send', payload)
     
-    alert(response.data.message || `Message sent successfully to ${response.data.recipient_count} teacher(s)`)
+    toastStore.success(response.data.message || `Message sent successfully to ${response.data.recipient_count} teacher(s)`)
     
     closeMessageModal()
     if (!messageTarget.value) {
@@ -189,7 +203,7 @@ const handleSendMessage = async (messageData) => {
     }
   } catch (error) {
     console.error('Failed to send message', error)
-    alert('Failed to send message: ' + (error.response?.data?.message || error.message))
+    toastStore.error('Failed to send message: ' + (error.response?.data?.message || error.message))
   }
 }
 

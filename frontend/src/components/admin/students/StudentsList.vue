@@ -139,7 +139,11 @@
     />
 
     <!-- Pagination -->
-    <!-- Removed pagination - showing all students -->
+    <PaginationBar
+      v-if="activeTab !== 'pending'"
+      :pagination="pagination"
+      @change-page="changePage"
+    />
 
     <!-- Modals -->
     <StudentForm
@@ -175,8 +179,11 @@ import ActiveStudentsTable from './ActiveStudentsTable.vue'
 import GraduatedStudentsTable from './GraduatedStudentsTable.vue'
 import PendingStudentsTable from './PendingStudentsTable.vue'
 import MessageComposer from './MessageComposer.vue'
+import PaginationBar from '@/components/common/PaginationBar.vue'
+import { useToastStore } from '@/stores/toast'
 
 const studentsStore = useStudentsStore()
+const toastStore = useToastStore()
 
 const students = computed(() => studentsStore.students)
 const pendingStudents = computed(() => studentsStore.pendingStudents)
@@ -282,7 +289,7 @@ const handleSendMessage = async (messageData) => {
     const response = await axios.post('/api/admin/messages/send', payload)
     
     // Show success message
-    alert(response.data.message || `Message sent successfully to ${response.data.recipient_count} student(s)`)
+    toastStore.success(response.data.message || `Message sent successfully to ${response.data.recipient_count} student(s)`)
     
     closeMessageModal()
     if (!messageTarget.value) {
@@ -290,7 +297,7 @@ const handleSendMessage = async (messageData) => {
     }
   } catch (error) {
     console.error('Failed to send message', error)
-    alert('Failed to send message: ' + (error.response?.data?.message || error.message))
+    toastStore.error('Failed to send message: ' + (error.response?.data?.message || error.message))
   }
 }
 
@@ -368,7 +375,7 @@ const confirmApprove = async (student) => {
       await studentsStore.approveStudent(student.id)
     } catch (error) {
       console.error('Failed to approve student', error)
-      alert(error.response?.data?.message || 'Failed to approve student')
+      toastStore.error(error.response?.data?.message || 'Failed to approve student')
     }
   }
 }
@@ -380,7 +387,7 @@ const confirmReject = async (student) => {
       await studentsStore.rejectStudent(student.id, reason)
     } catch (error) {
        console.error('Failed to reject student', error)
-       alert(error.response?.data?.message || 'Failed to reject student')
+       toastStore.error(error.response?.data?.message || 'Failed to reject student')
     }
   }
 }

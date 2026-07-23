@@ -27,6 +27,27 @@
       </div>
     </div>
 
+    <!-- Pending Activation Alerts -->
+    <div
+      v-for="alert in pendingAlerts"
+      :key="alert.id"
+      class="mb-4 p-4 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 flex items-center justify-between gap-4"
+    >
+      <div class="flex items-center gap-3">
+        <ExclamationTriangleIcon class="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0" />
+        <p class="text-sm text-amber-800 dark:text-amber-200">
+          La <strong>{{ alert.name }}</strong> est prête : son mois est arrivé, vous pouvez l'activer.
+        </p>
+      </div>
+      <button
+        @click="activateSession(alert)"
+        :disabled="activating"
+        class="px-3 py-1.5 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 shrink-0"
+      >
+        Activer
+      </button>
+    </div>
+
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -52,7 +73,7 @@
                 </h3>
                 <div class="flex items-center gap-3 mt-1">
                   <span :class="statusBadgeClass(session.status)" class="px-2.5 py-0.5 rounded-full text-xs font-medium">
-                    {{ session.status }}
+                    {{ session.status_label }}
                   </span>
                   <span class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <CalendarIcon class="w-4 h-4" />
@@ -67,7 +88,7 @@
             </div>
             <div class="flex gap-2">
               <button
-                v-if="!session.is_active"
+                v-if="session.is_activatable"
                 @click="activateSession(session)"
                 :disabled="activating"
                 class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/50 rounded-lg transition-colors disabled:opacity-50"
@@ -75,6 +96,13 @@
               >
                 <CheckCircleIcon class="w-5 h-5" />
               </button>
+              <span
+                v-else-if="session.status === 'pending'"
+                class="p-2 text-gray-300 dark:text-gray-600"
+                :title="`Activable à partir du ${formatDate(session.start_date)}`"
+              >
+                <CheckCircleIcon class="w-5 h-5" />
+              </span>
               <button
                 @click="openSessionDetails(session)"
                 class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
@@ -160,7 +188,8 @@
           </h3>
           
           <form @submit.prevent="saveSession" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
+            <!-- Editing an existing session: month/year can still be corrected -->
+            <div v-if="editingSession" class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mois</label>
                 <select
@@ -168,8 +197,8 @@
                   required
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
-                  <option v-for="(name, index) in months" :key="index" :value="index + 1">
-                    {{ name }}
+                  <option v-for="m in allowedMonths" :key="m.value" :value="m.value">
+                    {{ m.label }}
                   </option>
                 </select>
               </div>
@@ -187,6 +216,11 @@
               </div>
             </div>
 
+            <!-- Creating a new session: the next intake is computed automatically -->
+            <p v-if="!editingSession" class="text-sm text-gray-500 dark:text-gray-400">
+              La session est toujours ouverte pour la prochaine rentrée (Février ou Septembre) — elle est calculée automatiquement, pas besoin de choisir.
+            </p>
+
             <!-- Preview -->
             <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
               <p class="text-sm text-blue-800 dark:text-blue-200">
@@ -194,6 +228,9 @@
               </p>
               <p class="text-sm text-blue-800 dark:text-blue-200 mt-1">
                 <strong>Date de fin:</strong> {{ previewEndDate }}
+              </p>
+              <p v-if="!editingSession && nextSlotInfo?.already_exists" class="text-sm text-amber-700 dark:text-amber-300 mt-2">
+                Cette session existe déjà.
               </p>
             </div>
 
@@ -207,7 +244,7 @@
               </button>
               <button
                 type="submit"
-                :disabled="saving"
+                :disabled="saving || (!editingSession && nextSlotInfo?.already_exists)"
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
                 {{ saving ? 'Enregistrement...' : (editingSession ? 'Modifier' : 'Créer') }}
@@ -415,7 +452,7 @@ const activating = ref(false);
 const addingSpecialty = ref(false);
 
 const formData = ref({
-  month: new Date().getMonth() + 1,
+  month: 2, // Février — sessions only open in Février or Septembre
   year: new Date().getFullYear()
 });
 
@@ -433,6 +470,8 @@ const toast = ref({
 // Computed
 const loading = computed(() => sessionsStore.loading);
 const specialties = computed(() => sessionsStore.specialties);
+const pendingAlerts = computed(() => sessionsStore.pendingAlerts);
+const nextSlotInfo = computed(() => sessionsStore.nextSlot);
 
 const displayedSessions = computed(() => {
   return showArchived.value ? sessionsStore.archivedSessions : sessionsStore.sessions;
@@ -443,19 +482,30 @@ const months = [
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
 ];
 
+// A session can only be opened in Février or Septembre (INSFP intake months)
+const allowedMonths = [
+  { value: 2, label: 'Février' },
+  { value: 9, label: 'Septembre' }
+];
+
 const years = computed(() => {
   const currentYear = new Date().getFullYear();
   return Array.from({ length: 10 }, (_, i) => currentYear - 3 + i);
 });
 
+// When creating, the preview is driven by the server-computed next slot
+// (never a manual choice); when editing, it follows the form fields.
+const previewMonth = computed(() => editingSession.value ? formData.value.month : nextSlotInfo.value?.month);
+const previewYear = computed(() => editingSession.value ? formData.value.year : nextSlotInfo.value?.year);
+
 const previewSessionName = computed(() => {
-  if (!formData.value.month || !formData.value.year) return '-';
-  return `Session ${months[formData.value.month - 1]} ${formData.value.year}`;
+  if (!previewMonth.value || !previewYear.value) return '-';
+  return `Session ${months[previewMonth.value - 1]} ${previewYear.value}`;
 });
 
 const previewEndDate = computed(() => {
-  if (!formData.value.month || !formData.value.year) return '-';
-  const startDate = new Date(formData.value.year, formData.value.month - 1, 1);
+  if (!previewMonth.value || !previewYear.value) return '-';
+  const startDate = new Date(previewYear.value, previewMonth.value - 1, 1);
   startDate.setMonth(startDate.getMonth() + 30);
   return startDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 });
@@ -467,11 +517,11 @@ const formatDate = (dateStr) => {
 
 const statusBadgeClass = (status) => {
   const classes = {
-    'en cours': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    'à venir': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'terminée': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+    active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    archived: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
   };
-  return classes[status] || classes['en cours'];
+  return classes[status] || classes.active;
 };
 
 const getTypeIcon = (type) => {
@@ -492,12 +542,9 @@ const getTypeIconClass = (type) => {
   return classes[type] || 'text-gray-600';
 };
 
-const openCreateModal = () => {
+const openCreateModal = async () => {
   editingSession.value = null;
-  formData.value = {
-    month: new Date().getMonth() + 1,
-    year: new Date().getFullYear()
-  };
+  await sessionsStore.fetchNextSlot();
   showModal.value = true;
 };
 
@@ -543,7 +590,8 @@ const saveSession = async () => {
       await sessionsStore.updateSession(editingSession.value.id, formData.value);
       showToast('Session mise à jour avec succès', 'success');
     } else {
-      await sessionsStore.createSession(formData.value);
+      await sessionsStore.createSession();
+      await sessionsStore.fetchNextSlot();
       showToast('Session créée avec succès', 'success');
     }
     closeModal();
@@ -572,8 +620,20 @@ const activateSession = async (session) => {
   if (!confirm(`Activer la session « ${session.name} » ? L'ancienne session active deviendra une archive.`)) return;
   activating.value = true;
   try {
-    await sessionsStore.activateSession(session.id);
+    const result = await sessionsStore.activateSession(session.id);
     showToast(`Session « ${session.name} » activée avec succès`, 'success');
+
+    // Summary of the automatic semester advancement triggered by activation
+    const adv = result?.advancement;
+    if (adv) {
+      const parts = [];
+      if (adv.advanced) parts.push(`${adv.advanced} passé(s)`);
+      if (adv.graduated) parts.push(`${adv.graduated} diplômé(s)`);
+      if (adv.review) parts.push(`${adv.review} à revoir`);
+      if (parts.length) {
+        showToast(`Passage de semestre : ${parts.join(', ')}.`, 'success');
+      }
+    }
   } catch (error) {
     showToast(error.response?.data?.message || 'Erreur lors de l\'activation', 'error');
   } finally {
@@ -620,7 +680,8 @@ onMounted(async () => {
     await Promise.all([
       sessionsStore.fetchSessions(),
       sessionsStore.fetchSpecialties(),
-      sessionsStore.fetchStudyTypes()
+      sessionsStore.fetchStudyTypes(),
+      sessionsStore.fetchPendingAlerts()
     ]);
   } catch (error) {
     console.error('Error loading data:', error);

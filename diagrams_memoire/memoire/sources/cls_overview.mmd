@@ -1,0 +1,95 @@
+classDiagram
+direction TB
+class Utilisateur {
+    <<abstract>>
+}
+class Stagiaire
+class Enseignant
+class Administration
+class Filiere
+class Specialite
+class Module
+class Affectation
+class Session
+class SemestreSession
+class OffreFormation
+class NumeroInscription
+class Seance
+class PublicationEDT
+class Presence
+class Cours
+class Devoir
+class RemiseDevoir
+class Examen
+class Note
+class NoteRattrapage
+class Deliberation
+class RevisionPassage
+class ServicePassage {
+    <<service>>
+}
+class Message
+class LectureMessage
+class Notification
+class Document
+class Assistant {
+    <<service>>
+}
+class GroupeEncadrement
+class RendezVous
+class JourFerie
+Utilisateur <|-- Stagiaire
+Utilisateur <|-- Enseignant
+Utilisateur <|-- Administration
+Filiere "1" *-- "1..*" Specialite : regroupe
+Specialite "1" *-- "0..*" Module : contient
+Specialite "1" -- "0..*" Stagiaire : inscrit
+Session "1" *-- "0..*" OffreFormation : propose
+Specialite "1" -- "0..*" OffreFormation : offerte dans
+OffreFormation "0..1" -- "0..*" Stagiaire : regroupe
+Session "1" *-- "1..*" SemestreSession : comprend
+Session "0..1" -- "0..*" NumeroInscription : concerne
+Specialite "1" -- "0..*" NumeroInscription : concerne
+Enseignant "1" -- "0..*" Affectation : enseigne
+Module "1" -- "0..*" Affectation : est enseigné
+Module "1" -- "0..*" Seance : planifié
+Enseignant "1" -- "0..*" Seance : assure
+Specialite "1" -- "0..*" Seance : concerne
+Session "0..1" -- "0..*" Seance : appartient
+Session "1" -- "0..*" PublicationEDT : publie
+Specialite "1" -- "0..*" PublicationEDT : concerne
+Seance "1" *-- "0..*" Presence : relevé
+Stagiaire "1" -- "0..*" Presence : concerne
+Enseignant "1" -- "0..*" Presence : marque
+Module "1" -- "0..*" Cours : contient
+Enseignant "1" -- "0..*" Cours : dépose
+Module "1" -- "0..*" Devoir : concerne
+Enseignant "1" -- "0..*" Devoir : donne
+Devoir "1" *-- "0..*" RemiseDevoir : reçoit
+Stagiaire "1" -- "0..*" RemiseDevoir : rend
+Module "1" -- "0..*" Examen : évalué par
+Specialite "1" -- "0..*" Examen : concerne
+Enseignant "0..1" -- "0..*" Examen : programme
+Examen "0..1" o-- "0..*" Note : produit
+Stagiaire "1" -- "0..*" Note : obtient
+Module "1" -- "0..*" Note : porte sur
+Stagiaire "1" -- "0..*" NoteRattrapage : obtient
+Module "1" -- "0..*" NoteRattrapage : porte sur
+Stagiaire "1" *-- "0..*" Deliberation : délibéré
+Stagiaire "1" *-- "0..*" RevisionPassage : examiné
+Utilisateur "1" -- "0..*" Message : envoie
+Utilisateur "0..1" -- "0..*" Message : reçoit
+Message "1" *-- "0..*" LectureMessage : lu
+Utilisateur "1" -- "0..*" LectureMessage : lecteur
+Utilisateur "1" *-- "0..*" Notification : reçoit
+Administration "1" -- "0..*" Document : publie
+Session "0..1" -- "0..*" Document : cible
+Specialite "0..*" -- "0..*" Document : cible
+Enseignant "1" -- "0..*" GroupeEncadrement : encadre
+Specialite "1" -- "0..*" GroupeEncadrement : concerne
+GroupeEncadrement "0..*" -- "0..*" Stagiaire : membre
+GroupeEncadrement "1" *-- "0..*" RendezVous : planifie
+Session ..> ServicePassage : utilise
+ServicePassage ..> Deliberation : lit
+ServicePassage ..> Stagiaire : fait avancer
+ServicePassage ..> RevisionPassage : crée

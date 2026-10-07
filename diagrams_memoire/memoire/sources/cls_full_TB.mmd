@@ -1,0 +1,486 @@
+classDiagram
+direction TB
+
+class Utilisateur {
+    <<abstract>>
+    -int id
+    -String nom
+    -String prenom
+    -String email
+    -String telephone
+    -String motDePasse
+    -Role role
+    -bool estApprouve
+    +String /nomComplet
+    +seConnecter(String identifiant, String motDePasse) bool
+    +seDeconnecter() void
+    +changerMotDePasse(String ancien, String nouveau) void
+    +approuver() void
+    +rejeter() void
+    +reinitialiserMotDePasse() String
+    +approuves() List$
+    +parRole(Role role) List$
+}
+
+class Stagiaire {
+    -String numInscription
+    -Date dateNaissance
+    -String lieuNaissance
+    -String adresse
+    -ModeFormation modeFormation
+    -int semestreCourant
+    -String groupe
+    -int anneesInscription
+    -bool estDiplome
+    -int anneeDiplome
+    -int semestreDiplome
+    -float moyenneFinale
+    -bool estExclu
+    -DateTime dateExclusion
+    -String motifExclusion
+    +String /promotion
+    +sInscrire(String numInscription, Map donnees) Stagiaire$
+    +completerProfil(Map donnees) void
+    +modifierProfil(Map donnees) void
+    +consulterTableauDeBord() Map
+    +consulterModules() List
+    +consulterNotes(int semestre) List
+    +consulterAssiduite() List
+    +consulterEmploiDuTemps() List
+    +consulterResultatsExamens() List
+    +consulterExamensAVenir() List
+    +consulterDeliberations() List
+    +passerSemestreSuivant() void
+    +diplomer(float moyenne) void
+    +exclure(String motif) void
+    +creer(Map donnees) Stagiaire$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +inscriptionsEnAttente() List$
+    +actifs() List$
+    +diplomes() List$
+    +parSemestre(int semestre) List$
+    +parSpecialite(Specialite s) List$
+}
+
+class Enseignant {
+    -String specialisation
+    -String grade
+    +consulterTableauDeBord() Map
+    +modifierProfil(Map donnees) void
+    +consulterModules() List
+    +consulterStagiairesModule(Module m) List
+    +consulterEmploiDuTemps() List
+    +consulterSeances() List
+    +creer(Map donnees) Enseignant$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +parAnneeFormation(String annee) List$
+}
+
+class Administration {
+    -String fonction
+    +consulterTableauDeBord() Map
+    +consulterStatistiques() Map
+    +stagiairesParSpecialite() Map
+    +enseignantsParSpecialite() Map
+    +modifierProfil(Map donnees) void
+}
+
+Utilisateur <|-- Stagiaire
+Utilisateur <|-- Enseignant
+Utilisateur <|-- Administration
+
+class Filiere {
+    -int id
+    -String code
+    -String intitule
+    +creer(Map donnees) Filiere$
+    +modifier(Map donnees) void
+    +supprimer() void
+}
+
+class Specialite {
+    -int id
+    -String code
+    -String intitule
+    -ModeFormation modeFormation
+    -String description
+    -String missions
+    -String aptitudesRequises
+    -String debouches
+    -int niveauQualification
+    -String niveauAcces
+    -String diplome
+    -int dureeSemestres
+    -int dureeMois
+    -bool estActive
+    -String image
+    -String cheminBrochure
+    +creer(Map donnees) Specialite$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +consulter() Specialite
+    +actives() List$
+}
+
+class Module {
+    -int id
+    -String code
+    -String intitule
+    -String description
+    -int semestre
+    -float coefficient
+    -float noteEliminatoire
+    -int volumeHoraire
+    +creer(Map donnees) Module$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +parSemestre(int semestre) List$
+    +parSpecialite(Specialite s) List$
+}
+
+class Affectation {
+    -String anneeFormation
+    +affecter(Enseignant e, Module m, String annee) Affectation$
+    +retirer() void
+}
+
+class Session {
+    -int id
+    -String intitule
+    -int mois
+    -int annee
+    -Date dateDebut
+    -Date dateFin
+    -EtatSession etat
+    +String /libelleEtat
+    +bool /estActivable
+    +creer() Session$
+    +activer() void
+    +modifier(int mois, int annee) void
+    +supprimer() void
+    +ajouterSpecialite(Specialite s, ModeFormation m) OffreFormation
+    +retirerSpecialite(OffreFormation o) void
+    +calculerDates() void
+    +genererIntitule() void
+    +anneeFormation() String
+    +prochainCreneau() Map$
+    +alertesActivation() List$
+}
+
+class SemestreSession {
+    -int numero
+    -Date dateDebut
+    -Date dateFin
+    +definirPeriode(Date debut, Date fin) void
+}
+
+class OffreFormation {
+    -int id
+    -ModeFormation modeFormation
+    +String /libelleMode
+    +parMode(ModeFormation m) List$
+    +parSession(Session s) List$
+}
+
+class NumeroInscription {
+    -int id
+    -String numero
+    -bool estUtilise
+    -String anneeFormation
+    -DateTime dateUtilisation
+    +generer(Session s, Specialite sp) NumeroInscription$
+    +rechercher(String numero) NumeroInscription$
+    +marquerUtilise() void
+    +supprimer() void
+    +disponibles() List$
+}
+
+class Seance {
+    -int id
+    -ModeFormation modeFormation
+    -String groupe
+    -Jour jour
+    -Time heureDebut
+    -Time heureFin
+    -String salle
+    -int semestre
+    -String anneeFormation
+    +creer(Map donnees) Seance$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +verifierConflitEnseignant() bool
+    +verifierConflitGroupe() bool
+    +parJour(Jour j) List$
+}
+
+class PublicationEDT {
+    -int id
+    -int semestre
+    -ModeFormation modeFormation
+    -String groupe
+    -bool estPublie
+    +publier() void
+    +depublier() void
+}
+
+class Presence {
+    -int id
+    -Date datePresence
+    -StatutPresence statut
+    -String motif
+    +marquer(Seance s, Date d, List statuts) void$
+    +historique(Enseignant e) List$
+    +presents() List$
+    +absents() List$
+}
+
+class Cours {
+    -int id
+    -String titre
+    -String description
+    -String cheminFichier
+    -String nomFichier
+    -String typeFichier
+    -int tailleFichier
+    +deposer(File f, Module m) Cours$
+    +supprimer() void
+    +telecharger() File
+    +nouveaux(Stagiaire s) int$
+}
+
+class Devoir {
+    -int id
+    -String titre
+    -String description
+    -String cheminFichier
+    -DateTime dateLimite
+    -TypeRemise typeRemise
+    +creer(Map donnees) Devoir$
+    +consulter() Devoir
+    +pourStagiaire(Stagiaire s) List$
+}
+
+class RemiseDevoir {
+    -int id
+    -String reponse
+    -String cheminFichier
+    -float note
+    -String commentaire
+    -EtatRemise etat
+    -DateTime dateRemise
+    +remettre(Devoir d, String reponse, File f) RemiseDevoir$
+    +noter(float note, String commentaire) void
+}
+
+class Examen {
+    -int id
+    -String titre
+    -TypeEvaluation type
+    -EtatExamen etat
+    -DateTime dateExamen
+    -int duree
+    -String salle
+    -int semestre
+    -String groupe
+    -ModeFormation modeFormation
+    -String anneeFormation
+    +creer(Map donnees) Examen$
+    +modifier(Map donnees) void
+    +soumettre() void
+    +consulterStagiaires() List
+    +enregistrerNotes(List notes) void
+    +aVenir() List$
+}
+
+class Note {
+    -int id
+    -float valeur
+    -bool estAbsent
+    -String remarque
+    -int semestre
+    -String anneeFormation
+    +mention() String
+    +parStagiaire(Stagiaire s) List$
+}
+
+class NoteRattrapage {
+    -int id
+    -float valeur
+    -int semestre
+    -String anneeFormation
+    +saisir(Stagiaire s, Module m, float valeur) NoteRattrapage$
+    +stagiairesConcernes(Module m) List$
+}
+
+class Deliberation {
+    -int id
+    -int semestre
+    -String anneeFormation
+    -PhaseDeliberation phase
+    -float moyenne
+    -Resultat resultat
+    -String observations
+    -Date dateDeliberation
+    +calculerMoyenneModule(Stagiaire s, Module m) float$
+    +calculerMoyenneSemestre(Stagiaire s, int semestre) float$
+    +proposerResultat(float moyenne) Resultat$
+    +enregistrer(Map donnees) Deliberation$
+    +lister(Session s, Specialite sp, int semestre) List$
+}
+
+class RevisionPassage {
+    -int id
+    -int semestre
+    -String anneeFormation
+    -float moyenne
+    -EtatRevision etat
+    -DateTime dateDecision
+    +statuer(Decision decision, String motif) void
+    +enAttente() List$
+}
+
+class ServicePassage {
+    <<service>>
+    +executer() Map
+}
+
+class Message {
+    -int id
+    -String objet
+    -String contenu
+    -TypeDestinataire typeDestinataire
+    -bool estLu
+    -DateTime dateLecture
+    -int nbDestinataires
+    -Map filtre
+    +envoyer(Map donnees) Message$
+    +consulter() Message
+    +estLuPar(Utilisateur u) bool
+    +marquerLuPar(Utilisateur u) void
+    +nbNonLus(Utilisateur u) int$
+    +statistiques() Map$
+}
+
+class LectureMessage {
+    -DateTime dateLecture
+}
+
+class Notification {
+    -int id
+    -String titre
+    -String message
+    -String type
+    -Map donnees
+    -bool estLue
+    -DateTime dateLecture
+    +notifier(Utilisateur u, String titre, String message) Notification$
+    +nonLues() List$
+}
+
+class Document {
+    -int id
+    -String titre
+    -String description
+    -String categorie
+    -String cheminFichier
+    -String nomFichier
+    -bool estPublic
+    -Date dateValidite
+    -CibleDocument cible
+    +String /descriptionCible
+    +publier(File f, Map donnees) Document$
+    +supprimer() void
+    +telecharger() File
+    +pourStagiaire(Stagiaire s) List$
+    +pourEnseignants() List$
+}
+
+class Assistant {
+    <<service>>
+    +repondre(String question) String
+}
+
+class GroupeEncadrement {
+    -int id
+    -String titreProjet
+    -String descriptionProjet
+    -String anneeFormation
+    -EtatGroupe etat
+    +actifs() List$
+}
+
+class RendezVous {
+    -int id
+    -DateTime dateRendezVous
+    -String ordreDuJour
+    -String notes
+    -EtatRendezVous etat
+    -bool estApprouve
+    -DateTime dateApprobation
+    +aVenir() List$
+}
+
+class JourFerie {
+    -int id
+    -String intitule
+    -Date dateDebut
+    -Date dateFin
+    -String description
+    +aVenir() List$
+    +enCours() List$
+}
+
+Filiere "1" *-- "1..*" Specialite : regroupe
+Specialite "1" *-- "0..*" Module : contient
+Specialite "1" -- "0..*" Stagiaire : inscrit
+Session "1" *-- "0..*" OffreFormation : propose
+Specialite "1" -- "0..*" OffreFormation : offerte dans
+OffreFormation "0..1" -- "0..*" Stagiaire : regroupe
+Session "1" *-- "1..*" SemestreSession : comprend
+Session "0..1" -- "0..*" NumeroInscription : concerne
+Specialite "1" -- "0..*" NumeroInscription : concerne
+Enseignant "1" -- "0..*" Affectation : enseigne
+Module "1" -- "0..*" Affectation : est enseigné
+Module "1" -- "0..*" Seance : planifié
+Enseignant "1" -- "0..*" Seance : assure
+Specialite "1" -- "0..*" Seance : concerne
+Session "0..1" -- "0..*" Seance : appartient
+Session "1" -- "0..*" PublicationEDT : publie
+Specialite "1" -- "0..*" PublicationEDT : concerne
+Seance "1" *-- "0..*" Presence : relevé
+Stagiaire "1" -- "0..*" Presence : concerne
+Enseignant "1" -- "0..*" Presence : marque
+Module "1" -- "0..*" Cours : contient
+Enseignant "1" -- "0..*" Cours : dépose
+Module "1" -- "0..*" Devoir : concerne
+Enseignant "1" -- "0..*" Devoir : donne
+Devoir "1" *-- "0..*" RemiseDevoir : reçoit
+Stagiaire "1" -- "0..*" RemiseDevoir : rend
+Module "1" -- "0..*" Examen : évalué par
+Specialite "1" -- "0..*" Examen : concerne
+Enseignant "0..1" -- "0..*" Examen : programme
+Examen "0..1" o-- "0..*" Note : produit
+Stagiaire "1" -- "0..*" Note : obtient
+Module "1" -- "0..*" Note : porte sur
+Stagiaire "1" -- "0..*" NoteRattrapage : obtient
+Module "1" -- "0..*" NoteRattrapage : porte sur
+Stagiaire "1" *-- "0..*" Deliberation : délibéré
+Stagiaire "1" *-- "0..*" RevisionPassage : examiné
+Utilisateur "1" -- "0..*" Message : envoie
+Utilisateur "0..1" -- "0..*" Message : reçoit
+Message "1" *-- "0..*" LectureMessage : lu
+Utilisateur "1" -- "0..*" LectureMessage : lecteur
+Utilisateur "1" *-- "0..*" Notification : reçoit
+Administration "1" -- "0..*" Document : publie
+Session "0..1" -- "0..*" Document : cible
+Specialite "0..*" -- "0..*" Document : cible
+Enseignant "1" -- "0..*" GroupeEncadrement : encadre
+Specialite "1" -- "0..*" GroupeEncadrement : concerne
+GroupeEncadrement "0..*" -- "0..*" Stagiaire : membre
+GroupeEncadrement "1" *-- "0..*" RendezVous : planifie
+Session ..> ServicePassage : utilise
+ServicePassage ..> Deliberation : lit
+ServicePassage ..> Stagiaire : fait avancer
+ServicePassage ..> RevisionPassage : crée

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="13">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker><marker id="open" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0,0 L11,6 L0,12" fill="none" stroke="#333" stroke-width="1.4"/></marker><marker id="tri" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0,0 L13,7 L0,14 z" fill="white" stroke="#333" stroke-width="1.3"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<rect x="40.0" y="20.0" width="190.0" height="48.0" rx="6" fill="#0A2F5C" stroke="#C7D3E0" stroke-width="1" />
+<text x="255.0" y="41.0" font-size="17" text-anchor="start" font-weight="bold" fill="#0A2F5C">#0A2F5C</text>
+<text x="255.0" y="62.0" font-size="13" text-anchor="start" font-weight="normal" fill="#3F4652">Bleu marine</text>
+<text x="430.0" y="51.0" font-size="14" text-anchor="start" font-weight="normal" fill="#3F4652">Couleur principale : barre latérale, titres, boutons</text>
+<rect x="40.0" y="90.0" width="190.0" height="48.0" rx="6" fill="#03909E" stroke="#C7D3E0" stroke-width="1" />
+<text x="255.0" y="111.0" font-size="17" text-anchor="start" font-weight="bold" fill="#0A2F5C">#03909E</text>
+<text x="255.0" y="132.0" font-size="13" text-anchor="start" font-weight="normal" fill="#3F4652">Turquoise</text>
+<text x="430.0" y="121.0" font-size="14" text-anchor="start" font-weight="normal" fill="#3F4652">Couleur secondaire : liens, élément actif, graphiques</text>
+<rect x="40.0" y="160.0" width="190.0" height="48.0" rx="6" fill="#D7971D" stroke="#C7D3E0" stroke-width="1" />
+<text x="255.0" y="181.0" font-size="17" text-anchor="start" font-weight="bold" fill="#0A2F5C">#D7971D</text>
+<text x="255.0" y="202.0" font-size="13" text-anchor="start" font-weight="normal" fill="#3F4652">Doré</text>
+<text x="430.0" y="191.0" font-size="14" text-anchor="start" font-weight="normal" fill="#3F4652">Couleur d&#x27;accent : badges, mises en évidence</text>
+<rect x="40.0" y="230.0" width="190.0" height="48.0" rx="6" fill="#F4F7FA" stroke="#C7D3E0" stroke-width="1" />
+<text x="255.0" y="251.0" font-size="17" text-anchor="start" font-weight="bold" fill="#0A2F5C">#F4F7FA</text>
+<text x="255.0" y="272.0" font-size="13" text-anchor="start" font-weight="normal" fill="#3F4652">Gris très clair</text>
+<text x="430.0" y="261.0" font-size="14" text-anchor="start" font-weight="normal" fill="#3F4652">Fond des pages</text>
+<rect x="40.0" y="300.0" width="190.0" height="48.0" rx="6" fill="#3F4652" stroke="#C7D3E0" stroke-width="1" />
+<text x="255.0" y="321.0" font-size="17" text-anchor="start" font-weight="bold" fill="#0A2F5C">#3F4652</text>
+<text x="255.0" y="342.0" font-size="13" text-anchor="start" font-weight="normal" fill="#3F4652">Gris anthracite</text>
+<text x="430.0" y="331.0" font-size="14" text-anchor="start" font-weight="normal" fill="#3F4652">Texte courant</text>
+<rect x="40.0" y="370.0" width="190.0" height="48.0" rx="6" fill="#1E8E5A" stroke="#C7D3E0" stroke-width="1" />
+<text x="255.0" y="391.0" font-size="17" text-anchor="start" font-weight="bold" fill="#0A2F5C">#1E8E5A</text>
+<text x="255.0" y="412.0" font-size="13" text-anchor="start" font-weight="normal" fill="#3F4652">Vert</text>
+<text x="430.0" y="401.0" font-size="14" text-anchor="start" font-weight="normal" fill="#3F4652">Succès : présent, admis</text>
+<rect x="40.0" y="440.0" width="190.0" height="48.0" rx="6" fill="#C62828" stroke="#C7D3E0" stroke-width="1" />
+<text x="255.0" y="461.0" font-size="17" text-anchor="start" font-weight="bold" fill="#0A2F5C">#C62828</text>
+<text x="255.0" y="482.0" font-size="13" text-anchor="start" font-weight="normal" fill="#3F4652">Rouge</text>
+<text x="430.0" y="471.0" font-size="14" text-anchor="start" font-weight="normal" fill="#3F4652">Erreur : absent, ajourné, suppression</text>
+</svg>

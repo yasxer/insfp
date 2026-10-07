@@ -71,7 +71,33 @@ class DocumentController extends Controller
      */
     public function download(Request $request, $id): mixed
     {
-        $document = Document::findOrFail($id);
+        $user = $request->user();
+
+        // Scope the lookup to what this user is actually allowed to see (same rules
+        // as index) so a document id can't be downloaded by someone it wasn't
+        // targeted to. firstOrFail() yields 404 for out-of-scope documents.
+        $query = Document::where('id', $id);
+
+        if ($user->role === 'teacher') {
+            $query->where(function ($q) {
+                $q->where('is_public', true)
+                  ->orWhere('target_type', 'all_teachers');
+            });
+        } elseif ($user->role === 'student' && $user->student) {
+            $session_id = $user->student->session_id;
+            $query->where(function ($q) use ($session_id) {
+                $q->where('is_public', true)
+                  ->orWhere('target_type', 'all_students')
+                  ->orWhere(function ($sub) use ($session_id) {
+                      $sub->where('target_type', 'session_students')
+                          ->where('session_id', $session_id);
+                  });
+            });
+        } else {
+            $query->where('is_public', true);
+        }
+
+        $document = $query->firstOrFail();
 
         if (!Storage::disk('public')->exists($document->file_path)) {
             return response()->json(['message' => 'File not found'], 404);

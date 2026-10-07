@@ -68,7 +68,7 @@ watch(selectedSemester, () => {
 const isSubmitting = ref(false)
 const form = ref({
   title: '',
-  exam_type: 'midterm',
+  exam_type: 'controle',
   module_id: '',
   group: '',
   exam_date: '',
@@ -119,15 +119,8 @@ const goToGrading = (examId) => {
 
 const formatType = (type) => {
   const types = {
-    'midterm': 'Examen partiel',
-    'final': 'Examen final',
-    'rattrapage': 'Rattrapage',
-    'exam': 'Examen',
-    'control': 'Contrôle',
-    'test': 'Contrôle',
-    'project': 'Projet',
-    'assignment': 'Devoir',
-    'presentation': 'Présentation'
+    'controle': 'Contrôle',
+    'examen': 'Examen'
   }
   return types[type] || type
 }
@@ -144,7 +137,7 @@ const getStatusConfig = (status) => {
 const openModal = () => {
   form.value = {
     title: '',
-    exam_type: 'exam',
+    exam_type: 'controle',
     module_id: '',
     group: '',
     exam_date: '',
@@ -223,10 +216,8 @@ const updateExamStatus = async (examId, newStatus) => {
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Tous les types</option>
-          <option value="exam">Examen</option>
-          <option value="control">Contrôle</option>
-          <option value="project">Projet</option>
-          <option value="assignment">Devoir</option>
+          <option value="controle">Contrôle</option>
+          <option value="examen">Examen</option>
         </select>
       </div>
       <button
@@ -373,9 +364,8 @@ const updateExamStatus = async (examId, newStatus) => {
                     <div>
                       <label for="exam_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type d'examen</label>
                       <select id="exam_type" v-model="form.exam_type" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="midterm">Partiel (Midterm)</option>
-                        <option value="final">Final</option>
-                        <option value="rattrapage">Rattrapage</option>
+                        <option value="controle">Contrôle</option>
+                        <option value="examen">Examen</option>
                       </select>
                     </div>
                   </div>

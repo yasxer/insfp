@@ -1,0 +1,92 @@
+classDiagram
+direction TB
+class Deliberation {
+    -int id
+    -int semestre
+    -String anneeFormation
+    -PhaseDeliberation phase
+    -float moyenne
+    -Resultat resultat
+    -String observations
+    -Date dateDeliberation
+    +calculerMoyenneModule(Stagiaire s, Module m) float$
+    +calculerMoyenneSemestre(Stagiaire s, int semestre) float$
+    +proposerResultat(float moyenne) Resultat$
+    +enregistrer(Map donnees) Deliberation$
+    +lister(Session s, Specialite sp, int semestre) List$
+}
+class Examen {
+    -int id
+    -String titre
+    -TypeEvaluation type
+    -EtatExamen etat
+    -DateTime dateExamen
+    -int duree
+    -String salle
+    -int semestre
+    -String groupe
+    -ModeFormation modeFormation
+    -String anneeFormation
+    +creer(Map donnees) Examen$
+    +modifier(Map donnees) void
+    +soumettre() void
+    +consulterStagiaires() List
+    +enregistrerNotes(List notes) void
+    +aVenir() List$
+}
+class Note {
+    -int id
+    -float valeur
+    -bool estAbsent
+    -String remarque
+    -int semestre
+    -String anneeFormation
+    +mention() String
+    +parStagiaire(Stagiaire s) List$
+}
+class NoteRattrapage {
+    -int id
+    -float valeur
+    -int semestre
+    -String anneeFormation
+    +saisir(Stagiaire s, Module m, float valeur) NoteRattrapage$
+    +stagiairesConcernes(Module m) List$
+}
+class RevisionPassage {
+    -int id
+    -int semestre
+    -String anneeFormation
+    -float moyenne
+    -EtatRevision etat
+    -DateTime dateDecision
+    +statuer(Decision decision, String motif) void
+    +enAttente() List$
+}
+class ServicePassage {
+    <<service>>
+    +executer() Map
+}
+class Enseignant
+style Enseignant fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Module
+style Module fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Session
+style Session fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Specialite
+style Specialite fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Stagiaire
+style Stagiaire fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+Module "1" -- "0..*" Examen : évalué par
+Specialite "1" -- "0..*" Examen : concerne
+Enseignant "0..1" -- "0..*" Examen : programme
+Examen "0..1" o-- "0..*" Note : produit
+Stagiaire "1" -- "0..*" Note : obtient
+Module "1" -- "0..*" Note : porte sur
+Stagiaire "1" -- "0..*" NoteRattrapage : obtient
+Module "1" -- "0..*" NoteRattrapage : porte sur
+Stagiaire "1" *-- "0..*" Deliberation : délibéré
+Stagiaire "1" *-- "0..*" RevisionPassage : examiné
+Session ..> ServicePassage : utilise
+ServicePassage ..> Deliberation : lit
+ServicePassage ..> Stagiaire : fait avancer
+ServicePassage ..> RevisionPassage : crée

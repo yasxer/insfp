@@ -47,7 +47,13 @@ class TeacherHomeworkController extends Controller
             'submission_type' => 'required|in:online,in_person'
         ]);
 
-        $teacherId = $request->user()->teacher->id;
+        $teacher = $request->user()->teacher;
+        $teacherId = $teacher->id;
+
+        // A teacher may only create homework for a module they are assigned to.
+        if (!$teacher->modules()->where('modules.id', $request->module_id)->exists()) {
+            return response()->json(['message' => 'Vous n\'êtes pas assigné à ce module.'], 403);
+        }
 
         $path = null;
         if ($request->hasFile('file')) {
@@ -67,9 +73,13 @@ class TeacherHomeworkController extends Controller
         return response()->json(['message' => 'Devoir créé avec succès', 'data' => $homework], 201);
     }
 
-    public function show($id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
-        $homework = Homework::with(['module', 'submissions.student'])->findOrFail($id);
+        $teacherId = $request->user()->teacher->id;
+        // A teacher may only open their own homework (and its students' submissions).
+        $homework = Homework::with(['module', 'submissions.student'])
+            ->where('teacher_id', $teacherId)
+            ->findOrFail($id);
 
         $mappedSubmissions = $homework->submissions->map(function ($sub) {
             return [
@@ -110,8 +120,15 @@ class TeacherHomeworkController extends Controller
             'feedback' => 'nullable|string'
         ]);
 
+        $teacherId = $request->user()->teacher->id;
+
+        // The homework must belong to this teacher before grading its submissions.
+        $homework = Homework::where('id', $homeworkId)
+            ->where('teacher_id', $teacherId)
+            ->firstOrFail();
+
         $submission = HomeworkSubmission::where('id', $submissionId)
-            ->where('homework_id', $homeworkId)
+            ->where('homework_id', $homework->id)
             ->firstOrFail();
 
         $submission->update([

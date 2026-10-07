@@ -13,11 +13,9 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(config => {
   useLoadingStore().start()
 
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
+  // Auth is carried by the httpOnly session cookie (sent automatically thanks to
+  // withCredentials) — there is no JS-readable token. State-changing requests
+  // still need the CSRF header below.
   const method = config.method.toUpperCase()
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
     const xsrfToken = document.cookie
@@ -45,12 +43,10 @@ apiClient.interceptors.response.use(
 
     console.error(`❌ API Error [${status}]:`, message)
 
-    // Handle 401 Unauthorized - Token expired or invalid
+    // Handle 401 Unauthorized - session expired or invalid
     if (status === 401) {
-      console.warn('🔑 Token expired or invalid, clearing auth...')
-      localStorage.removeItem('token')
+      console.warn('🔑 Session expired or invalid, clearing auth...')
       localStorage.removeItem('user')
-      sessionStorage.removeItem('token')
       sessionStorage.removeItem('user')
 
       // Trigger logout via store if available

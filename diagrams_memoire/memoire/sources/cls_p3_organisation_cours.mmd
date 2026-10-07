@@ -1,0 +1,98 @@
+classDiagram
+direction TB
+class Cours {
+    -int id
+    -String titre
+    -String description
+    -String cheminFichier
+    -String nomFichier
+    -String typeFichier
+    -int tailleFichier
+    +deposer(File f, Module m) Cours$
+    +supprimer() void
+    +telecharger() File
+    +nouveaux(Stagiaire s) int$
+}
+class Devoir {
+    -int id
+    -String titre
+    -String description
+    -String cheminFichier
+    -DateTime dateLimite
+    -TypeRemise typeRemise
+    +creer(Map donnees) Devoir$
+    +consulter() Devoir
+    +pourStagiaire(Stagiaire s) List$
+}
+class Presence {
+    -int id
+    -Date datePresence
+    -StatutPresence statut
+    -String motif
+    +marquer(Seance s, Date d, List statuts) void$
+    +historique(Enseignant e) List$
+    +presents() List$
+    +absents() List$
+}
+class PublicationEDT {
+    -int id
+    -int semestre
+    -ModeFormation modeFormation
+    -String groupe
+    -bool estPublie
+    +publier() void
+    +depublier() void
+}
+class RemiseDevoir {
+    -int id
+    -String reponse
+    -String cheminFichier
+    -float note
+    -String commentaire
+    -EtatRemise etat
+    -DateTime dateRemise
+    +remettre(Devoir d, String reponse, File f) RemiseDevoir$
+    +noter(float note, String commentaire) void
+}
+class Seance {
+    -int id
+    -ModeFormation modeFormation
+    -String groupe
+    -Jour jour
+    -Time heureDebut
+    -Time heureFin
+    -String salle
+    -int semestre
+    -String anneeFormation
+    +creer(Map donnees) Seance$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +verifierConflitEnseignant() bool
+    +verifierConflitGroupe() bool
+    +parJour(Jour j) List$
+}
+class Enseignant
+style Enseignant fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Module
+style Module fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Session
+style Session fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Specialite
+style Specialite fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Stagiaire
+style Stagiaire fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+Module "1" -- "0..*" Seance : planifié
+Enseignant "1" -- "0..*" Seance : assure
+Specialite "1" -- "0..*" Seance : concerne
+Session "0..1" -- "0..*" Seance : appartient
+Session "1" -- "0..*" PublicationEDT : publie
+Specialite "1" -- "0..*" PublicationEDT : concerne
+Seance "1" *-- "0..*" Presence : relevé
+Stagiaire "1" -- "0..*" Presence : concerne
+Enseignant "1" -- "0..*" Presence : marque
+Module "1" -- "0..*" Cours : contient
+Enseignant "1" -- "0..*" Cours : dépose
+Module "1" -- "0..*" Devoir : concerne
+Enseignant "1" -- "0..*" Devoir : donne
+Devoir "1" *-- "0..*" RemiseDevoir : reçoit
+Stagiaire "1" -- "0..*" RemiseDevoir : rend

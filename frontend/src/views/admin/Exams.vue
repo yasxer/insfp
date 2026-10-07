@@ -207,11 +207,8 @@ const formatTime = (timeString) => {
 
 const getExamLabel = (type) => {
   const types = {
-    'continuous': 'Contrôle continu',
-    'midterm': 'Examen partiel',
-    'final': 'Examen final',
-    'makeup': 'Rattrapage',
-    'practical': 'Examen pratique'
+    'controle': 'Contrôle',
+    'examen': 'Examen'
   }
   return types[type] || type
 }

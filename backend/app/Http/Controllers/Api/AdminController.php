@@ -241,6 +241,14 @@ class AdminController extends Controller
         $specialty = Specialty::findOrFail($request->specialty_id);
         $session = TrainingSession::findOrFail($request->session_id);
 
+        // Registration numbers may only be issued for a session that is still open
+        // (en attente) or currently running — never for an archived one.
+        if (!in_array($session->status, ['pending', 'active'])) {
+            return response()->json([
+                'message' => 'Impossible de générer un numéro pour une session archivée.',
+            ], 422);
+        }
+
         // Get session year
         $year = $session->year;
 

@@ -172,6 +172,19 @@ class TrainingSession extends Model
         return $this->name;
     }
 
+    /**
+     * The academic year this session belongs to, formatted "YYYY-YYYY".
+     * A Septembre intake opens the year (2025 -> 2025-2026); a Février intake
+     * falls in the year that started the previous Septembre (2026 -> 2025-2026).
+     */
+    public function academicYear(): string
+    {
+        if ($this->month >= 9) {
+            return $this->year . '-' . ($this->year + 1);
+        }
+        return ($this->year - 1) . '-' . $this->year;
+    }
+
     // Get specialties grouped by study type
     public function getSpecialtiesByType()
     {

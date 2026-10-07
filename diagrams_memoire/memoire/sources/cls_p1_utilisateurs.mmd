@@ -1,0 +1,87 @@
+classDiagram
+direction TB
+class Administration {
+    -String fonction
+    +consulterTableauDeBord() Map
+    +consulterStatistiques() Map
+    +stagiairesParSpecialite() Map
+    +enseignantsParSpecialite() Map
+    +modifierProfil(Map donnees) void
+}
+class Enseignant {
+    -String specialisation
+    -String grade
+    +consulterTableauDeBord() Map
+    +modifierProfil(Map donnees) void
+    +consulterModules() List
+    +consulterStagiairesModule(Module m) List
+    +consulterEmploiDuTemps() List
+    +consulterSeances() List
+    +creer(Map donnees) Enseignant$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +parAnneeFormation(String annee) List$
+}
+class Stagiaire {
+    -String numInscription
+    -Date dateNaissance
+    -String lieuNaissance
+    -String adresse
+    -ModeFormation modeFormation
+    -int semestreCourant
+    -String groupe
+    -int anneesInscription
+    -bool estDiplome
+    -int anneeDiplome
+    -int semestreDiplome
+    -float moyenneFinale
+    -bool estExclu
+    -DateTime dateExclusion
+    -String motifExclusion
+    +String /promotion
+    +sInscrire(String numInscription, Map donnees) Stagiaire$
+    +completerProfil(Map donnees) void
+    +modifierProfil(Map donnees) void
+    +consulterTableauDeBord() Map
+    +consulterModules() List
+    +consulterNotes(int semestre) List
+    +consulterAssiduite() List
+    +consulterEmploiDuTemps() List
+    +consulterResultatsExamens() List
+    +consulterExamensAVenir() List
+    +consulterDeliberations() List
+    +passerSemestreSuivant() void
+    +diplomer(float moyenne) void
+    +exclure(String motif) void
+    +creer(Map donnees) Stagiaire$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +inscriptionsEnAttente() List$
+    +actifs() List$
+    +diplomes() List$
+    +parSemestre(int semestre) List$
+    +parSpecialite(Specialite s) List$
+}
+class Utilisateur {
+    <<abstract>>
+    -int id
+    -String nom
+    -String prenom
+    -String email
+    -String telephone
+    -String motDePasse
+    -Role role
+    -bool estApprouve
+    +String /nomComplet
+    +seConnecter(String identifiant, String motDePasse) bool
+    +seDeconnecter() void
+    +changerMotDePasse(String ancien, String nouveau) void
+    +approuver() void
+    +rejeter() void
+    +reinitialiserMotDePasse() String
+    +approuves() List$
+    +parRole(Role role) List$
+}
+Utilisateur <|-- Stagiaire
+Utilisateur <|-- Enseignant
+Utilisateur <|-- Administration

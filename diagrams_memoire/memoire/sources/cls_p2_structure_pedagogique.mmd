@@ -1,0 +1,115 @@
+classDiagram
+direction TB
+class Affectation {
+    -String anneeFormation
+    +affecter(Enseignant e, Module m, String annee) Affectation$
+    +retirer() void
+}
+class Filiere {
+    -int id
+    -String code
+    -String intitule
+    +creer(Map donnees) Filiere$
+    +modifier(Map donnees) void
+    +supprimer() void
+}
+class Module {
+    -int id
+    -String code
+    -String intitule
+    -String description
+    -int semestre
+    -float coefficient
+    -float noteEliminatoire
+    -int volumeHoraire
+    +creer(Map donnees) Module$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +parSemestre(int semestre) List$
+    +parSpecialite(Specialite s) List$
+}
+class NumeroInscription {
+    -int id
+    -String numero
+    -bool estUtilise
+    -String anneeFormation
+    -DateTime dateUtilisation
+    +generer(Session s, Specialite sp) NumeroInscription$
+    +rechercher(String numero) NumeroInscription$
+    +marquerUtilise() void
+    +supprimer() void
+    +disponibles() List$
+}
+class OffreFormation {
+    -int id
+    -ModeFormation modeFormation
+    +String /libelleMode
+    +parMode(ModeFormation m) List$
+    +parSession(Session s) List$
+}
+class SemestreSession {
+    -int numero
+    -Date dateDebut
+    -Date dateFin
+    +definirPeriode(Date debut, Date fin) void
+}
+class Session {
+    -int id
+    -String intitule
+    -int mois
+    -int annee
+    -Date dateDebut
+    -Date dateFin
+    -EtatSession etat
+    +String /libelleEtat
+    +bool /estActivable
+    +creer() Session$
+    +activer() void
+    +modifier(int mois, int annee) void
+    +supprimer() void
+    +ajouterSpecialite(Specialite s, ModeFormation m) OffreFormation
+    +retirerSpecialite(OffreFormation o) void
+    +calculerDates() void
+    +genererIntitule() void
+    +anneeFormation() String
+    +prochainCreneau() Map$
+    +alertesActivation() List$
+}
+class Specialite {
+    -int id
+    -String code
+    -String intitule
+    -ModeFormation modeFormation
+    -String description
+    -String missions
+    -String aptitudesRequises
+    -String debouches
+    -int niveauQualification
+    -String niveauAcces
+    -String diplome
+    -int dureeSemestres
+    -int dureeMois
+    -bool estActive
+    -String image
+    -String cheminBrochure
+    +creer(Map donnees) Specialite$
+    +modifier(Map donnees) void
+    +supprimer() void
+    +consulter() Specialite
+    +actives() List$
+}
+class Enseignant
+style Enseignant fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Stagiaire
+style Stagiaire fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+Filiere "1" *-- "1..*" Specialite : regroupe
+Specialite "1" *-- "0..*" Module : contient
+Specialite "1" -- "0..*" Stagiaire : inscrit
+Session "1" *-- "0..*" OffreFormation : propose
+Specialite "1" -- "0..*" OffreFormation : offerte dans
+OffreFormation "0..1" -- "0..*" Stagiaire : regroupe
+Session "1" *-- "1..*" SemestreSession : comprend
+Session "0..1" -- "0..*" NumeroInscription : concerne
+Specialite "1" -- "0..*" NumeroInscription : concerne
+Enseignant "1" -- "0..*" Affectation : enseigne
+Module "1" -- "0..*" Affectation : est enseigné

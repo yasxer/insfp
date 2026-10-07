@@ -89,7 +89,17 @@ class LessonController extends Controller
     public function download(Request $request, $id): mixed
     {
         $user = $request->user();
-        $lesson = Lesson::findOrFail($id);
+        $student = $user->student;
+        $lesson = Lesson::with('module')->findOrFail($id);
+
+        // A student may only download lessons of a module in their own specialty
+        // and current semester — not any lesson id.
+        if (!$student
+            || !$lesson->module
+            || $lesson->module->specialty_id !== $student->specialty_id
+            || $lesson->module->semester !== $student->current_semester) {
+            return response()->json(['message' => 'Accès non autorisé à ce cours.'], 403);
+        }
 
         $filePath = str_replace('public/', '', $lesson->file_path);
 

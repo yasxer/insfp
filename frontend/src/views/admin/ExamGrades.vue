@@ -156,9 +156,8 @@ const formatDate = (dateStr) => {
 
 const getExamLabel = (type) => {
   const types = {
-    'midterm': 'Partiel (EMD)',
-    'final': 'Examen Final',
-    'makeup': 'Rattrapage'
+    'controle': 'Contrôle',
+    'examen': 'Examen'
   }
   return types[type] || type
 }

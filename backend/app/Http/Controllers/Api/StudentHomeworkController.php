@@ -72,8 +72,17 @@ class StudentHomeworkController extends Controller
             return response()->json(['message' => 'Veuillez fournir un texte ou un fichier.'], 400);
         }
 
-        $studentId = $request->user()->student->id;
-        $homework = Homework::findOrFail($homeworkId);
+        $student = $request->user()->student;
+        $studentId = $student->id;
+        $homework = Homework::with('module')->findOrFail($homeworkId);
+
+        // A student may only submit to a homework of their own specialty + semester.
+        // Without this check any student could submit against any homework id.
+        if (!$homework->module
+            || $homework->module->specialty_id !== $student->specialty_id
+            || $homework->module->semester !== $student->current_semester) {
+            return response()->json(['message' => 'Ce devoir ne vous concerne pas.'], 403);
+        }
 
         // Check if past due
         // if (\Carbon\Carbon::now()->isAfter($homework->due_date)) {

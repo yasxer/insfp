@@ -39,10 +39,7 @@ class ScheduleController extends Controller
 
     private function academicYearFromSession(TrainingSession $session): string
     {
-        if ($session->month >= 9) {
-            return $session->year . '-' . ($session->year + 1);
-        }
-        return ($session->year - 1) . '-' . $session->year;
+        return $session->academicYear();
     }
 
     private function checkTeacherConflict($teacherId, $day, $startTime, $endTime, $academicYear, $excludeId = null): ?array

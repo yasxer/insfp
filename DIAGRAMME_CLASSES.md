@@ -1,0 +1,661 @@
+# Diagramme de classes — Plateforme INSFP
+
+Images : `diagrams_memoire/diagramme_classes.png` (ou `.svg`, vectoriel) et `diagrams_memoire/diagramme_classes_enumerations.png`.
+
+## Principes de modélisation appliqués
+
+1. **Aucune clé étrangère.** Les colonnes `*_id` du code (`student_id`, `module_id`, `session_specialty_id`…) n'apparaissent pas comme attributs : chaque lien est représenté par une **association** avec son nom et ses multiplicités. Les clés étrangères n'apparaissent qu'au niveau du *modèle relationnel*, obtenu à partir de ce diagramme.
+2. **Généralisation.** `User` est une classe abstraite ; `Student`, `Teacher` et `Administration` en héritent (au lieu du lien `user_id` 1–1 de la base).
+3. **Associations porteuses de données réifiées.** Les tables pivots ayant un attribut propre deviennent des classes : `Affectation` (Teacher–Module, `academicYear`) et `MessageRead` (Message–User, `readAt`). `SessionSpecialty` (offre de formation) est une classe à part entière, car un même couple Session–Spécialité peut exister pour plusieurs types d'études.
+4. **Composition** (◆) quand la partie ne peut exister sans le tout : Specialty◆Module, TrainingSession◆SessionSpecialty, Homework◆HomeworkSubmission, Schedule◆Attendance, Student◆Deliberation, Student◆AdvancementReview, Message◆MessageRead, User◆Notification, EncadrementGroup◆EncadrementAppointment.
+   **Agrégation** (◇) Exam◇Grade : une note subsiste si l'examen est supprimé (`set null`).
+5. **Encapsulation.** Attributs privés (`-`), opérations publiques (`+`).
+6. **Opérations de classe** (soulignées, `$` dans le source) : créations (`create`, `register`, `generate`) et requêtes sur l'ensemble des objets (les *scopes* Eloquent : `active()`, `bySemester()`…).
+7. **Attributs dérivés** (préfixe `/`) : `fullName`, `promotion`, `studyType`, `statusLabel`, `isActivatable`, `studyTypeLabel`, `targetDescription`.
+8. **Placement des opérations (principe de l'expert).** Chaque opération est placée dans la classe qui détient les données concernées : les méthodes des modèles et toutes les actions des contrôleurs de l'API sont réparties ainsi (ex. `Exam.saveResults()`, `TrainingSession.activate()`, `AdvancementReview.resolve()`, `Deliberation.calculateAverage()`).
+9. **Types énumérés** regroupés dans une figure séparée pour garder le diagramme principal lisible.
+10. **Services** (`«service»`) : `SemesterAdvancementService` (passage de semestre déclenché par `TrainingSession.activate()`) et `Chatbot` (API Gemini), reliés par des dépendances (`..>`).
+
+## Source du diagramme principal
+
+```mermaid
+classDiagram
+direction TB
+
+%% ======================= UTILISATEURS =======================
+class User {
+    <<abstract>>
+    -int id
+    -String firstName
+    -String lastName
+    -String email
+    -String phone
+    -String password
+    -Role role
+    -bool isApproved
+    +String /fullName
+    +login(String identifiant, String password) bool
+    +logout() void
+    +me() User
+    +changePassword(String current, String new) void
+    +getFullName() String
+    +approve() void
+    +reject() void
+    +resetPassword() String
+    +approved() List$
+    +byRole(Role role) List$
+}
+
+class Student {
+    -String registrationNumber
+    -Date dateOfBirth
+    -String address
+    -StudyMode studyMode
+    -int currentSemester
+    -String group
+    -int yearsEnrolled
+    -bool isGraduated
+    -int graduationYear
+    -int graduationSemester
+    -float finalGpa
+    -bool isExcluded
+    -DateTime excludedAt
+    -String exclusionReason
+    +String /promotion
+    +String /studyType
+    +register(String registrationNumber, Map data) Student$
+    +completeProfile(Map data) void
+    +updateProfile(Map data) void
+    +dashboard() Map
+    +getModules() List
+    +getGrades(int semester) List
+    +getAttendance() List
+    +getSchedule() List
+    +getExamResults() List
+    +getUpcomingExams() List
+    +getDeliberations() List
+    +advanceSemester() void
+    +graduate(float average) void
+    +exclude(String reason) void
+    +getPromotion() String
+    +getStudyType() String
+    +create(Map data) Student$
+    +update(Map data) void
+    +delete() void
+    +pendingRegistrations() List$
+    +active() List$
+    +graduated() List$
+    +bySemester(int semester) List$
+    +bySpecialty(Specialty specialty) List$
+}
+
+class Teacher {
+    -String specialization
+    +dashboard() Map
+    +updateProfile(Map data) void
+    +getModules() List
+    +getModuleStudents(Module module) List
+    +getSchedule() List
+    +getAttendanceSessions() List
+    +getSessionStudents(Schedule seance) List
+    +create(Map data) Teacher$
+    +update(Map data) void
+    +delete() void
+    +byAcademicYear(String year) List$
+    +withModulesCount() List$
+}
+
+class Administration {
+    -String position
+    +dashboard() Map
+    +statistics() Map
+    +randomStudents(int n) List
+    +studentsBySpecialty() Map
+    +teachersBySpecialty() Map
+    +updateProfile(Map data) void
+    +byPosition(String position) List$
+}
+
+User <|-- Student
+User <|-- Teacher
+User <|-- Administration
+
+%% ======================= STRUCTURE PEDAGOGIQUE =======================
+class Specialty {
+    -int id
+    -String name
+    -String code
+    -StudyMode studyMode
+    -String description
+    -int durationSemesters
+    -int currentSemester
+    -float durationYears
+    -bool isActive
+    -String coverImage
+    -String brochurePath
+    -String brochureName
+    -String programPdfPath
+    +create(Map data) Specialty$
+    +update(Map data) void
+    +delete() void
+    +show() Specialty
+    +active() List$
+    +withStudentsCount() List$
+}
+
+class Module {
+    -int id
+    -String name
+    -String code
+    -String description
+    -int semester
+    -float coefficient
+    -int hoursPerWeek
+    +create(Map data) Module$
+    +update(Map data) void
+    +delete() void
+    +bySemester(int semester) List$
+    +bySpecialty(Specialty specialty) List$
+}
+
+class Affectation {
+    -String academicYear
+    +assign(Teacher t, Module m, String year) Affectation$
+    +remove() void
+}
+
+class TrainingSession {
+    -int id
+    -String name
+    -int month
+    -int year
+    -Date startDate
+    -Date endDate
+    -bool isActive
+    -SessionStatus status
+    +int[] ALLOWED_MONTHS$
+    +String /statusLabel
+    +bool /isActivatable
+    +create() TrainingSession$
+    +activate() void
+    +update(int month, int year) void
+    +delete() void
+    +addSpecialty(Specialty s, StudyType type) SessionSpecialty
+    +removeSpecialty(SessionSpecialty s) void
+    +calculateDates() void
+    +generateName() void
+    +isActivatable() bool
+    +academicYear() String
+    +getSpecialtiesByType() Map
+    +getStatusLabel() String
+    +nextSlot() Map$
+    +pendingAlerts() List$
+    +active() List$
+    +pending() List$
+    +current() List$
+    +archived() List$
+}
+
+class SessionSpecialty {
+    -int id
+    -StudyType studyType
+    +String /studyTypeLabel
+    +getStudyTypeLabel() String
+    +byStudyType(StudyType type) List$
+    +bySession(TrainingSession s) List$
+}
+
+class RegistrationNumber {
+    -int id
+    -String number
+    -bool isUsed
+    -String academicYear
+    -DateTime usedAt
+    +generate(TrainingSession s, Specialty sp) RegistrationNumber$
+    +lookup(String number) RegistrationNumber$
+    +markAsUsed() void
+    +delete() void
+    +available() List$
+    +used() List$
+}
+
+%% ======================= EMPLOI DU TEMPS & PRESENCE =======================
+class Schedule {
+    -int id
+    -StudyMode studyMode
+    -String group
+    -Day day
+    -Time startTime
+    -Time endTime
+    -String classroom
+    -int semester
+    -String academicYear
+    +create(Map data) Schedule$
+    +update(Map data) void
+    +delete() void
+    +checkTeacherConflict() bool
+    +checkSpecialtyConflict() bool
+    +getGroups(Specialty s) List$
+    +getSpecialtySemesters(Specialty s) List$
+    +byDay(Day day) List$
+    +bySemester(int semester) List$
+    +byAcademicYear(String year) List$
+    +bySpecialty(Specialty s) List$
+}
+
+class SchedulePublication {
+    -int id
+    -int semester
+    -StudyMode studyMode
+    -String group
+    -bool isPublished
+    +publish() void
+    +unpublish() void
+}
+
+class Attendance {
+    -int id
+    -Date attendanceDate
+    -AttendanceStatus status
+    -String notes
+    +mark(Schedule seance, Date date, List presences) void$
+    +history(Teacher t) List$
+    +byStudent(Student s) List$
+    +byDate(Date date) List$
+    +byStatus(AttendanceStatus st) List$
+    +present() List$
+    +absent() List$
+}
+
+%% ======================= COURS & DEVOIRS =======================
+class Lesson {
+    -int id
+    -String title
+    -String description
+    -String filePath
+    -String fileName
+    -String fileType
+    -int fileSize
+    +upload(File file, Module m) Lesson$
+    +delete() void
+    +download() File
+    +newCount(Student s) int$
+    +byModule(Module m) List$
+    +byTeacher(Teacher t) List$
+    +recent() List$
+}
+
+class Homework {
+    -int id
+    -String title
+    -String description
+    -String filePath
+    -DateTime dueDate
+    -SubmissionType submissionType
+    +create(Map data) Homework$
+    +show() Homework
+    +forStudent(Student s) List$
+}
+
+class HomeworkSubmission {
+    -int id
+    -String submissionText
+    -String filePath
+    -float grade
+    -String feedback
+    -SubmissionStatus status
+    -DateTime submittedAt
+    +submit(Homework h, String text, File file) HomeworkSubmission$
+    +grade(float mark, String feedback) void
+}
+
+%% ======================= EVALUATION =======================
+class Exam {
+    -int id
+    -String title
+    -ExamType examType
+    -ExamStatus status
+    -DateTime examDate
+    -int durationMinutes
+    -String classroom
+    -int semester
+    -String group
+    -String academicYear
+    +create(Map data) Exam$
+    +update(Map data) void
+    +submit() void
+    +getStudents() List
+    +saveResults(List results) void
+    +getGrades() List
+    +history(Teacher t) List$
+    +byType(ExamType type) List$
+    +bySemester(int semester) List$
+    +byAcademicYear(String year) List$
+    +upcoming() List$
+}
+
+class Grade {
+    -int id
+    -float grade
+    -int semester
+    -String academicYear
+    +getGradeLetter() String
+    +byStudent(Student s) List$
+    +bySemester(int semester) List$
+    +byAcademicYear(String year) List$
+    +passing() List$
+}
+
+class Deliberation {
+    -int id
+    -int semester
+    -String academicYear
+    -float average
+    -DeliberationResult result
+    -String observations
+    -Date deliberationDate
+    +calculateAverage(Student s, int semester) float$
+    +saveOrUpdate(Map data) Deliberation$
+    +listFor(TrainingSession s, Specialty sp, int semester) List$
+    +byStudent(Student s) List$
+    +bySemester(int semester) List$
+    +byAcademicYear(String year) List$
+    +passed() List$
+    +failed() List$
+}
+
+class AdvancementReview {
+    -int id
+    -int semester
+    -String academicYear
+    -float average
+    -ReviewStatus status
+    -DateTime resolvedAt
+    +resolve(Decision decision, String reason) void
+    +pending() List$
+}
+
+class SemesterAdvancementService {
+    <<service>>
+    +run() Map
+}
+
+%% ======================= COMMUNICATION =======================
+class Message {
+    -int id
+    -String subject
+    -String body
+    -RecipientType recipientType
+    -bool isRead
+    -DateTime readAt
+    -int recipientCount
+    -Map recipientFilter
+    +send(Map data) Message$
+    +show() Message
+    +isReadBy(User u) bool
+    +markAsReadBy(User u) void
+    +unreadCount(User u) int$
+    +stats() Map$
+    +unread() List$
+    +byRecipient(User u) List$
+    +bySender(User u) List$
+    +recent() List$
+}
+
+class MessageRead {
+    -DateTime readAt
+}
+
+class Notification {
+    -int id
+    -String title
+    -String message
+    -String type
+    -Map data
+    -bool isRead
+    -DateTime readAt
+    +notify(User u, String title, String message) Notification$
+    +unread() List$
+    +byUser(User u) List$
+    +byType(String type) List$
+    +recent() List$
+}
+
+class Document {
+    -int id
+    -String title
+    -String description
+    -String category
+    -String filePath
+    -String fileName
+    -bool isPublic
+    -Date validUntil
+    -DocumentTarget targetType
+    +String /targetDescription
+    +upload(File file, Map data) Document$
+    +delete() void
+    +download() File
+    +getTargetDescription() String
+    +newCount(User u) int$
+    +public() List$
+    +byCategory(String c) List$
+    +valid() List$
+    +forTeachers() List$
+    +forStudent(Student s) List$
+}
+
+class Chatbot {
+    <<service>>
+    +chat(String message) String
+}
+
+%% ======================= ENCADREMENT & CALENDRIER =======================
+class EncadrementGroup {
+    -int id
+    -String projectTitle
+    -String projectDescription
+    -String academicYear
+    -GroupStatus status
+    +active() List$
+    +byTeacher(Teacher t) List$
+    +byAcademicYear(String year) List$
+}
+
+class EncadrementAppointment {
+    -int id
+    -DateTime appointmentDate
+    -String agenda
+    -String notes
+    -AppointmentStatus status
+    -bool isApproved
+    -DateTime approvedAt
+    +scheduled() List$
+    +approved() List$
+    +upcoming() List$
+}
+
+class Holiday {
+    -int id
+    -String name
+    -Date startDate
+    -Date endDate
+    -String description
+    +upcoming() List$
+    +current() List$
+}
+
+%% ======================= ASSOCIATIONS =======================
+Specialty "1" *-- "0..*" Module : contient
+Specialty "1" -- "0..*" Student : inscrit
+TrainingSession "1" *-- "0..*" SessionSpecialty : propose
+Specialty "1" -- "0..*" SessionSpecialty : offerte dans
+SessionSpecialty "0..1" -- "0..*" Student : regroupe
+TrainingSession "0..1" -- "0..*" RegistrationNumber : concerne
+Specialty "1" -- "0..*" RegistrationNumber : concerne
+
+Teacher "1" -- "0..*" Affectation : enseigne
+Module "1" -- "0..*" Affectation : est enseigné
+
+Module "1" -- "0..*" Schedule : planifié
+Teacher "1" -- "0..*" Schedule : assure
+Specialty "1" -- "0..*" Schedule : concerne
+TrainingSession "0..1" -- "0..*" Schedule : appartient
+TrainingSession "1" -- "0..*" SchedulePublication : publie
+Specialty "1" -- "0..*" SchedulePublication : concerne
+
+Schedule "1" *-- "0..*" Attendance : relevé
+Student "1" -- "0..*" Attendance : concerne
+Teacher "1" -- "0..*" Attendance : marque
+
+Module "1" -- "0..*" Lesson : contient
+Teacher "1" -- "0..*" Lesson : dépose
+Module "1" -- "0..*" Homework : concerne
+Teacher "1" -- "0..*" Homework : donne
+Homework "1" *-- "0..*" HomeworkSubmission : reçoit
+Student "1" -- "0..*" HomeworkSubmission : rend
+
+Module "1" -- "0..*" Exam : évalué par
+Specialty "1" -- "0..*" Exam : concerne
+Teacher "0..1" -- "0..*" Exam : programme
+Exam "0..1" o-- "0..*" Grade : produit
+Student "1" -- "0..*" Grade : obtient
+Module "1" -- "0..*" Grade : porte sur
+Student "1" *-- "0..*" Deliberation : délibéré
+Student "1" *-- "0..*" AdvancementReview : examiné
+
+User "1" -- "0..*" Message : envoie
+User "0..1" -- "0..*" Message : reçoit
+Message "1" *-- "0..*" MessageRead : lu
+User "1" -- "0..*" MessageRead : lecteur
+User "1" *-- "0..*" Notification : reçoit
+Administration "1" -- "0..*" Document : publie
+TrainingSession "0..1" -- "0..*" Document : cible
+Specialty "0..*" -- "0..*" Document : cible
+
+Teacher "1" -- "0..*" EncadrementGroup : encadre
+Specialty "1" -- "0..*" EncadrementGroup : concerne
+EncadrementGroup "0..*" -- "0..*" Student : membre
+EncadrementGroup "1" *-- "0..*" EncadrementAppointment : planifie
+
+TrainingSession ..> SemesterAdvancementService : utilise
+SemesterAdvancementService ..> Deliberation : lit
+SemesterAdvancementService ..> Student : fait avancer
+SemesterAdvancementService ..> AdvancementReview : crée
+```
+
+## Source des énumérations
+
+```mermaid
+classDiagram
+direction TB
+class Role {
+    <<enumeration>>
+    student
+    teacher
+    administration
+}
+class StudyMode {
+    <<enumeration>>
+    initial
+    alternance
+    continue
+}
+class StudyType {
+    <<enumeration>>
+    presential
+    apprentissage
+    cours_soir
+}
+class SessionStatus {
+    <<enumeration>>
+    pending
+    active
+    archived
+}
+class Day {
+    <<enumeration>>
+    saturday
+    sunday
+    monday
+    tuesday
+    wednesday
+    thursday
+}
+class AttendanceStatus {
+    <<enumeration>>
+    present
+    absent
+    late
+    excused
+}
+class ExamType {
+    <<enumeration>>
+    controle
+    examen
+}
+class ExamStatus {
+    <<enumeration>>
+    draft
+    submitted
+    modified
+}
+class DeliberationResult {
+    <<enumeration>>
+    passed
+    failed
+}
+class ReviewStatus {
+    <<enumeration>>
+    pending
+    redoubled
+    advanced
+    excluded
+}
+class Decision {
+    <<enumeration>>
+    redouble
+    advance
+    exclude
+    wait
+}
+class SubmissionType {
+    <<enumeration>>
+    online
+    in_person
+}
+class SubmissionStatus {
+    <<enumeration>>
+    pending
+    submitted
+    graded
+    late
+}
+class RecipientType {
+    <<enumeration>>
+    all
+    students
+    teachers
+    administrations
+    specialty
+    individual
+}
+class DocumentTarget {
+    <<enumeration>>
+    all_teachers
+    all_students
+    session_students
+    specialty_students
+}
+class GroupStatus {
+    <<enumeration>>
+    active
+    completed
+    cancelled
+}
+class AppointmentStatus {
+    <<enumeration>>
+    scheduled
+    completed
+    cancelled
+}
+```

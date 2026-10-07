@@ -278,7 +278,7 @@ class TeacherGradesController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'exam_type' => 'required|in:midterm,final,rattrapage',
+            'exam_type' => 'required|in:controle,examen',
             'exam_date' => 'required|date',
             'module_id' => 'required|exists:modules,id',
             'group' => 'nullable|string|max:255',
@@ -294,7 +294,12 @@ class TeacherGradesController extends Controller
         $validated['status'] = 'draft';
         $validated['specialty_id'] = $module->specialty_id;
         $validated['semester'] = $module->semester;
-        $validated['academic_year'] = '2025/2026';
+        // Derive the academic year from the currently active session instead of a
+        // hardcoded value (which never advanced and froze every exam to one year).
+        $activeSession = \App\Models\TrainingSession::where('status', 'active')->first();
+        $validated['academic_year'] = $activeSession
+            ? $activeSession->academicYear()
+            : now()->year . '-' . (now()->year + 1);
 
         $exam = Exam::create($validated);
 
@@ -339,7 +344,7 @@ class TeacherGradesController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'exam_type' => 'required|in:exam,control',
+            'exam_type' => 'required|in:controle,examen',
             'exam_date' => 'required|date',
             'module_id' => 'required|exists:modules,id',
             'group' => 'nullable|string|max:255',

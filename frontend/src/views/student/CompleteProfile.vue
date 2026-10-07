@@ -68,8 +68,8 @@ const handleSubmit = async () => {
     
     console.log('Updated authStore.user:', authStore.user)
     
-    // Update storage with complete profile
-    if (localStorage.getItem('token')) {
+    // Update storage with complete profile (match where the session chose to persist)
+    if (localStorage.getItem('remember') === '1') {
       localStorage.setItem('user', JSON.stringify(authStore.user))
     } else {
       sessionStorage.setItem('user', JSON.stringify(authStore.user))

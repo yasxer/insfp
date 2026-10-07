@@ -1,0 +1,112 @@
+classDiagram
+direction TB
+class Role {
+    <<enumeration>>
+    student
+    teacher
+    administration
+}
+class StudyMode {
+    <<enumeration>>
+    initial
+    alternance
+    continue
+}
+class StudyType {
+    <<enumeration>>
+    presential
+    apprentissage
+    cours_soir
+}
+class SessionStatus {
+    <<enumeration>>
+    pending
+    active
+    archived
+}
+class Day {
+    <<enumeration>>
+    saturday
+    sunday
+    monday
+    tuesday
+    wednesday
+    thursday
+}
+class AttendanceStatus {
+    <<enumeration>>
+    present
+    absent
+    late
+    excused
+}
+class ExamType {
+    <<enumeration>>
+    controle
+    examen
+}
+class ExamStatus {
+    <<enumeration>>
+    draft
+    submitted
+    modified
+}
+class DeliberationResult {
+    <<enumeration>>
+    passed
+    failed
+}
+class ReviewStatus {
+    <<enumeration>>
+    pending
+    redoubled
+    advanced
+    excluded
+}
+class Decision {
+    <<enumeration>>
+    redouble
+    advance
+    exclude
+    wait
+}
+class SubmissionType {
+    <<enumeration>>
+    online
+    in_person
+}
+class SubmissionStatus {
+    <<enumeration>>
+    pending
+    submitted
+    graded
+    late
+}
+class RecipientType {
+    <<enumeration>>
+    all
+    students
+    teachers
+    administrations
+    specialty
+    individual
+}
+class DocumentTarget {
+    <<enumeration>>
+    all_teachers
+    all_students
+    session_students
+    specialty_students
+}
+class GroupStatus {
+    <<enumeration>>
+    active
+    completed
+    cancelled
+}
+class AppointmentStatus {
+    <<enumeration>>
+    scheduled
+    completed
+    cancelled
+}

@@ -1,0 +1,106 @@
+classDiagram
+direction TB
+class Assistant {
+    <<service>>
+    +repondre(String question) String
+}
+class Document {
+    -int id
+    -String titre
+    -String description
+    -String categorie
+    -String cheminFichier
+    -String nomFichier
+    -bool estPublic
+    -Date dateValidite
+    -CibleDocument cible
+    +String /descriptionCible
+    +publier(File f, Map donnees) Document$
+    +supprimer() void
+    +telecharger() File
+    +pourStagiaire(Stagiaire s) List$
+    +pourEnseignants() List$
+}
+class GroupeEncadrement {
+    -int id
+    -String titreProjet
+    -String descriptionProjet
+    -String anneeFormation
+    -EtatGroupe etat
+    +actifs() List$
+}
+class JourFerie {
+    -int id
+    -String intitule
+    -Date dateDebut
+    -Date dateFin
+    -String description
+    +aVenir() List$
+    +enCours() List$
+}
+class LectureMessage {
+    -DateTime dateLecture
+}
+class Message {
+    -int id
+    -String objet
+    -String contenu
+    -TypeDestinataire typeDestinataire
+    -bool estLu
+    -DateTime dateLecture
+    -int nbDestinataires
+    -Map filtre
+    +envoyer(Map donnees) Message$
+    +consulter() Message
+    +estLuPar(Utilisateur u) bool
+    +marquerLuPar(Utilisateur u) void
+    +nbNonLus(Utilisateur u) int$
+    +statistiques() Map$
+}
+class Notification {
+    -int id
+    -String titre
+    -String message
+    -String type
+    -Map donnees
+    -bool estLue
+    -DateTime dateLecture
+    +notifier(Utilisateur u, String titre, String message) Notification$
+    +nonLues() List$
+}
+class RendezVous {
+    -int id
+    -DateTime dateRendezVous
+    -String ordreDuJour
+    -String notes
+    -EtatRendezVous etat
+    -bool estApprouve
+    -DateTime dateApprobation
+    +aVenir() List$
+}
+class Administration
+style Administration fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Enseignant
+style Enseignant fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Session
+style Session fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Specialite
+style Specialite fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Stagiaire
+style Stagiaire fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+class Utilisateur {
+    <<abstract>>
+}
+style Utilisateur fill:#f4f4f4,stroke:#999,stroke-dasharray: 5 3
+Utilisateur "1" -- "0..*" Message : envoie
+Utilisateur "0..1" -- "0..*" Message : reçoit
+Message "1" *-- "0..*" LectureMessage : lu
+Utilisateur "1" -- "0..*" LectureMessage : lecteur
+Utilisateur "1" *-- "0..*" Notification : reçoit
+Administration "1" -- "0..*" Document : publie
+Session "0..1" -- "0..*" Document : cible
+Specialite "0..*" -- "0..*" Document : cible
+Enseignant "1" -- "0..*" GroupeEncadrement : encadre
+Specialite "1" -- "0..*" GroupeEncadrement : concerne
+GroupeEncadrement "0..*" -- "0..*" Stagiaire : membre
+GroupeEncadrement "1" *-- "0..*" RendezVous : planifie

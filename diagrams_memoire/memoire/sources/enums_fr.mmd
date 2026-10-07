@@ -1,0 +1,112 @@
+classDiagram
+direction TB
+class Role {
+    <<enumeration>>
+    stagiaire
+    enseignant
+    administration
+}
+class ModeFormation {
+    <<enumeration>>
+    residentiel
+    apprentissage
+    cours_du_soir
+}
+class EtatSession {
+    <<enumeration>>
+    en_attente
+    active
+    archivee
+}
+class Jour {
+    <<enumeration>>
+    samedi
+    dimanche
+    lundi
+    mardi
+    mercredi
+    jeudi
+}
+class StatutPresence {
+    <<enumeration>>
+    present
+    absent
+    en_retard
+    excuse
+}
+class TypeEvaluation {
+    <<enumeration>>
+    controle
+    examen
+}
+class EtatExamen {
+    <<enumeration>>
+    brouillon
+    soumis
+    modifie
+}
+class PhaseDeliberation {
+    <<enumeration>>
+    avant_rattrapage
+    apres_rattrapage
+}
+class Resultat {
+    <<enumeration>>
+    admis
+    rattrapage
+    abandon
+}
+class EtatRevision {
+    <<enumeration>>
+    en_attente
+    redouble
+    passe
+    exclu
+}
+class Decision {
+    <<enumeration>>
+    redoubler
+    passer
+    exclure
+    reporter
+}
+class TypeRemise {
+    <<enumeration>>
+    en_ligne
+    en_presentiel
+}
+class EtatRemise {
+    <<enumeration>>
+    en_attente
+    remise
+    notee
+    en_retard
+}
+class TypeDestinataire {
+    <<enumeration>>
+    tous
+    stagiaires
+    enseignants
+    administration
+    specialite
+    individuel
+}
+class CibleDocument {
+    <<enumeration>>
+    tous_enseignants
+    tous_stagiaires
+    stagiaires_session
+    stagiaires_specialite
+}
+class EtatGroupe {
+    <<enumeration>>
+    actif
+    termine
+    annule
+}
+class EtatRendezVous {
+    <<enumeration>>
+    planifie
+    effectue
+    annule
+}

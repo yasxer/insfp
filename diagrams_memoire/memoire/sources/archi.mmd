@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph C["Couche présentation"]
+        W["Application web<br/>Vue.js + Tailwind CSS<br/>(navigateur)"]
+    end
+    subgraph S["Couche métier — serveur"]
+        A["API REST Laravel<br/>Contrôleurs · Modèles · Middlewares"]
+    end
+    subgraph D["Couche données"]
+        B[("Base de données<br/>MySQL")]
+        F[("Fichiers<br/>cours, documents")]
+    end
+    G["API Gemini<br/>assistant intelligent"]
+    W -- "HTTPS / JSON" --> A
+    A -- "ORM Eloquent" --> B
+    A --> F
+    A -- "HTTPS" --> G

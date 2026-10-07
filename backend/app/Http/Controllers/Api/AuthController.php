@@ -11,6 +11,7 @@ use App\Models\RegistrationNumber;
 use App\Models\SessionSpecialty;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -58,13 +59,17 @@ class AuthController extends Controller
             $profileComplete = !is_null($student->date_of_birth) && !is_null($student->address);
         }
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        // First-party SPA authentication: log the user into the (web) session so the
+        // credential lives in an httpOnly cookie the browser JS can never read —
+        // instead of a bearer token in localStorage that any XSS could steal.
+        Auth::guard('web')->login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
         $userData = $this->getUserData($user);
         $userData['profile_complete'] = $profileComplete;
 
         return response()->json([
             'message' => 'Connexion réussie',
-            'token' => $token,
             'user' => $userData,
             'profile_complete' => $profileComplete,
         ]);
@@ -198,8 +203,10 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        // Solution: Use tokens() relationship
-        $request->user()->tokens()->delete();
+        // Tear down the session so the httpOnly auth cookie is no longer valid.
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'Déconnexion réussie',

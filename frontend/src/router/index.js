@@ -149,11 +149,6 @@ const routes = [
         path: 'exams/:id/grading',
         name: 'TeacherGrading',
         component: () => import('@/views/teacher/Grading.vue')
-      },
-      {
-        path: 'profile',
-        name: 'TeacherProfile',
-        component: () => import('@/views/teacher/Profile.vue')
       }
     ]
   },

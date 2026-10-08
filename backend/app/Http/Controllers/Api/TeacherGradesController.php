@@ -8,6 +8,7 @@ use App\Models\Grade;
 use App\Models\Module;
 use App\Models\Notification;
 use App\Models\Student;
+use App\Services\GradeCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -91,11 +92,8 @@ class TeacherGradesController extends Controller
 
         $module = $exam->module;
 
-        // Get students for this module (Specialty match)
-        $students = Student::where('specialty_id', $module->specialty_id)
-            ->with('user') // Eager load user for email
-            ->orderBy('last_name')
-            ->get();
+        // Same students storeResults() accepts.
+        $students = $this->eligibleStudents($exam);
 
         // Get existing grades for this exam
         $grades = Grade::where('exam_id', $exam->id)->get()->keyBy('student_id');
@@ -152,13 +150,10 @@ class TeacherGradesController extends Controller
             'results.*.note' => 'nullable|string|max:255',
         ]);
 
-        // Only students of this exam's specialty AND current semester may be
-        // graded. Without this a teacher could post a mark for ANY student in the
-        // database (another specialty / semester), corrupting deliberations.
-        $eligibleStudents = Student::where('specialty_id', $exam->specialty_id)
-            ->where('current_semester', $exam->semester)
-            ->get()
-            ->keyBy('id');
+        // Only the students of this exam may be graded. Without this a teacher could
+        // post a mark for ANY student (another specialty / semester, or a student
+        // who has no rattrapage to sit), corrupting deliberations.
+        $eligibleStudents = $this->eligibleStudents($exam)->keyBy('id');
 
         $invalidIds = collect($validated['results'])
             ->pluck('student_id')
@@ -171,6 +166,11 @@ class TeacherGradesController extends Controller
         }
 
         $updatedStudents = [];
+
+        // Changing marks after submission is allowed but must stay visible.
+        if ($exam->status === 'submitted') {
+            $exam->update(['status' => 'modified']);
+        }
 
         DB::transaction(function () use ($exam, $validated, $eligibleStudents, &$updatedStudents) {
             foreach ($validated['results'] as $result) {
@@ -278,11 +278,13 @@ class TeacherGradesController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'exam_type' => 'required|in:controle,examen',
-            'exam_date' => 'required|date',
+            'exam_type' => 'required|in:controle,examen,rattrapage',
+            'exam_date' => 'required|date|after_or_equal:today',
             'module_id' => 'required|exists:modules,id',
             'group' => 'nullable|string|max:255',
-            'duration_minutes' => 'required|integer',
+            'duration_minutes' => 'required|integer|min:15|max:480',
+        ], [
+            'exam_date.after_or_equal' => "La date de l'examen ne peut pas être dans le passé.",
         ]);
 
         $module = Module::find($validated['module_id']);
@@ -305,9 +307,7 @@ class TeacherGradesController extends Controller
 
         // Optionally notify students
         if ($module) {
-            $students = Student::where('specialty_id', $module->specialty_id)
-                ->where('current_semester', $module->semester)
-                ->get();
+            $students = $this->eligibleStudents($exam);
             foreach ($students as $student) {
                 if ($student->user_id) {
                     Notification::create([
@@ -344,12 +344,21 @@ class TeacherGradesController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'exam_type' => 'required|in:controle,examen',
+            'exam_type' => 'required|in:controle,examen,rattrapage',
             'exam_date' => 'required|date',
             'module_id' => 'required|exists:modules,id',
             'group' => 'nullable|string|max:255',
-            'duration_minutes' => 'required|integer',
+            'duration_minutes' => 'required|integer|min:15|max:480',
         ]);
+
+        // Moving an exam is only allowed to today or later (keeping its date is fine).
+        if ($validated['exam_date'] !== $exam->exam_date->format('Y-m-d')
+            && \Carbon\Carbon::parse($validated['exam_date'])->lt(today())) {
+            return response()->json([
+                'message' => "La date de l'examen ne peut pas être dans le passé.",
+                'errors' => ['exam_date' => ["La date de l'examen ne peut pas être dans le passé."]],
+            ], 422);
+        }
 
         if ($exam->status !== 'draft' && $exam->status !== 'submitted') {
             return response()->json(['message' => 'Cannot update exam with current status'], 400);
@@ -365,6 +374,11 @@ class TeacherGradesController extends Controller
         if ($exam->status === 'submitted') {
             $validated['status'] = 'modified';
         }
+
+        // Keep the exam's specialty/semester in line with its (possibly new) module.
+        $module = Module::find($validated['module_id']);
+        $validated['specialty_id'] = $module->specialty_id;
+        $validated['semester'] = $module->semester;
 
         $exam->update($validated);
 
@@ -399,6 +413,32 @@ class TeacherGradesController extends Controller
             'message' => 'Exam status updated successfully',
             'exam' => $exam
         ]);
+    }
+
+    /**
+     * Students who sit this exam: the specialty's students currently in the exam's
+     * semester. For a rattrapage, only those whose semester average is below 10
+     * and who have this module below 10.
+     */
+    private function eligibleStudents(Exam $exam)
+    {
+        $students = Student::where('specialty_id', $exam->specialty_id)
+            ->where('current_semester', $exam->semester)
+            ->where('is_graduated', false)
+            ->with('user')
+            ->orderBy('last_name')
+            ->get();
+
+        if ($exam->exam_type !== 'rattrapage') {
+            return $students;
+        }
+
+        $calculator = app(GradeCalculator::class);
+        $students->load(['grades' => fn ($q) => $q->where('semester', $exam->semester)->with(['exam', 'module'])]);
+
+        return $students
+            ->filter(fn ($student) => in_array((int) $exam->module_id, array_map('intval', $calculator->rattrapageModules($student->grades)), true))
+            ->values();
     }
 
     /**

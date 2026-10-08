@@ -4,7 +4,7 @@ import { useForm } from 'vee-validate'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { loginSchema } from '@/validations/schemas'
-import { AcademicCapIcon } from '@heroicons/vue/24/outline'
+import AuthLayout from '@/components/layout/AuthLayout.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -18,46 +18,28 @@ const [registration_number, registration_numberAttrs] = defineField('registratio
 const [password, passwordAttrs] = defineField('password')
 
 const rememberMe = ref(false)
+const showPassword = ref(false)
 const loading = ref(false)
+
+const dashboards = {
+  student: '/student/dashboard',
+  teacher: '/teacher/dashboard',
+  administration: '/admin/dashboard',
+}
 
 const handleLogin = handleSubmit(async (credentials) => {
   loading.value = true
-  console.log('🔐 Starting login with:', credentials.registration_number)
-
   try {
     const result = await authStore.login(credentials, rememberMe.value)
-    console.log('✅ Login result:', result)
-    
-    if (result.success) {
-      console.log('✅ Login successful!')
-      console.log('👤 User role:', authStore.userRole)
-      console.log('📋 Profile complete:', result.profileComplete)
-      
-      if (!result.profileComplete) {
-        console.log('➡️ Redirecting to complete profile')
-        router.push('/complete-profile')
-      } else {
-        console.log('➡️ Redirecting to dashboard')
-        // Redirect to dashboard based on role
-        if (authStore.isStudent) {
-          console.log('👨‍🎓 Redirecting student to /student/dashboard')
-          router.push('/student/dashboard')
-        } else if (authStore.isTeacher) {
-          console.log('👨‍🏫 Redirecting teacher to /teacher/dashboard')
-          router.push('/teacher/dashboard')
-        } else if (authStore.isAdmin) {
-          console.log('👨‍💼 Redirecting admin to /admin/dashboard')
-          router.push('/admin/dashboard')
-        } else {
-          console.log('➡️ Redirecting to /dashboard')
-          router.push('/dashboard')
-        }
-      }
+    if (!result.success) return
+
+    if (!result.profileComplete) {
+      router.push('/complete-profile')
     } else {
-      console.error('❌ Login failed:', authStore.error)
+      router.push(dashboards[authStore.userRole] || '/dashboard')
     }
   } catch (error) {
-    console.error('❌ Login exception:', error)
+    console.error('Login error:', error)
   } finally {
     loading.value = false
   }
@@ -65,98 +47,72 @@ const handleLogin = handleSubmit(async (credentials) => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-    <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 mb-4">
-          <AcademicCapIcon class="w-8 h-8 text-blue-600 dark:text-blue-300" />
-        </div>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Student Login</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Welcome back to INSFP Portal</p>
-      </div>
+  <AuthLayout>
+    <h1 class="auth-title">Connexion</h1>
+    <p class="auth-subtitle">Accédez à votre espace stagiaire, formateur ou administration.</p>
 
-      <!-- Form -->
-      <form @submit.prevent="handleLogin" class="space-y-6">
-        <div>
-          <label for="registration_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email or Registration Number
-          </label>
+    <form class="auth-form" novalidate @submit.prevent="handleLogin">
+      <div class="auth-field">
+        <label for="registration_number" class="auth-label">Email ou numéro d’inscription</label>
+        <div class="auth-control">
+          <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" /></svg>
           <input
             id="registration_number"
             v-model="registration_number"
             v-bind="registration_numberAttrs"
             type="text"
-            :class="[
-              'w-full px-4 py-3 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors',
-              errors.registration_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            ]"
-            placeholder="student@insfp.dz or 2025001"
+            autocomplete="username"
+            autofocus
+            :class="['auth-input', { 'is-invalid': errors.registration_number }]"
+            placeholder="nom@insfp.dz ou 0001125P1647"
           />
-          <p v-if="errors.registration_number" class="mt-1 text-xs text-red-600">{{ errors.registration_number }}</p>
         </div>
+        <p v-if="errors.registration_number" class="auth-error">{{ errors.registration_number }}</p>
+      </div>
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+      <div class="auth-field">
+        <label for="password" class="auth-label">Mot de passe</label>
+        <div class="auth-control">
+          <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z" /></svg>
           <input
             id="password"
             v-model="password"
             v-bind="passwordAttrs"
-            type="password"
-            :class="[
-              'w-full px-4 py-3 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors',
-              errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            ]"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="current-password"
+            :class="['auth-input', { 'is-invalid': errors.password }]"
             placeholder="••••••••"
           />
-          <p v-if="errors.password" class="mt-1 text-xs text-red-600">{{ errors.password }}</p>
+          <button type="button" class="auth-suffix" :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'" @click="showPassword = !showPassword">
+            <svg v-if="!showPassword" class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
+            <svg v-else class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
+          </button>
         </div>
-
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input
-              id="remember-me"
-              v-model="rememberMe"
-              type="checkbox"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-              Remember me
-            </label>
-          </div>
-          <div class="text-sm">
-            <a href="#" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
-              Forgot password?
-            </a>
-          </div>
-        </div>
-
-        <div v-if="authStore.error" class="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm">
-          {{ authStore.error }}
-        </div>
-
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          {{ loading ? 'Logging in...' : 'Sign In' }}
-        </button>
-      </form>
-
-      <!-- Footer -->
-      <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?
-          <router-link to="/register" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 hover:underline">
-            Register now
-          </router-link>
-        </p>
+        <p v-if="errors.password" class="auth-error">{{ errors.password }}</p>
       </div>
-    </div>
-  </div>
+
+      <div class="auth-inline">
+        <label class="auth-check">
+          <input v-model="rememberMe" type="checkbox" />
+          Se souvenir de moi
+        </label>
+        <span class="auth-muted" title="L’administration peut réinitialiser votre mot de passe">Mot de passe oublié ? Contactez l’administration</span>
+      </div>
+
+      <div v-if="authStore.error" class="auth-alert auth-alert-error" role="alert">
+        <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
+        <span>{{ authStore.error }}</span>
+      </div>
+
+      <button type="submit" class="auth-btn" :disabled="loading">
+        <span v-if="loading" class="auth-spinner" aria-hidden="true"></span>
+        {{ loading ? 'Connexion…' : 'Se connecter' }}
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Nouveau stagiaire ?
+      <router-link to="/register">Créer un compte</router-link>
+    </p>
+  </AuthLayout>
 </template>

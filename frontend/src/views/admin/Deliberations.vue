@@ -67,6 +67,15 @@
                   Not recorded
                   <span v-if="student.calculated_average" class="text-xs text-indigo-600 block">(Auto: {{ student.calculated_average }} / 20)</span>
                 </span>
+              <div v-if="rattrapageBadges[student.rattrapage_status]" class="mt-1 whitespace-normal max-w-[260px]">
+                <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', rattrapageBadges[student.rattrapage_status].class]">
+                  {{ rattrapageBadges[student.rattrapage_status].label }}
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
+                  Avant rattrapage : {{ student.average_before_rattrapage }} / 20
+                  <template v-if="student.rattrapage_modules?.length"> · {{ student.rattrapage_modules.map(m => m.name).join(', ') }}</template>
+                </span>
+              </div>
             </td>
             <td class="px-6 py-4">
               <div class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]" :title="student.deliberation?.observations">
@@ -74,7 +83,7 @@
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-              <button v-if="!student.deliberation && student.calculated_average !== undefined" @click="confirmDeliberation(student)" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 font-semibold" title="Confirm Auto Calculated Average">Confirm</button>
+              <button v-if="!student.deliberation && student.calculated_average != null && student.rattrapage_status !== 'en_attente'" @click="confirmDeliberation(student)" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 font-semibold" title="Confirm Auto Calculated Average">Confirm</button>
               <button @click="openModal(student)" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">Edit</button>
             </td>
           </tr>
@@ -101,7 +110,7 @@
             <div class="mt-4 space-y-4">
               <div>
                 <label class="block text-sm font-medium">Average (out of 20)</label>
-                <input type="number" step="0.01" min="0" max="20" v-model="formData.average" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
+                <input type="number" step="0.01" min="0" max="20" v-model="formData.average" @input="formData.result = Number(formData.average) >= 10 ? 'passed' : 'failed'" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
               </div>
 
               <div>
@@ -119,7 +128,7 @@
 
               <div>
                 <label class="block text-sm font-medium">Deliberation Date</label>
-                <input type="date" v-model="formData.deliberation_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
+                <input type="date" v-model="formData.deliberation_date" :max="todayDate()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
               </div>
 
               <div>
@@ -144,6 +153,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { todayDate } from '@/utils/dates'
 import adminApi from '@/api/endpoints/admin'
 import sessionApi from '@/api/endpoints/sessions'
 import { useToastStore } from '@/stores/toast'
@@ -258,7 +268,7 @@ const openModal = (student) => {
       result: student.calculated_result || 'passed',
       academic_year: new Date().getFullYear() + '/' + (new Date().getFullYear() + 1),
       deliberation_date: new Date().toISOString().slice(0, 10),
-      observations: ''
+      observations: autoObservation(student)
     }
   }
   isModalOpen.value = true
@@ -283,11 +293,22 @@ const saveDeliberation = async () => {
     await fetchStudents()
     closeModal()
   } catch(error) {
-    toastStore.error('Error saving deliberation')
+    toastStore.error(error.response?.data?.message || 'Error saving deliberation')
   } finally {
     saving.value = false
   }
 }
+
+// Students below 10 retake their failed modules before the final decision.
+const rattrapageBadges = {
+  en_attente: { label: 'Rattrapage en attente', class: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
+  admis_apres_rattrapage: { label: 'Admis après rattrapage', class: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+  ajourne: { label: 'Ajourné après rattrapage', class: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
+}
+const autoObservation = (student) => ({
+  admis_apres_rattrapage: 'Admis après rattrapage',
+  ajourne: 'Ajourné après rattrapage',
+}[student.rattrapage_status] || '')
 
 const confirmDeliberation = async (student) => {
   if (!confirm(`Are you sure you want to directly confirm the auto-calculated average of ${student.calculated_average}/20 for ${student.name}?`)) return
@@ -303,7 +324,7 @@ const confirmDeliberation = async (student) => {
       result: student.calculated_result,
       academic_year: academicYear,
       deliberation_date: new Date().toISOString().slice(0, 10),
-      observations: 'Confirmed Auto-Calculation'
+      observations: autoObservation(student) || 'Confirmed Auto-Calculation'
     })
     await fetchStudents()
   } catch(error) {

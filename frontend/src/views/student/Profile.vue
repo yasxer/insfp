@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { maxBirthDate, MIN_BIRTH_DATE } from '@/utils/dates'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import studentApi from '@/api/endpoints/student'
@@ -279,7 +280,7 @@ onMounted(() => {
               <!-- Date of Birth -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
-                <input v-if="editMode" v-model="editableProfile.date_of_birth" type="date" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <input v-if="editMode" v-model="editableProfile.date_of_birth" type="date" :min="MIN_BIRTH_DATE" :max="maxBirthDate()" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <p v-else class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.date_of_birth || 'N/A' }}</p>
               </div>
 

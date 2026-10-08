@@ -50,7 +50,7 @@ class TeacherAttendanceController extends Controller
                     $t->where('teachers.id', $teacher->id);
                 });
             })
-            ->with(['module', 'lesson']); // Assuming lesson relationship exists on Schedule
+            ->with('module');
 
         if ($request->module_id) {
             $query->where('module_id', $request->module_id);
@@ -90,17 +90,13 @@ class TeacherAttendanceController extends Controller
                     'date' => $date->format('Y-m-d'),
                     'day_name' => $date->locale('en')->isoFormat('dddd'),
                     'start_time' => Carbon::parse($schedule->start_time)->format('H:i'),
-                    'end_time' => Carbon::parse($schedule->start_time)->addHours(1)->format('H:i'), // Assuming 1h
+                    'end_time' => Carbon::parse($schedule->end_time ?? Carbon::parse($schedule->start_time)->addHours(1))->format('H:i'),
                     'room' => $schedule->classroom,
                     'module' => [
                         'id' => $schedule->module->id,
                         'code' => $schedule->module->code,
                         'name' => $schedule->module->name,
                     ],
-                    'lesson' => $schedule->lesson ? [
-                        'id' => $schedule->lesson->id,
-                        'title' => $schedule->lesson->title,
-                    ] : null,
                     'attendance_taken' => $attendanceTaken,
                 ]);
             }
@@ -172,7 +168,7 @@ class TeacherAttendanceController extends Controller
                 'id' => $schedule->id,
                 'date' => $date,
                 'start_time' => Carbon::parse($schedule->start_time)->format('H:i'),
-                'end_time' => Carbon::parse($schedule->start_time)->addHours(1)->format('H:i'),
+                'end_time' => Carbon::parse($schedule->end_time ?? Carbon::parse($schedule->start_time)->addHours(1))->format('H:i'),
                 'room' => $schedule->classroom,
                 'module' => [
                     'id' => $module->id,
@@ -214,8 +210,20 @@ class TeacherAttendanceController extends Controller
         $date = $validated['date'];
         $module = $schedule->module;
 
-        // Verify students belong to the module (optional but good practice)
-        // We can skip strict verification for performance or do a quick check
+        // Only the students listed by sessionStudents() may be marked.
+        $eligibleIds = Student::where('specialty_id', $module->specialty_id)
+            ->where('current_semester', $module->semester)
+            ->pluck('id');
+
+        $invalid = collect($validated['attendances'])
+            ->pluck('student_id')
+            ->diff($eligibleIds);
+
+        if ($invalid->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Certains étudiants ne suivent pas ce module.',
+            ], 422);
+        }
 
         DB::transaction(function () use ($validated, $schedule, $teacher, $date) {
             foreach ($validated['attendances'] as $data) {
@@ -254,7 +262,7 @@ class TeacherAttendanceController extends Controller
             return response()->json(['message' => 'Profil enseignant non trouvé'], 404);
         }
 
-        $query = Attendance::where('teacher_id', $teacher->id)
+        $query = Attendance::where('attendances.teacher_id', $teacher->id)
             ->join('schedules', 'attendances.schedule_id', '=', 'schedules.id')
             ->join('modules', 'schedules.module_id', '=', 'modules.id')
             ->select(

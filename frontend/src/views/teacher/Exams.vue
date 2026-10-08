@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { todayDate } from '@/utils/dates'
 import teacherApi from '@/api/endpoints/teacherPortal'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useToastStore } from '@/stores/toast'
@@ -120,7 +121,8 @@ const goToGrading = (examId) => {
 const formatType = (type) => {
   const types = {
     'controle': 'Contrôle',
-    'examen': 'Examen'
+    'examen': 'Examen',
+    'rattrapage': 'Rattrapage'
   }
   return types[type] || type
 }
@@ -158,7 +160,7 @@ const submitExam = async () => {
     fetchExams()
   } catch (error) {
     console.error('Failed to create exam:', error)
-    toastStore.error('Erreur lors de la création de l\'examen')
+    toastStore.error(error.response?.data?.message || 'Erreur lors de la création de l\'examen')
   } finally {
     isSubmitting.value = false
   }
@@ -218,6 +220,7 @@ const updateExamStatus = async (examId, newStatus) => {
           <option value="">Tous les types</option>
           <option value="controle">Contrôle</option>
           <option value="examen">Examen</option>
+          <option value="rattrapage">Rattrapage</option>
         </select>
       </div>
       <button
@@ -366,7 +369,11 @@ const updateExamStatus = async (examId, newStatus) => {
                       <select id="exam_type" v-model="form.exam_type" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="controle">Contrôle</option>
                         <option value="examen">Examen</option>
+                        <option value="rattrapage">Rattrapage</option>
                       </select>
+                      <p v-if="form.exam_type === 'rattrapage'" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                        Seuls les stagiaires ayant une moyenne semestrielle inférieure à 10 et une moyenne inférieure à 10 dans ce module pourront être notés. La note remplace celle de l'examen si elle est meilleure.
+                      </p>
                     </div>
                   </div>
 
@@ -387,7 +394,7 @@ const updateExamStatus = async (examId, newStatus) => {
                   <!-- Date -->
                   <div>
                     <label for="exam_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date de l'examen</label>
-                    <input type="date" id="exam_date" v-model="form.exam_date" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <input type="date" id="exam_date" v-model="form.exam_date" :min="todayDate()" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                   </div>
 
                   <!-- Actions -->

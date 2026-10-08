@@ -28,7 +28,7 @@ class ChatbotController extends Controller
         $specialties = Specialty::where('is_active', true)->get(['name', 'description', 'study_mode']);
         $sessions = TrainingSession::with('specialties')->where('is_active', true)->get();
 
-        $contextData = "CONTEXTE EXTRAIT DE LA BASE DE DONNÉES:\nSpécialités disponibles globalement à l'INFSP :\n";
+        $contextData = "CONTEXTE EXTRAIT DE LA BASE DE DONNÉES:\nSpécialités disponibles globalement à l'INSFP :\n";
         if ($specialties->isEmpty()) {
             $contextData .= "- Aucune spécialité disponible pour le moment.\n";
         } else {
@@ -54,18 +54,32 @@ class ChatbotController extends Controller
                 }
             }
         }
+        // Fixed institutional information, so the questions suggested on the
+        // landing page (inscription, sessions…) can actually be answered.
+        $contextData .= "\nINFORMATIONS GÉNÉRALES SUR L'INSTITUT :\n"
+            . "- Diplôme : Brevet de Technicien Supérieur (BTS), diplôme d'État de niveau 5, formation en 5 semestres (30 mois).\n"
+            . "- Sessions : les sessions de formation ouvrent deux fois par an, en février et en septembre.\n"
+            . "- Modes de formation : présentiel, apprentissage (alternance avec un employeur) et cours du soir.\n"
+            . "- Procédure d'inscription : 1) retirer un numéro d'inscription auprès de l'administration de l'institut (il correspond à une session, une spécialité et un mode de formation) ; 2) créer son compte en ligne sur la plateforme (bouton « Inscription en ligne ») avec ce numéro et ses informations personnelles ; 3) l'administration vérifie le dossier et active le compte ; 4) le stagiaire complète son profil et accède à son espace (emploi du temps, cours, notes, absences, résultats).\n"
+            . "- Évaluation : chaque module comporte des contrôles et un examen ; moyenne du module = (contrôle 1 + contrôle 2 + 2 × examen) / 4. Le semestre est validé avec une moyenne générale ≥ 10.\n"
+            . "- Contact : Horrimet, Algérie — téléphone +213 335 7720 — email infsp@gmail.com.\n";
+
         $contextData .= "\nFIN DU CONTEXTE.\n";
 
         // Use Gemini AI if key is set in .env
         if ($apiKey) {
             try {
+                // Gemini sometimes answers 503 (overloaded) for a moment: retry twice
+                // before showing an error. A 429 (quota) is not worth retrying.
                 $response = Http::withHeaders([
                     'Content-Type' => 'application/json',
-                ])->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . $apiKey, [
+                ])->retry(3, 1000, fn ($e) => $e instanceof \Illuminate\Http\Client\RequestException
+                    && $e->response->status() !== 429, throw: false)
+                ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . $apiKey, [
                     'contents' => [
                         [
                             'parts' => [
-                                ['text' => "Tu es l'assistant virtuel IA de l'INFSP (Institut National Spécialisé de la Formation Professionnelle 'Mohamed Tayeb Boussena'). Tu parles en français ou en dardja (dialecte algérien) gentiment pour aider les étudiants ou visiteurs.
+                                ['text' => "Tu es l'assistant virtuel IA de l'INSFP (Institut National Spécialisé de la Formation Professionnelle 'Mohamed Tayeb Boussena'). Tu parles en français ou en dardja (dialecte algérien) gentiment pour aider les étudiants ou visiteurs.
 Règles strictes et impératives :
 1. TU DOIS RÉPONDRE UNIQUEMENT EN UTILISANT LE CONTEXTE FOURNI CI-DESSOUS.
 2. Si on te pose une question dont la réponse ne se trouve pas dans le contexte, dis poliment : \"Je suis désolé, je n'ai pas cette information car je me base uniquement sur notre base de données. Veuillez contacter l'administration.\"
@@ -81,7 +95,7 @@ Voici la question de l'utilisateur : \"{$userMessage}\""]
                 ]);
 
                 if ($response->successful()) {
-                    $val = $response->json();
+                    $val = $response->json();   
                     if(isset($val['candidates'][0]['content']['parts'][0]['text'])) {
                         $botReply = $val['candidates'][0]['content']['parts'][0]['text'];
                         return response()->json(['reply' => $botReply]);
@@ -103,11 +117,11 @@ Voici la question de l'utilisateur : \"{$userMessage}\""]
         $lowerMsg = strtolower($userMessage);
 
         if (str_contains($lowerMsg, 'bonjour') || str_contains($lowerMsg, 'salut') || str_contains($lowerMsg, 'salam')) {
-            $reply = "Bonjour ! Bienvenue à l'INFSP. Comment puis-je vous aider aujourd'hui ?";
+            $reply = "Bonjour ! Bienvenue à l'INSFP. Comment puis-je vous aider aujourd'hui ?";
         } elseif (str_contains($lowerMsg, 'inscription') || str_contains($lowerMsg, 'inscrire') || str_contains($lowerMsg, 'tasjil')) {
             $reply = "Pour vous inscrire, vous pouvez cliquer sur le bouton 'S'INSCRIRE' en haut à droite. Vous aurez besoin de remplir vos informations personnelles et de choisir votre spécialité.";
         } elseif (str_contains($lowerMsg, 'formation') || str_contains($lowerMsg, 'programme') || str_contains($lowerMsg, 'specialit')) {
-            $reply = "L'INFSP propose plusieurs spécialités comme le Développement Web, l'Administration des Systèmes et Réseaux (ASRI), et les Bases de Données ! Que voulez-vous savoir d'autre ?";
+            $reply = "L'INSFP propose plusieurs spécialités comme le Développement Web, l'Administration des Systèmes et Réseaux (ASRI), et les Bases de Données ! Que voulez-vous savoir d'autre ?";
         } elseif (str_contains($lowerMsg, 'contact') || str_contains($lowerMsg, 'téléphone') || str_contains($lowerMsg, 'email')) {
             $reply = "Vous pouvez nous contacter par téléphone au +213 335 7720 ou par email à infsp@gmail.com.";
         } elseif (str_contains($lowerMsg, 'merci') || str_contains($lowerMsg, 'chokran') || str_contains($lowerMsg, 'sahit')) {

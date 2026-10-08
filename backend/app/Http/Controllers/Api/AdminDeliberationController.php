@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Deliberation;
 use App\Models\Student;
 use App\Models\SessionSpecialty;
+use App\Services\GradeCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class AdminDeliberationController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, GradeCalculator $calculator): JsonResponse
     {
         $request->validate([
             'session_id' => 'required|exists:sessions,id',
@@ -37,40 +38,39 @@ class AdminDeliberationController extends Controller
             'deliberations' => function ($query) use ($request) {
                 $query->where('semester', $request->semester);
             },
-            'grades.module' // load modules for calculating average
+            'grades.module',
+            'grades.exam',
         ])
         ->get()
-        ->map(function($student) use ($request) {
+        ->map(function($student) use ($request, $calculator) {
             $deliberation = $student->deliberations->first();
 
-            // Calculate automatic average from grades for the targeted semester
-            $totalPoints = 0;
-            $totalCoeff = 0;
-            $modulesGraded = [];
+            // Same rules as the student's own grade page: (C1 + C2 + 2E) / 4 per
+            // module, weighted by coefficient, published grades only.
+            $semesterGrades = $student->grades->where('semester', (int) $request->semester);
+            $semester = $calculator->semesterAverage($semesterGrades);
+            // No published grade at all: nothing to propose (not a 0/20 failure).
+            $hasGrades = !empty($semester['modules']);
+            $calculatedAverage = $hasGrades ? $semester['average'] : null;
+            $calculatedResult = $hasGrades ? ($calculatedAverage >= 10 ? 'passed' : 'failed') : null;
 
-            foreach ($student->grades as $grade) {
-                if ($grade->semester == $request->semester && $grade->module) {
-                    $modId = $grade->module->id;
-                    if (!isset($modulesGraded[$modId])) {
-                        $modulesGraded[$modId] = [
-                            'sum' => 0,
-                            'count' => 0,
-                            'coeff' => $grade->module->coefficient
-                        ];
-                    }
-                    $modulesGraded[$modId]['sum'] += $grade->grade;
-                    $modulesGraded[$modId]['count']++;
-                }
-            }
+            // Rattrapage: semester average before the rattrapage session, the modules
+            // to retake, and whether a rattrapage mark has been published yet.
+            $before = $calculator->semesterAverage($semesterGrades, false);
+            $rattrapageModuleIds = $calculator->rattrapageModules($semesterGrades);
+            // Done only once every module to retake has a published rattrapage mark.
+            $rattrapageDone = empty(array_diff(
+                array_map('intval', $rattrapageModuleIds),
+                $calculator->modulesWithRattrapage($semesterGrades)
+            ));
 
-            foreach ($modulesGraded as $m) {
-                $modAvg = $m['sum'] / $m['count'];
-                $totalPoints += ($modAvg * $m['coeff']);
-                $totalCoeff += $m['coeff'];
-            }
-
-            $calculatedAverage = $totalCoeff > 0 ? round($totalPoints / $totalCoeff, 2) : 0;
-            $calculatedResult = $calculatedAverage >= 10 ? 'passed' : 'failed';
+            $rattrapageStatus = match (true) {
+                !$hasGrades => null,
+                empty($rattrapageModuleIds) => 'admis',
+                !$rattrapageDone => 'en_attente',
+                $calculatedAverage >= 10 => 'admis_apres_rattrapage',
+                default => 'ajourne',
+            };
 
             return [
                 'id' => $student->id,
@@ -78,7 +78,15 @@ class AdminDeliberationController extends Controller
                 'registration_number' => $student->registration_number ?? 'N/A',
                 'auto_semester' => $request->semester,
                 'calculated_average' => $calculatedAverage,
-                'calculated_result' => $calculatedResult,                'deliberation' => $deliberation ? [
+                'calculated_result' => $calculatedResult,
+                'average_before_rattrapage' => $hasGrades ? $before['average'] : null,
+                'rattrapage_status' => $rattrapageStatus,
+                'rattrapage_modules' => $semesterGrades
+                    ->filter(fn ($g) => $g->module && in_array($g->module_id, $rattrapageModuleIds))
+                    ->unique('module_id')
+                    ->map(fn ($g) => ['id' => $g->module->id, 'name' => $g->module->name])
+                    ->values(),
+                'deliberation' => $deliberation ? [
                     'id' => $deliberation->id,
                     'average' => $deliberation->average,
                     'result' => $deliberation->result,
@@ -100,8 +108,19 @@ class AdminDeliberationController extends Controller
             'average' => 'required|numeric|min:0|max:20',
             'result' => 'required|in:passed,failed',
             'observations' => 'nullable|string',
-            'deliberation_date' => 'required|date'
+            'deliberation_date' => 'required|date|before_or_equal:today'
+        ], [
+            'deliberation_date.before_or_equal' => 'La date de délibération ne peut pas être dans le futur.',
         ]);
+
+        // The decision must follow the institute rule: admis only with a moyenne >= 10.
+        $expected = $request->average >= 10 ? 'passed' : 'failed';
+        if ($request->result !== $expected) {
+            return response()->json([
+                'message' => 'Le résultat ne correspond pas à la moyenne (admis seulement si moyenne ≥ 10).',
+                'errors' => ['result' => ['Résultat incohérent avec la moyenne.']],
+            ], 422);
+        }
 
         $deliberation = Deliberation::updateOrCreate(
             [

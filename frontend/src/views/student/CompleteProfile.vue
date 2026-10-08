@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { maxBirthDate, MIN_BIRTH_DATE } from '@/utils/dates'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import studentApi from '@/api/endpoints/student'
@@ -150,7 +151,8 @@ const handleSubmit = async () => {
               v-model="form.date_of_birth"
               type="date"
               required
-              max="2010-12-31"
+              :min="MIN_BIRTH_DATE"
+              :max="maxBirthDate()"
               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               :class="{'border-red-500': fieldErrors.date_of_birth}"
             />

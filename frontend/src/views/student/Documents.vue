@@ -84,7 +84,7 @@ onMounted(() => {
               <DocumentTextIcon class="w-8 h-8 text-gray-600 dark:text-gray-300" />
             </div>
             <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-              {{ doc.created_at }}
+              {{ new Date(doc.created_at).toLocaleDateString('fr-FR') }}
             </span>
           </div>
           

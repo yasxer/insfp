@@ -42,9 +42,11 @@ class TeacherHomeworkController extends Controller
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'due_date' => 'required|date',
+            'due_date' => 'required|date|after:now',
             'file' => 'nullable|file|max:10240', // 10MB max
             'submission_type' => 'required|in:online,in_person'
+        ], [
+            'due_date.after' => 'La date limite doit être dans le futur.',
         ]);
 
         $teacher = $request->user()->teacher;

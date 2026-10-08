@@ -120,7 +120,7 @@ export default {
   
   async updateExamStatus(id, status) {
     try {
-      const response = await apiClient.patch(`/api/teacher/exams/${id}/status`, { status })
+      const response = await apiClient.put(`/api/teacher/exams/${id}/status`, { status })
       return response.data
     } catch (error) {
       console.error('Teacher Portal API Error (updateExamStatus):', error)

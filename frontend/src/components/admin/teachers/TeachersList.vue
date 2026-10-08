@@ -85,6 +85,15 @@
       @close="closeMessageModal"
       @send="handleSendMessage"
     />
+
+    <!-- Add / Edit Teacher Modal -->
+    <TeacherForm
+      v-if="showFormModal"
+      :teacher="editingTeacher"
+      :save="saveTeacher"
+      @close="closeFormModal"
+      @saved="handleSaved"
+    />
   </div>
 </template>
 
@@ -96,6 +105,7 @@ import axios from '@/api/axios'
 import TeacherFilters from './TeacherFilters.vue'
 import TeachersTable from './TeachersTable.vue'
 import MessageComposer from './MessageComposer.vue'
+import TeacherForm from './TeacherForm.vue'
 import PaginationBar from '@/components/common/PaginationBar.vue'
 import { useToastStore } from '@/stores/toast'
 
@@ -207,21 +217,47 @@ const handleSendMessage = async (messageData) => {
   }
 }
 
+// Add / edit
+const showFormModal = ref(false)
+const editingTeacher = ref(null)
+
 const openAddModal = () => {
-  console.log('Add teacher')
+  editingTeacher.value = null
+  showFormModal.value = true
 }
 
 const editTeacher = (teacher) => {
-  // TODO: Implement edit teacher modal
-  console.log('Edit teacher', teacher)
+  editingTeacher.value = teacher
+  showFormModal.value = true
+}
+
+const closeFormModal = () => {
+  showFormModal.value = false
+  editingTeacher.value = null
+}
+
+const saveTeacher = (payload) => editingTeacher.value
+  ? teachersStore.updateTeacher(editingTeacher.value.id, payload)
+  : teachersStore.createTeacher(payload)
+
+const handleSaved = () => {
+  toastStore.success(editingTeacher.value ? 'Enseignant modifié avec succès' : 'Enseignant ajouté avec succès')
+  closeFormModal()
 }
 
 const viewTeacher = (teacher) => {
   router.push(`/admin/teachers/${teacher.id}`)
 }
 
-const confirmDelete = (teacher) => {
-  // TODO: Implement delete confirmation
-  console.log('Delete teacher', teacher)
+const confirmDelete = async (teacher) => {
+  const name = teacher.full_name || `${teacher.first_name} ${teacher.last_name}`
+  if (!confirm(`Supprimer l'enseignant ${name} ? Son compte sera supprimé définitivement.`)) return
+
+  try {
+    await teachersStore.deleteTeacher(teacher.id)
+    toastStore.success('Enseignant supprimé')
+  } catch (error) {
+    toastStore.error(error.response?.data?.message || 'Échec de la suppression')
+  }
 }
 </script>

@@ -181,7 +181,9 @@ import PendingStudentsTable from './PendingStudentsTable.vue'
 import MessageComposer from './MessageComposer.vue'
 import PaginationBar from '@/components/common/PaginationBar.vue'
 import { useToastStore } from '@/stores/toast'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const studentsStore = useStudentsStore()
 const toastStore = useToastStore()
 
@@ -325,8 +327,7 @@ const editStudent = (student) => {
 }
 
 const viewStudent = (student) => {
-  console.log('View student details', student)
-  // TODO: Implement student details view (Phase 2)
+  router.push(`/admin/students/${student.id}`)
 }
 
 const closeFormModal = () => {

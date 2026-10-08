@@ -17,7 +17,7 @@ defineProps({
     default: 'vs mois dernier'
   },
   icon: {
-    type: Object,
+    type: [Object, Function],
     required: true
   },
   trend: {

@@ -1,15 +1,13 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import apiClient from '@/api/axios'
 import { registerSchema } from '@/validations/schemas'
-import { AcademicCapIcon } from '@heroicons/vue/24/outline'
+import AuthLayout from '@/components/layout/AuthLayout.vue'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
-const form = ref({
+const emptyForm = () => ({
   session_id: '',
   registration_number: '',
   first_name: '',
@@ -21,27 +19,18 @@ const form = ref({
   password: '',
   password_confirmation: ''
 })
+const form = ref(emptyForm())
 
-const passwordStrength = computed(() => {
-  const length = form.value.password.length
-  if (length === 0) return 'empty'
-  if (length < 8) return 'weak'
-  return 'strong'
-})
-
-const passwordClass = computed(() => {
-  if (form.value.password.length === 0) return ''
-  return form.value.password.length >= 8
-    ? 'border-green-500 focus:ring-green-500'
-    : 'border-red-500 focus:ring-red-500'
-})
+// Two steps: 1 = registration number + specialty, 2 = personal info + password
+const step = ref(1)
+const STEP_ONE_FIELDS = ['registration_number', 'session_id', 'study_mode', 'specialty_id']
 
 const sessions = ref([])
 const loading = ref(false)
-const loadingSessions = ref(false)
 const error = ref(null)
 const successMessage = ref(null)
 const fieldErrors = ref({})
+const showPassword = ref(false)
 
 // Registration number lookup state
 const lookupLoading = ref(false)
@@ -49,14 +38,7 @@ const lookupError = ref(null)
 const lookupData = ref(null) // { session, specialty, study_modes }
 let lookupTimer = null
 
-// Type mapping: Backend Type -> Frontend Value
-const typeMapping = {
-  presential: 'initial',
-  apprentissage: 'alternance',
-  cours_soir: 'continue'
-}
-
-// Reverse mapping for finding specialties
+// Frontend study mode value -> backend study type
 const reverseTypeMapping = {
   initial: 'presential',
   alternance: 'apprentissage',
@@ -64,15 +46,12 @@ const reverseTypeMapping = {
 }
 
 const fetchSessions = async () => {
-  loadingSessions.value = true
   try {
     const response = await apiClient.get('/api/sessions')
     sessions.value = response.data.data || []
   } catch (err) {
     console.error('Failed to fetch sessions:', err)
-    error.value = 'Failed to load sessions. Please refresh the page.'
-  } finally {
-    loadingSessions.value = false
+    error.value = 'Impossible de charger les sessions. Actualisez la page.'
   }
 }
 
@@ -81,7 +60,6 @@ const selectedSession = computed(() => {
   return sessions.value.find(s => s.id === form.value.session_id)
 })
 
-// Display labels for the auto-filled (read-only) fields
 const sessionLabel = computed(() =>
   selectedSession.value?.name || lookupData.value?.session?.name || ''
 )
@@ -100,6 +78,8 @@ const availableSpecialties = computed(() => {
 
   return group ? group.specialties : []
 })
+
+const canContinue = computed(() => !!lookupData.value && !!form.value.specialty_id && !lookupLoading.value)
 
 // Reset everything that depends on the registration number
 const clearLookup = () => {
@@ -126,11 +106,8 @@ const lookupRegistration = async (number) => {
     form.value.study_mode = data.study_modes?.[0]?.value || ''
     form.value.specialty_id = '' // student chooses the specialty
   } catch (err) {
-    lookupData.value = null
-    form.value.session_id = ''
-    form.value.study_mode = ''
-    form.value.specialty_id = ''
-    lookupError.value = err.response?.data?.message || 'Numéro d\'inscription invalide.'
+    clearLookup()
+    lookupError.value = err.response?.data?.message || 'Numéro d’inscription invalide.'
   } finally {
     lookupLoading.value = false
   }
@@ -152,10 +129,22 @@ watch(() => form.value.study_mode, () => {
   form.value.specialty_id = ''
 })
 
+const goToStep2 = () => {
+  if (!canContinue.value) return
+  error.value = null
+  step.value = 2
+}
+
+// Send the student back to the step that holds the first invalid field
+const showErrors = (errors) => {
+  fieldErrors.value = errors
+  error.value = 'Veuillez corriger les champs signalés.'
+  if (Object.keys(errors).some(field => STEP_ONE_FIELDS.includes(field))) step.value = 1
+}
+
 const handleRegister = async () => {
   error.value = null
   fieldErrors.value = {}
-  successMessage.value = null
 
   try {
     await registerSchema.validate(form.value, { abortEarly: false })
@@ -164,279 +153,243 @@ const handleRegister = async () => {
     for (const issue of validationError.inner) {
       if (!errors[issue.path]) errors[issue.path] = [issue.message]
     }
-    fieldErrors.value = errors
-    error.value = 'Please correct the errors below.'
+    showErrors(errors)
     return
   }
 
   loading.value = true
-
   try {
     await apiClient.post('/api/register', form.value)
-
-    successMessage.value = 'Registration successful! Please wait for admin approval before logging in.'
-
-    // Clear form on success
-    const currentSession = form.value.session_id
-    form.value = {
-      session_id: currentSession, // Keep session selected
-      registration_number: '',
-      first_name: '',
-      last_name: '',
-      email: '',
-      phone: '',
-      specialty_id: '',
-      study_mode: '',
-      password: '',
-      password_confirmation: ''
-    }
-
-    setTimeout(() => {
-      router.push('/login')
-    }, 3000)
+    successMessage.value = 'Votre compte a été créé. Il sera activé après validation de votre dossier par l’administration.'
+    form.value = emptyForm()
+    setTimeout(() => router.push('/login'), 4000)
   } catch (err) {
     if (err.response?.status === 422) {
-      fieldErrors.value = err.response.data.errors
-      error.value = 'Please correct the errors below.'
+      showErrors(err.response.data.errors || {})
+    } else if (err.response?.status === 429) {
+      error.value = 'Trop de tentatives d’inscription. Réessayez dans une heure.'
     } else {
-      error.value = err.response?.data?.message || 'Registration failed. Please try again.'
+      error.value = err.response?.data?.message || 'L’inscription a échoué. Veuillez réessayer.'
     }
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => {
-  fetchSessions()
-})
+onMounted(fetchSessions)
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4 py-8">
-    <div class="max-w-2xl w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-      <!-- Header -->
-      <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 mb-3">
-          <AcademicCapIcon class="w-6 h-6 text-blue-600 dark:text-blue-300" />
-        </div>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Create Account</h2>
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Join the INSFP Student Portal</p>
-      </div>
+  <AuthLayout panel-title="Créez votre compte stagiaire en deux étapes" width="440px">
+    <!-- Success -->
+    <div v-if="successMessage" class="reg-success">
+      <span class="reg-success-icon">
+        <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+      </span>
+      <h1 class="auth-title">Inscription enregistrée</h1>
+      <p class="auth-subtitle">{{ successMessage }}</p>
+      <router-link to="/login" class="auth-btn">Aller à la connexion</router-link>
+      <p class="auth-help">Redirection automatique…</p>
+    </div>
 
-      <!-- Success Message -->
-      <div v-if="successMessage" class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-        <p class="text-green-600 dark:text-green-400 text-sm font-medium text-center">{{ successMessage }}</p>
-        <p class="text-green-500 dark:text-green-500 text-xs text-center mt-1">Redirecting to login...</p>
-      </div>
+    <template v-else>
+      <h1 class="auth-title">Inscription</h1>
+      <p class="auth-subtitle">Munissez-vous du numéro d’inscription remis par l’administration.</p>
 
-      <!-- Form -->
-      <form v-else @submit.prevent="handleRegister" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Registration Number (drives session + study mode) -->
-          <div class="md:col-span-2">
-            <label for="registration_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Registration Number</label>
-            <div class="relative">
+      <!-- Steps -->
+      <ol class="reg-steps" aria-label="Étapes">
+        <li :class="{ active: step === 1, done: step > 1 }">
+          <span class="reg-step-num">
+            <svg v-if="step > 1" class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+            <template v-else>1</template>
+          </span>
+          Formation
+        </li>
+        <li class="reg-step-line" aria-hidden="true"></li>
+        <li :class="{ active: step === 2 }">
+          <span class="reg-step-num">2</span>
+          Compte
+        </li>
+      </ol>
+
+      <form class="auth-form" novalidate @submit.prevent="step === 1 ? goToStep2() : handleRegister()">
+        <!-- STEP 1 -->
+        <template v-if="step === 1">
+          <div class="auth-field">
+            <label for="registration_number" class="auth-label">Numéro d’inscription</label>
+            <div class="auth-control">
+              <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" /></svg>
               <input
                 id="registration_number"
-                v-model="form.registration_number"
+                v-model.trim="form.registration_number"
                 type="text"
-                required
-                class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors font-mono"
-                :class="{'border-red-500': fieldErrors.registration_number || lookupError, 'border-green-500': lookupData}"
-                placeholder="0001125P1647"
                 autocomplete="off"
+                autofocus
+                :class="['auth-input', 'reg-mono', { 'is-invalid': fieldErrors.registration_number || lookupError, 'is-valid': lookupData }]"
+                placeholder="0001125P1647"
               />
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
-                <svg v-if="lookupLoading" class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                </svg>
-                <svg v-else-if="lookupData" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
+              <span class="auth-suffix reg-status" aria-hidden="true">
+                <span v-if="lookupLoading" class="auth-spinner reg-spinner"></span>
+                <svg v-else-if="lookupData" class="auth-icon reg-ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></svg>
+              </span>
+            </div>
+            <p v-if="lookupError" class="auth-error">{{ lookupError }}</p>
+            <p v-else-if="fieldErrors.registration_number" class="auth-error">{{ fieldErrors.registration_number[0] }}</p>
+            <p v-else-if="!lookupData" class="auth-help">La session et le mode de formation sont remplis automatiquement.</p>
+          </div>
+
+          <Transition name="reg-fade">
+            <div v-if="lookupData" class="reg-chips">
+              <div class="reg-chip">
+                <span>Session</span>
+                <strong>{{ sessionLabel || '—' }}</strong>
+              </div>
+              <div class="reg-chip">
+                <span>Mode de formation</span>
+                <strong>{{ studyModeLabel || '—' }}</strong>
               </div>
             </div>
-            <p v-if="lookupError" class="mt-1 text-xs text-red-600">{{ lookupError }}</p>
-            <p v-else-if="!form.registration_number" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Entrez votre numéro d'inscription pour remplir automatiquement la session et le mode d'étude.</p>
-            <p v-if="fieldErrors.registration_number" class="mt-1 text-xs text-red-600">{{ fieldErrors.registration_number[0] }}</p>
+          </Transition>
+
+          <div class="auth-field">
+            <label for="specialty" class="auth-label">Spécialité</label>
+            <select
+              id="specialty"
+              v-model="form.specialty_id"
+              :disabled="!form.study_mode"
+              :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.specialty_id }]"
+            >
+              <option value="" disabled>{{ form.study_mode ? 'Choisir une spécialité' : 'Saisissez d’abord votre numéro' }}</option>
+              <option v-for="specialty in availableSpecialties" :key="specialty.specialty_id" :value="specialty.specialty_id">
+                {{ specialty.specialty_name }} ({{ specialty.specialty_code }})
+              </option>
+            </select>
+            <p v-if="fieldErrors.specialty_id" class="auth-error">{{ fieldErrors.specialty_id[0] }}</p>
+            <p v-else-if="fieldErrors.session_id || fieldErrors.study_mode" class="auth-error">{{ (fieldErrors.session_id || fieldErrors.study_mode)[0] }}</p>
           </div>
 
-          <!-- Session (auto-filled, read-only) -->
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Session <span class="text-gray-400 font-normal">(automatique)</span></label>
-            <input
-              type="text"
-              readonly
-              :value="sessionLabel"
-              placeholder="—"
-              class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 cursor-not-allowed"
-            />
-          </div>
+          <button type="submit" class="auth-btn" :disabled="!canContinue">
+            Continuer
+            <svg class="auth-icon reg-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </button>
+        </template>
 
-          <!-- First Name -->
-          <div>
-            <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-            <input
-              id="first_name"
-              v-model="form.first_name"
-              type="text"
-              required
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              :class="{'border-red-500': fieldErrors.first_name}"
-              placeholder="John"
-            />
-            <p v-if="fieldErrors.first_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.first_name[0] }}</p>
-          </div>
-
-          <!-- Last Name -->
-          <div>
-            <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-            <input
-              id="last_name"
-              v-model="form.last_name"
-              type="text"
-              required
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              :class="{'border-red-500': fieldErrors.last_name}"
-              placeholder="Doe"
-            />
-            <p v-if="fieldErrors.last_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.last_name[0] }}</p>
-          </div>
-
-          <!-- Study Mode (auto-filled, read-only) -->
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mode d'étude <span class="text-gray-400 font-normal">(automatique)</span></label>
-            <input
-              type="text"
-              readonly
-              :value="studyModeLabel"
-              placeholder="—"
-              class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 cursor-not-allowed"
-              :class="{'border-red-500': fieldErrors.study_mode}"
-            />
-            <p v-if="fieldErrors.study_mode" class="mt-1 text-xs text-red-600">{{ fieldErrors.study_mode[0] }}</p>
-          </div>
-
-          <!-- Specialty -->
-          <div class="md:col-span-2">
-            <label for="specialty" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Specialty</label>
-            <div class="relative">
-              <select
-                id="specialty"
-                v-model="form.specialty_id"
-                required
-                :disabled="!form.study_mode"
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="{'border-red-500': fieldErrors.specialty_id}"
-              >
-                <option value="" disabled>Select Specialty</option>
-                <option v-for="specialty in availableSpecialties" :key="specialty.specialty_id" :value="specialty.specialty_id">
-                  {{ specialty.specialty_name }} ({{ specialty.specialty_code }})
-                </option>
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
-                 <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                </svg>
-              </div>
+        <!-- STEP 2 -->
+        <template v-else>
+          <div class="auth-row">
+            <div class="auth-field">
+              <label for="first_name" class="auth-label">Prénom</label>
+              <input id="first_name" v-model.trim="form.first_name" type="text" autocomplete="given-name" autofocus
+                :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.first_name }]" />
+              <p v-if="fieldErrors.first_name" class="auth-error">{{ fieldErrors.first_name[0] }}</p>
             </div>
-            <p v-if="fieldErrors.specialty_id" class="mt-1 text-xs text-red-600">{{ fieldErrors.specialty_id[0] }}</p>
+            <div class="auth-field">
+              <label for="last_name" class="auth-label">Nom</label>
+              <input id="last_name" v-model.trim="form.last_name" type="text" autocomplete="family-name"
+                :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.last_name }]" />
+              <p v-if="fieldErrors.last_name" class="auth-error">{{ fieldErrors.last_name[0] }}</p>
+            </div>
           </div>
 
-          <!-- Email -->
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              required
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              :class="{'border-red-500': fieldErrors.email}"
-              placeholder="student@insfp.dz"
-            />
-            <p v-if="fieldErrors.email" class="mt-1 text-xs text-red-600">{{ fieldErrors.email[0] }}</p>
+          <div class="auth-row">
+            <div class="auth-field">
+              <label for="email" class="auth-label">Email</label>
+              <input id="email" v-model.trim="form.email" type="email" autocomplete="email" placeholder="nom@exemple.com"
+                :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.email }]" />
+              <p v-if="fieldErrors.email" class="auth-error">{{ fieldErrors.email[0] }}</p>
+            </div>
+            <div class="auth-field">
+              <label for="phone" class="auth-label">Téléphone <span class="auth-label-hint">(facultatif)</span></label>
+              <input id="phone" v-model.trim="form.phone" type="tel" autocomplete="tel" placeholder="0612345678"
+                :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.phone }]" />
+              <p v-if="fieldErrors.phone" class="auth-error">{{ fieldErrors.phone[0] }}</p>
+            </div>
           </div>
 
-          <!-- Phone -->
-          <div>
-            <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone <span class="text-gray-400 font-normal">(Optional)</span></label>
-            <input
-              id="phone"
-              v-model="form.phone"
-              type="tel"
-              pattern="0[5-7][0-9]{8}"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              :class="{'border-red-500': fieldErrors.phone}"
-              placeholder="0612345678"
-            />
-            <p v-if="fieldErrors.phone" class="mt-1 text-xs text-red-600">{{ fieldErrors.phone[0] }}</p>
+          <div class="auth-row">
+            <div class="auth-field">
+              <label for="password" class="auth-label">Mot de passe</label>
+              <div class="auth-control">
+                <input id="password" v-model="form.password" :type="showPassword ? 'text' : 'password'" autocomplete="new-password"
+                  :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.password, 'is-valid': form.password.length >= 8 }]" />
+                <button type="button" class="auth-suffix" :aria-label="showPassword ? 'Masquer' : 'Afficher'" @click="showPassword = !showPassword">
+                  <svg v-if="!showPassword" class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
+                  <svg v-else class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
+                </button>
+              </div>
+              <p v-if="fieldErrors.password" class="auth-error">{{ fieldErrors.password[0] }}</p>
+              <p v-else class="auth-help" :class="{ 'reg-good': form.password.length >= 8 }">{{ Math.min(form.password.length, 8) }}/8 caractères minimum</p>
+            </div>
+            <div class="auth-field">
+              <label for="password_confirmation" class="auth-label">Confirmation</label>
+              <input id="password_confirmation" v-model="form.password_confirmation" :type="showPassword ? 'text' : 'password'" autocomplete="new-password"
+                :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.password_confirmation || (form.password_confirmation && form.password_confirmation !== form.password), 'is-valid': form.password_confirmation && form.password_confirmation === form.password }]" />
+              <p v-if="fieldErrors.password_confirmation" class="auth-error">{{ fieldErrors.password_confirmation[0] }}</p>
+              <p v-else-if="form.password_confirmation && form.password_confirmation !== form.password" class="auth-error">Les mots de passe ne correspondent pas</p>
+            </div>
           </div>
 
-          <!-- Password -->
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              required
-              minlength="8"
-              :class="[
-                'w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:border-transparent transition-colors',
-                passwordClass,
-                {'border-red-500': fieldErrors.password}
-              ]"
-              placeholder="••••••••"
-            />
-            <p v-if="form.password.length > 0"
-               :class="form.password.length >= 8 ? 'text-green-600' : 'text-red-600'"
-               class="mt-1 text-xs">
-              {{ form.password.length }}/8 characters minimum
-            </p>
-            <p v-if="fieldErrors.password" class="mt-1 text-xs text-red-600">{{ fieldErrors.password[0] }}</p>
+          <div class="reg-actions">
+            <button type="button" class="auth-btn auth-btn-ghost" @click="step = 1">
+              <svg class="auth-icon reg-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+              Retour
+            </button>
+            <button type="submit" class="auth-btn" :disabled="loading">
+              <span v-if="loading" class="auth-spinner" aria-hidden="true"></span>
+              {{ loading ? 'Création…' : 'Créer mon compte' }}
+            </button>
           </div>
+        </template>
 
-          <!-- Confirm Password -->
-          <div>
-            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
-            <input
-              id="password_confirmation"
-              v-model="form.password_confirmation"
-              type="password"
-              required
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="••••••••"
-            />
-          </div>
+        <div v-if="error" class="auth-alert auth-alert-error" role="alert">
+          <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
+          <span>{{ error }}</span>
         </div>
-
-        <div v-if="error" class="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm">
-          {{ error }}
-        </div>
-
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          {{ loading ? 'Creating Account...' : 'Create Account' }}
-        </button>
       </form>
 
-      <!-- Footer -->
-      <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Already have an account?
-          <router-link to="/login" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 hover:underline">
-            Sign in
-          </router-link>
-        </p>
-      </div>
-    </div>
-  </div>
+      <p class="auth-switch">
+        Déjà inscrit ?
+        <router-link to="/login">Se connecter</router-link>
+      </p>
+    </template>
+  </AuthLayout>
 </template>
+
+<style scoped>
+.reg-steps { display: flex; align-items: center; gap: 10px; list-style: none; margin: 0 0 22px; padding: 0; font-size: 14px; font-weight: 500; color: var(--muted); }
+.reg-steps li { display: flex; align-items: center; gap: 8px; }
+.reg-steps li.active, .reg-steps li.done { color: var(--navy); }
+.reg-step-num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); font-size: 13px; font-weight: 700; transition: all .25s; }
+.reg-step-num .auth-icon { width: 14px; height: 14px; stroke-width: 3; }
+.reg-steps li.active .reg-step-num { border-color: var(--navy); background: var(--navy); color: #fff; }
+.reg-steps li.done .reg-step-num { border-color: var(--teal); background: var(--teal); color: #fff; }
+.reg-step-line { flex: 1; height: 2px; background: var(--line); border-radius: 2px; }
+
+.reg-mono { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; letter-spacing: .04em; }
+.reg-status { pointer-events: none; }
+.reg-spinner { border-color: rgba(15, 52, 96, .2); border-top-color: var(--navy); }
+.reg-ok { color: var(--success); stroke-width: 3; }
+
+.reg-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.reg-chip { display: grid; gap: 2px; padding: 10px 12px; border-radius: 8px; background: #eef6f6; border: 1px solid #cfe6e5; }
+.reg-chip span { font-size: 12px; color: var(--muted); }
+.reg-chip strong { font-size: 14px; color: var(--navy); font-weight: 600; }
+
+.reg-arrow { width: 18px; height: 18px; }
+.reg-good { color: var(--success); }
+.reg-actions { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+
+.reg-success { display: grid; justify-items: center; text-align: center; gap: 4px; }
+.reg-success-icon { display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 10px; border-radius: 50%; background: #ecf7f1; color: var(--success); animation: reg-pop .4s cubic-bezier(.2, .8, .2, 1.3); }
+.reg-success-icon .auth-icon { width: 28px; height: 28px; stroke-width: 3; }
+.reg-success .auth-btn { margin-top: 8px; text-decoration: none; }
+
+.reg-fade-enter-active, .reg-fade-leave-active { transition: opacity .25s, transform .25s; }
+.reg-fade-enter-from, .reg-fade-leave-to { opacity: 0; transform: translateY(-6px); }
+
+@keyframes reg-pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 520px) {
+  .reg-chips { grid-template-columns: 1fr; }
+}
+</style>

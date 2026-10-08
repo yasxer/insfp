@@ -105,7 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value =
         err?.response?.data?.message ||
         err?.message ||
-        'Login failed. Please check your credentials.'
+        'Connexion impossible. Vérifiez vos identifiants.'
       return { success: false }
     } finally {
       loading.value = false

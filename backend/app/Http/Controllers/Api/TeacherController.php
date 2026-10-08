@@ -29,7 +29,7 @@ class TeacherController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
-        $teacher = $user->teacher()->with('specialty')->first();
+        $teacher = $user->teacher()->with('modules.specialty')->first();
 
         if (!$teacher) {
             return response()->json([
@@ -84,10 +84,7 @@ class TeacherController extends Controller
                 'id' => $teacher->id,
                 'full_name' => $teacher->full_name,
                 'email' => $user->email,
-                'specialty' => $teacher->specialty ? [
-                    'id' => $teacher->specialty->id,
-                    'name' => $teacher->specialty->name,
-                ] : null,
+                'specialty' => $this->teacherSpecialty($teacher),
             ],
             'statistics' => [
                 'modules_count' => $modulesCount,
@@ -110,7 +107,7 @@ class TeacherController extends Controller
         $user = $request->user();
         // Eager load relationships
         $teacher = $user->teacher()
-            ->with(['specialty', 'modules'])
+            ->with(['modules.specialty'])
             ->first();
 
         if (!$teacher) {
@@ -140,10 +137,7 @@ class TeacherController extends Controller
             ],
             'teacher' => [
                 'id' => $teacher->id,
-                'specialty' => $teacher->specialty ? [
-                    'id' => $teacher->specialty->id,
-                    'name' => $teacher->specialty->name,
-                ] : null,
+                'specialty' => $this->teacherSpecialty($teacher),
                 'can_teach_modules' => $canTeachModules,
                 'assigned_modules' => $teacher->modules->map(function ($module) {
                     return [
@@ -418,5 +412,16 @@ class TeacherController extends Controller
             ],
             'lessons' => $sortedLessons,
         ]);
+    }
+
+    /**
+     * Teachers have no specialty column: derive it from the specialty of their
+     * assigned modules (the first one, if they teach in several).
+     */
+    private function teacherSpecialty(Teacher $teacher): ?array
+    {
+        $specialty = $teacher->modules->pluck('specialty')->filter()->first();
+
+        return $specialty ? ['id' => $specialty->id, 'name' => $specialty->name] : null;
     }
 }

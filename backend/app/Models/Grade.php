@@ -16,4 +16,9 @@ class Grade extends Model
     public function scopeBySemester($query, $semester) { return $query->where('semester', $semester); }
     public function scopeByAcademicYear($query, $year) { return $query->where('academic_year', $year); }
     public function scopePassing($query) { return $query->where('grade', '>=', 10); }
+
+    // Students only see a mark once the teacher has submitted the exam.
+    public function scopePublished($query) {
+        return $query->whereHas('exam', fn ($q) => $q->whereIn('status', \App\Services\GradeCalculator::PUBLISHED_STATUSES));
+    }
 }

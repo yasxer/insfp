@@ -164,7 +164,6 @@ const navigationItems = computed(() => {
       { name: 'Schedule', icon: CalendarIcon, path: '/teacher/schedule' },
       { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/teacher/attendance' },
       { name: 'Exams & Grades', icon: AcademicCapIcon, path: '/teacher/exams' },
-      { name: 'Profile', icon: UserCircleIcon, path: '/teacher/profile' },
     ]
   }
   
@@ -182,7 +181,6 @@ const navigationItems = computed(() => {
       { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
       { name: 'Examens', icon: AcademicCapIcon, path: '/admin/exams' },
       { name: 'Files', icon: DocumentTextIcon, path: '/admin/files' },
-      { name: 'Reports', icon: DocumentTextIcon, path: '/admin/reports' },
       { name: 'Profile', icon: UserCircleIcon, path: '/admin/profile' },
     ]
   }

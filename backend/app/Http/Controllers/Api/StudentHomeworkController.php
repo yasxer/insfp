@@ -84,10 +84,9 @@ class StudentHomeworkController extends Controller
             return response()->json(['message' => 'Ce devoir ne vous concerne pas.'], 403);
         }
 
-        // Check if past due
-        // if (\Carbon\Carbon::now()->isAfter($homework->due_date)) {
-        //    return response()->json(['message' => 'Date limite dépassée.'], 400);
-        // }
+        if ($homework->due_date && now()->isAfter($homework->due_date)) {
+            return response()->json(['message' => 'La date limite de ce devoir est dépassée.'], 422);
+        }
 
         $submission = HomeworkSubmission::where('homework_id', $homeworkId)
             ->where('student_id', $studentId)

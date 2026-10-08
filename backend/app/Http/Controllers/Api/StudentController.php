@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Http\Requests\StudentProfileUpdateRequest;
 use App\Http\Requests\StudentProfileCompleteRequest;
+use App\Services\GradeCalculator;
 
 class StudentController extends Controller
 {
@@ -50,6 +51,7 @@ class StudentController extends Controller
 
         // Get recent grades (last 5)
         $recentGrades = Grade::where('student_id', $student->id)
+            ->published()
             ->with(['module', 'exam'])
             ->orderBy('created_at', 'desc')
             ->limit(5)
@@ -491,23 +493,19 @@ class StudentController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        $grades = $query->orderBy('created_at', 'desc')->get();
+        $grades = $query->published()->orderBy('created_at', 'desc')->get();
 
-        // Calculate statistics
+        // Same calculation as the deliberation: (C1 + C2 + 2E) / 4 per module,
+        // weighted by the module coefficient.
+        $calculator = app(GradeCalculator::class);
         $totalGrades = $grades->count();
         $maxGrade = 20;
-        $averageGrade = $totalGrades > 0
-            ? round($grades->avg(function($grade) use ($maxGrade) {
-                return ($grade->grade / $maxGrade) * 20;
-              }), 2)
-            : 0;
+        $averageGrade = $calculator->semesterAverage($grades)['average'];
 
         // Group by module
-        $gradesByModule = $grades->groupBy('module_id')->map(function($moduleGrades) use ($maxGrade) {
+        $gradesByModule = $grades->groupBy('module_id')->map(function($moduleGrades) use ($maxGrade, $calculator) {
             $module = $moduleGrades->first()->module;
-            $avgGrade = round($moduleGrades->avg(function($grade) use ($maxGrade) {
-                return ($grade->grade / $maxGrade) * 20;
-            }), 2);
+            $avgGrade = $calculator->moduleAverage($moduleGrades) ?? 0;
 
             return [
                 'module' => [

@@ -157,7 +157,8 @@ const formatDate = (dateStr) => {
 const getExamLabel = (type) => {
   const types = {
     'controle': 'Contrôle',
-    'examen': 'Examen'
+    'examen': 'Examen',
+    'rattrapage': 'Rattrapage'
   }
   return types[type] || type
 }

@@ -3,7 +3,7 @@ defineProps({
   size: {
     type: String,
     default: 'medium',
-    validator: (value) => ['small', 'medium', 'large'].includes(value)
+    validator: (value) => ['small', 'medium', 'large', 'sm', 'md', 'lg'].includes(value)
   }
 })
 
@@ -12,6 +12,10 @@ const sizeClasses = {
   medium: 'h-12 w-12 border-b-2',
   large: 'h-16 w-16 border-4'
 }
+// Short aliases used across the pages
+sizeClasses.sm = sizeClasses.small
+sizeClasses.md = sizeClasses.medium
+sizeClasses.lg = sizeClasses.large
 </script>
 
 <template>

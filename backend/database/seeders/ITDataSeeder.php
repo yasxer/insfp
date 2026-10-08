@@ -104,8 +104,8 @@ class ITDataSeeder extends Seeder
 
             if ($mod->semester == 1) {
                 // S1 Exams (Midterm + Final)
-                $mid = Exam::create(['title' => 'Partiel S1', 'exam_type' => 'midterm', 'exam_date' => $examDateS1Mid, 'module_id' => $mod->id, 'specialty_id' => $mod->specialty_id, 'semester' => 1, 'teacher_id' => $prof->id, 'duration_minutes' => 90, 'status' => 'submitted', 'academic_year' => '2025/2026']);
-                $fin = Exam::create(['title' => 'Final S1', 'exam_type' => 'final', 'exam_date' => $examDateS1Fin, 'module_id' => $mod->id, 'specialty_id' => $mod->specialty_id, 'semester' => 1, 'teacher_id' => $prof->id, 'duration_minutes' => 120, 'status' => 'submitted', 'academic_year' => '2025/2026']);
+                $mid = Exam::create(['title' => 'Partiel S1', 'exam_type' => 'controle', 'exam_date' => $examDateS1Mid, 'module_id' => $mod->id, 'specialty_id' => $mod->specialty_id, 'semester' => 1, 'teacher_id' => $prof->id, 'duration_minutes' => 90, 'status' => 'submitted', 'academic_year' => '2025/2026']);
+                $fin = Exam::create(['title' => 'Final S1', 'exam_type' => 'examen', 'exam_date' => $examDateS1Fin, 'module_id' => $mod->id, 'specialty_id' => $mod->specialty_id, 'semester' => 1, 'teacher_id' => $prof->id, 'duration_minutes' => 120, 'status' => 'submitted', 'academic_year' => '2025/2026']);
 
                 foreach ($studentsOfSpec as $st) {
                     Grade::create(['student_id' => $st->id, 'module_id' => $mod->id, 'exam_id' => $mid->id, 'grade' => rand(8, 19), 'semester' => 1, 'academic_year' => '2025/2026']);
@@ -113,7 +113,7 @@ class ITDataSeeder extends Seeder
                 }
             } else if ($mod->semester == 2) {
                 // S2 Exam (Midterm)
-                $mid = Exam::create(['title' => 'Partiel S2', 'exam_type' => 'midterm', 'exam_date' => $examDateS2Mid, 'module_id' => $mod->id, 'specialty_id' => $mod->specialty_id, 'semester' => 2, 'teacher_id' => $prof->id, 'duration_minutes' => 90, 'status' => 'submitted', 'academic_year' => '2025/2026']);
+                $mid = Exam::create(['title' => 'Partiel S2', 'exam_type' => 'controle', 'exam_date' => $examDateS2Mid, 'module_id' => $mod->id, 'specialty_id' => $mod->specialty_id, 'semester' => 2, 'teacher_id' => $prof->id, 'duration_minutes' => 90, 'status' => 'submitted', 'academic_year' => '2025/2026']);
 
                 foreach ($studentsOfSpec as $st) {
                     Grade::create(['student_id' => $st->id, 'module_id' => $mod->id, 'exam_id' => $mid->id, 'grade' => rand(5, 18), 'semester' => 2, 'academic_year' => '2025/2026']);

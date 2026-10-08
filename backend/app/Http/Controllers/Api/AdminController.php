@@ -1044,20 +1044,25 @@ class AdminController extends Controller
             ->where('teacher_module.teacher_id', $teacher->id)
             ->select(
                 'schedules.id',
-                'schedules.day_of_week',
+                'schedules.day',
                 'schedules.start_time',
                 'schedules.end_time',
-                'schedules.room_number',
-                'schedules.session_type',
+                'schedules.classroom as room_number',
+                'schedules.study_mode as session_type',
                 'modules.name as module_name',
                 'modules.code as module_code',
                 'specialties.name as specialty_name',
                 'schedules.semester',
                 'schedules.group'
             )
-            ->orderBy('schedules.day_of_week')
             ->orderBy('schedules.start_time')
             ->get();
+
+        // The page groups by day number (0 = Sunday … 6 = Saturday); the table stores day names.
+        $dayNumbers = ['sunday' => 0, 'monday' => 1, 'tuesday' => 2, 'wednesday' => 3, 'thursday' => 4, 'friday' => 5, 'saturday' => 6];
+        $schedules->each(function ($s) use ($dayNumbers) {
+            $s->day_of_week = $dayNumbers[strtolower($s->day)] ?? null;
+        });
 
         return response()->json([
             'schedule' => $schedules,

@@ -30,6 +30,7 @@ Route::get('/sessions', [SessionController::class, 'index']); // Public access f
 // Rate limited auth routes
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1'); // 10 attempts per minute (brute-force protection)
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:3,60'); // 3 attempts per hour
+Route::post('/mobile/login', [AuthController::class, 'mobileLogin'])->middleware('throttle:10,1'); // token login for the Flutter app (no session cookie)
 Route::post('/lookup-registration', [AuthController::class, 'lookupRegistrationNumber'])->middleware('throttle:10,1'); // 10 per minute
 
 // Public chatbot route — throttled: it is unauthenticated and each call hits the
@@ -41,6 +42,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     // Auth routes (all users)
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/mobile/logout', [AuthController::class, 'mobileLogout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
 
@@ -103,7 +105,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         // Attendance Management
         Route::get('/attendance/sessions', [TeacherAttendanceController::class, 'sessions']);
         Route::get('/attendance/sessions/{schedule}/students', [TeacherAttendanceController::class, 'sessionStudents']);
-        Route::post('/attendance', [TeacherAttendanceController::class, 'store']);
+        Route::post('/attendance/sessions/{schedule}', [TeacherAttendanceController::class, 'store']);
         Route::get('/attendance/history', [TeacherAttendanceController::class, 'history']);
 
         // Exam & Grades Management

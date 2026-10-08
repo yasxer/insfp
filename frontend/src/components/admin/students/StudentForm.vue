@@ -38,7 +38,7 @@
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
-                      <input v-model="form.date_of_birth" type="date" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.date_of_birth ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
+                      <input v-model="form.date_of_birth" type="date" :min="MIN_BIRTH_DATE" :max="maxBirthDate()" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.date_of_birth ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.date_of_birth" class="mt-1 text-xs text-red-600">{{ fieldErrors.date_of_birth }}</p>
                     </div>
                     <div>
@@ -118,6 +118,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { maxBirthDate, MIN_BIRTH_DATE } from '@/utils/dates'
 import axios from '@/api/axios'
 import { studentSchema } from '@/validations/schemas'
 

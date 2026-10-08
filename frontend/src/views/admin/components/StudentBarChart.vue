@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
 import { storeToRefs } from 'pinia'
@@ -18,15 +18,13 @@ const { isDark } = storeToRefs(useThemeStore())
 const chartKey = ref(0)
 
 // Force chart re-render when theme changes
-watchEffect(() => {
-  if (isDark.value !== undefined) {
-    chartKey.value++
-  }
+watch(isDark, () => {
+  chartKey.value++
 })
 
 // Trigger animation when data changes
-watchEffect(() => {
-  if (props.data && props.data.length > 0) {
+watch(() => props.data, (data) => {
+  if (data && data.length > 0) {
     chartKey.value++
   }
 })

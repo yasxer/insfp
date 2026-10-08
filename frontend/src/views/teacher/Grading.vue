@@ -97,11 +97,9 @@ const saveGrades = async () => {
 
 const formatType = (type) => {
   const types = {
-    'exam': 'Examen',
-    'test': 'Contrôle',
-    'project': 'Projet',
-    'assignment': 'Devoir',
-    'presentation': 'Présentation'
+    'controle': 'Contrôle',
+    'examen': 'Examen',
+    'rattrapage': 'Rattrapage'
   }
   return types[type] || type
 }
@@ -166,7 +164,8 @@ const getGradeColor = (mark) => {
       <!-- Action Required Empty state -->
       <div v-if="students.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
         <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucun étudiant</h3>
-        <p class="mt-1 text-gray-500">Aucun étudiant n'est inscrit dans le module pour cet examen.</p>
+        <p v-if="examData?.type === 'rattrapage'" class="mt-1 text-gray-500">Aucun stagiaire n'est concerné par le rattrapage de ce module (moyenne semestrielle et moyenne du module inférieures à 10).</p>
+        <p v-else class="mt-1 text-gray-500">Aucun étudiant n'est inscrit dans le module pour cet examen.</p>
       </div>
 
       <!-- Grading List -->

@@ -2,11 +2,11 @@ class ApiConfig {
   // Change this to your server IP when testing on a physical device
   // Android Emulator → http://10.0.2.2:8000
   // Physical device  → http://<your-local-ip>:8000
-  static const String baseUrl = 'http://172.20.10.8:8000';
+  static const String baseUrl = 'http://192.168.100.65:8000';
 
   // Auth
-  static const String login = '/api/login';
-  static const String logout = '/api/logout';
+  static const String login = '/api/mobile/login';
+  static const String logout = '/api/mobile/logout';
   static const String me = '/api/me';
 
   // Student endpoints

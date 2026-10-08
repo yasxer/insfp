@@ -116,7 +116,7 @@
           
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Date limite de rendu <span class="text-red-500">*</span></label>
-            <input v-model="form.due_date" type="datetime-local" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors outline-none text-gray-700">
+            <input v-model="form.due_date" type="datetime-local" :min="nowDateTime()" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors outline-none text-gray-700">
           </div>
           
           <div>
@@ -177,6 +177,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { nowDateTime } from '@/utils/dates'
 import { teacherHomeworkApi } from '@/api/endpoints/homework'
 import teacherApi from '@/api/endpoints/teacherPortal'
 import { 

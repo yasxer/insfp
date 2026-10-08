@@ -23,41 +23,15 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        $identifier = $request->registration_number;
-        $user = null;
+        $user = $this->resolveCredentials($request);
 
-        // 1. Try to find user by email (for Admin/Teacher/Student)
-        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            $user = User::where('email', $identifier)->first();
-        }
-        // 2. If not email, try to find student by registration number
-        else {
-            $student = Student::where('registration_number', $identifier)->with('user')->first();
-            if ($student) {
-                $user = $student->user;
-            }
-        }
-
-        // 3. Validate User and Password
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'registration_number' => ['Identifiants incorrects.'],
-            ]);
-        }
-
-        // 4. Check Approval
         if (!$user->is_approved) {
             return response()->json([
                 'message' => 'Votre inscription est en attente d\'approbation.',
             ], 403);
         }
 
-        // 5. Check if profile is complete (for students only)
-        $profileComplete = true;
-        if ($user->role === 'student') {
-            $student = $user->student;
-            $profileComplete = !is_null($student->date_of_birth) && !is_null($student->address);
-        }
+        $profileComplete = $this->isProfileComplete($user);
 
         // First-party SPA authentication: log the user into the (web) session so the
         // credential lives in an httpOnly cookie the browser JS can never read —
@@ -73,6 +47,86 @@ class AuthController extends Controller
             'user' => $userData,
             'profile_complete' => $profileComplete,
         ]);
+    }
+
+    /**
+     * Login for the mobile app. The app cannot use the SPA's httpOnly session
+     * cookie, so it receives a Sanctum personal access token instead.
+     * POST /api/mobile/login
+     */
+    public function mobileLogin(LoginRequest $request): JsonResponse
+    {
+        $user = $this->resolveCredentials($request);
+
+        if (!$user->is_approved) {
+            return response()->json([
+                'message' => 'Votre inscription est en attente d\'approbation.',
+            ], 403);
+        }
+
+        $profileComplete = $this->isProfileComplete($user);
+        $userData = $this->getUserData($user);
+        $userData['profile_complete'] = $profileComplete;
+
+        return response()->json([
+            'message' => 'Connexion réussie',
+            'token' => $user->createToken('mobile')->plainTextToken,
+            'user' => $userData,
+            'profile_complete' => $profileComplete,
+        ]);
+    }
+
+    /**
+     * Revoke the token the mobile app is using.
+     * POST /api/mobile/logout
+     */
+    public function mobileLogout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()?->delete();
+
+        return response()->json([
+            'message' => 'Déconnexion réussie',
+        ]);
+    }
+
+    /**
+     * Find the user by email or registration number and check the password.
+     */
+    private function resolveCredentials(LoginRequest $request): User
+    {
+        $identifier = $request->registration_number;
+        $user = null;
+
+        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            $user = User::where('email', $identifier)->first();
+        } else {
+            $student = Student::where('registration_number', $identifier)->with('user')->first();
+            if ($student) {
+                $user = $student->user;
+            }
+        }
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'registration_number' => ['Identifiants incorrects.'],
+            ]);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Only students have to fill in their birth date and address.
+     */
+    private function isProfileComplete(User $user): bool
+    {
+        if ($user->role !== 'student') {
+            return true;
+        }
+
+        $student = $user->student;
+
+        return !is_null($student->date_of_birth) && !is_null($student->address);
     }
 
     /**

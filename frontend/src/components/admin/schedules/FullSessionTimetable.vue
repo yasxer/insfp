@@ -5,11 +5,11 @@
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div>
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Emploi du Temps Global
+          {{ t('admin.full_session_timetable.emploi_temps_global') }}
           <span class="text-indigo-500 dark:text-indigo-400 font-normal text-base ml-2">{{ session.name }}</span>
         </h3>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-          Tous les emplois du temps finalisés · {{ totalCount }} séance(s)
+          {{ t('admin.full_session_timetable.tous_emplois_temps_finalises_seance', { p0: totalCount }) }}
         </p>
       </div>
       <div class="flex items-center gap-2">
@@ -22,7 +22,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
           </svg>
-          Imprimer
+          {{ t('admin.full_session_timetable.imprimer') }}
         </button>
         <button
           v-if="session.status === 'active'"
@@ -33,7 +33,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
-          Notifier
+          {{ t('admin.full_session_timetable.notifier') }}
         </button>
         <button
           v-if="session.status !== 'archived'"
@@ -44,7 +44,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.172-8.172z"/>
           </svg>
-          Modifier
+          {{ t('common.edit') }}
         </button>
       </div>
     </div>
@@ -71,7 +71,7 @@
         v-model="filterSpecialty"
         class="text-sm py-1.5 px-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
       >
-        <option value="">Toutes les spécialités</option>
+        <option value="">{{ t('admin.full_session_timetable.toutes_specialites') }}</option>
         <option v-for="sp in specialtyOptions" :key="sp.id" :value="sp.id">{{ sp.name }}</option>
       </select>
 
@@ -99,7 +99,7 @@
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
             <th class="w-20 px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Horaire
+              {{ t('common.time') }}
             </th>
             <th
               v-for="day in days"
@@ -107,7 +107,7 @@
               class="px-2 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               style="min-width: 130px"
             >
-              {{ day.label }}
+              {{ t('labels.days.' + day.label) }}
             </th>
           </tr>
         </thead>
@@ -141,7 +141,7 @@
                   <p class="opacity-75 truncate">{{ entry.teacher.full_name }}</p>
                   <div class="flex flex-wrap gap-0.5 mt-0.5">
                     <span class="opacity-60">{{ studyModeShort(entry.study_mode) }}</span>
-                    <span v-if="entry.group" class="opacity-60">· Gr {{ entry.group }}</span>
+                    <span v-if="entry.group" class="opacity-60">{{ t('admin.full_session_timetable.gr', { p0: entry.group }) }}</span>
                     <span v-if="entry.classroom" class="opacity-60">· {{ entry.classroom }}</span>
                   </div>
                 </div>
@@ -161,6 +161,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted, watch } from 'vue'
 import schedulesApi from '@/api/endpoints/schedules'
 import { useToastStore } from '@/stores/toast'
@@ -181,12 +183,12 @@ const filterSpecialty= ref('')
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const days = [
-  { key: 'saturday',  label: 'Samedi' },
-  { key: 'sunday',    label: 'Dimanche' },
-  { key: 'monday',    label: 'Lundi' },
-  { key: 'tuesday',   label: 'Mardi' },
-  { key: 'wednesday', label: 'Mercredi' },
-  { key: 'thursday',  label: 'Jeudi' },
+  { key: 'saturday',  label: 'saturday' },
+  { key: 'sunday',    label: 'sunday' },
+  { key: 'monday',    label: 'monday' },
+  { key: 'tuesday',   label: 'tuesday' },
+  { key: 'wednesday', label: 'wednesday' },
+  { key: 'thursday',  label: 'thursday' },
 ]
 
 const timeSlots = [
@@ -368,7 +370,7 @@ function printTimetable() {
   })
 
   if (!sections) {
-    toastStore.warning('Aucune séance à imprimer.')
+    toastStore.warning(t('admin.full_session_timetable.aucune_seance_imprimer'))
     return
   }
 

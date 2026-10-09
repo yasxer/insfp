@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { todayDate } from '@/utils/dates'
@@ -118,20 +121,13 @@ const goToGrading = (examId) => {
   router.push({ name: 'TeacherGrading', params: { id: examId } })
 }
 
-const formatType = (type) => {
-  const types = {
-    'controle': 'Contrôle',
-    'examen': 'Examen',
-    'rattrapage': 'Rattrapage'
-  }
-  return types[type] || type
-}
+const formatType = (type) => (['controle', 'examen', 'rattrapage'].includes(type) ? t('labels.examType.' + type) : type)
 
 const getStatusConfig = (status) => {
   const configs = {
-    'draft': { label: 'Brouillon', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
-    'submitted': { label: 'Soumis', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' },
-    'modified': { label: 'Modifié', class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' }
+    'draft': { label: t('labels.examStatus.draft'), class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+    'submitted': { label: t('labels.examStatus.submitted'), class: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' },
+    'modified': { label: t('labels.examStatus.modified'), class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' }
   }
   return configs[status] || { label: status || 'N/A', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }
 }
@@ -172,7 +168,7 @@ const updateExamStatus = async (examId, newStatus) => {
     fetchExams()
   } catch (error) {
     console.error('Failed to update status:', error)
-    toastStore.error('Erreur lors de la soumission de l\'examen')
+    toastStore.error(t('teacher.exams.erreur_lors_soumission_examen'))
   }
 }
 </script>
@@ -182,9 +178,9 @@ const updateExamStatus = async (examId, newStatus) => {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Examens & Notes</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('teacher.exams.examens_notes') }}</h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Gérez les évaluations de vos modules
+          {{ t('teacher.exams.gerez_evaluations_modules') }}
         </p>
       </div>
       <div>
@@ -193,7 +189,7 @@ const updateExamStatus = async (examId, newStatus) => {
           class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
         >
           <PlusIcon class="w-5 h-5 mr-2" />
-          Créer Examen
+          {{ t('teacher.exams.creer_examen') }}
         </button>
       </div>
     </div>
@@ -201,13 +197,13 @@ const updateExamStatus = async (examId, newStatus) => {
     <!-- Filters -->
     <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4">
       <div class="flex-1">
-        <label for="search" class="sr-only">Rechercher</label>
+        <label for="search" class="sr-only">{{ t('common.search') }}</label>
         <input
           id="search"
           v-model="searchQuery"
           @keyup.enter="handleSearch"
           type="text"
-          placeholder="Rechercher par titre ou module..."
+          :placeholder="t('teacher.exams.rechercher_titre_ou_module')"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
       </div>
@@ -217,17 +213,17 @@ const updateExamStatus = async (examId, newStatus) => {
           @change="handleSearch"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Tous les types</option>
-          <option value="controle">Contrôle</option>
-          <option value="examen">Examen</option>
-          <option value="rattrapage">Rattrapage</option>
+          <option value="">{{ t('teacher.exams.tous_types') }}</option>
+          <option value="controle">{{ t('common.test') }}</option>
+          <option value="examen">{{ t('common.exam') }}</option>
+          <option value="rattrapage">{{ t('common.retake') }}</option>
         </select>
       </div>
       <button
         @click="handleSearch"
         class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
       >
-        Filtrer
+        {{ t('common.filter') }}
       </button>
     </div>
 
@@ -240,8 +236,8 @@ const updateExamStatus = async (examId, newStatus) => {
     <template v-else>
       <div v-if="exams.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
         <AcademicCapIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />        
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucun examen trouvé</h3>
-        <p class="mt-1 text-gray-500">Vous n'avez pas d'évaluations planifiées pour vos modules.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('teacher.exams.aucun_examen_trouve') }}</h3>
+        <p class="mt-1 text-gray-500">{{ t('teacher.exams.vous_n_avez_pas_evaluations') }}</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
@@ -272,16 +268,16 @@ const updateExamStatus = async (examId, newStatus) => {
             </h3>
 
             <div class="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-4 text-sm">
-              <p class="font-medium text-gray-900 dark:text-white truncate">{{ exam.module?.name || 'Module inconnu' }}</p>
+              <p class="font-medium text-gray-900 dark:text-white truncate">{{ exam.module?.name || t('teacher.exams.module_inconnu') }}</p>
               <div class="flex justify-between items-center mt-1">
-                <span class="text-gray-500 dark:text-gray-400">Groupe: {{ exam.group || 'N/A' }}</span>
-                <span class="text-gray-500 dark:text-gray-400">{{ exam.duration_minutes || 90 }} min</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ t('labels.group', { g: exam.group || 'N/A' }) }}</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ t('labels.minutes', { n: exam.duration_minutes || 90 }) }}</span>
               </div>
             </div>
 
             <div class="flex items-center justify-between text-sm">
               <div class="text-gray-600 dark:text-gray-400">
-                <span class="font-medium">Date:</span> {{ exam.exam_date ? new Date(exam.exam_date).toLocaleDateString('fr-FR') : (exam.date ? new Date(exam.date).toLocaleDateString('fr-FR') : 'N/A') }}
+                <span class="font-medium">{{ t('teacher.exams.date') }}</span> {{ exam.exam_date ? new Date(exam.exam_date).toLocaleDateString(dateLocale()) : (exam.date ? new Date(exam.date).toLocaleDateString(dateLocale()) : 'N/A') }}
               </div>
             </div>
           </div>
@@ -293,7 +289,7 @@ const updateExamStatus = async (examId, newStatus) => {
               :class="'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'"
             >
               <PencilSquareIcon class="w-4 h-4" />
-              Saisir / Modifier les notes
+              {{ t('teacher.exams.saisir_modifier_notes') }}
             </button>
             <button
               v-if="exam.status === 'draft' || exam.status === 'modified'"
@@ -301,7 +297,7 @@ const updateExamStatus = async (examId, newStatus) => {
               class="w-full flex items-center justify-center gap-2 text-sm font-medium transition-colors rounded-lg py-2 text-white bg-green-600 hover:bg-green-700"
             >
               <PaperAirplaneIcon class="w-4 h-4" />
-              Soumettre à l'administration
+              {{ t('teacher.exams.soumettre_administration') }}
             </button>
           </div>
         </div>
@@ -316,39 +312,39 @@ const updateExamStatus = async (examId, newStatus) => {
         <div class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div class="absolute top-0 right-0 pt-4 pr-4">
             <button @click="closeModal" type="button" class="text-gray-400 bg-white dark:bg-gray-800 rounded-md hover:text-gray-500 focus:outline-none">
-              <span class="sr-only">Close</span>
+              <span class="sr-only">{{ t('common.close') }}</span>
               <XMarkIcon class="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
           <div class="sm:flex sm:items-start">
             <div class="w-full mt-3 text-center sm:mt-0 sm:text-left">
               <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white" id="modal-title">
-                Créer un Examen
+                {{ t('teacher.exams.creer_examen_2') }}
               </h3>
               <div class="mt-6">
                 <form @submit.prevent="submitExam" class="space-y-4">
                   <!-- Title -->
                   <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Titre</label>
+                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.title') }}</label>
                     <input type="text" id="title" v-model="form.title" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                   </div>
                   
                                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <!-- Spécialité -->
                     <div>
-                      <label for="specialty" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Spécialité</label>
+                      <label for="specialty" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.specialty') }}</label>
                       <select id="specialty" v-model="selectedSpecialty" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="" disabled>Sélectionner une spécialité</option>
+                        <option value="" disabled>{{ t('teacher.exams.selectionner_specialite') }}</option>
                         <option v-for="spec in uniqueSpecialties" :key="spec.id" :value="spec.id">{{ spec.name }}</option>
                       </select>
                     </div>
 
                     <!-- Semestre -->
                     <div>
-                      <label for="semester" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Semestre</label>
+                      <label for="semester" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.semester') }}</label>
                       <select id="semester" v-model="selectedSemester" :disabled="!selectedSpecialty" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="" disabled>Sélectionner un semestre</option>
-                        <option v-for="sem in availableSemesters" :key="sem" :value="sem">Semestre {{ sem }}</option>
+                        <option value="" disabled>{{ t('teacher.exams.selectionner_semestre') }}</option>
+                        <option v-for="sem in availableSemesters" :key="sem" :value="sem">{{ t('teacher.exams.semestre', { p0: sem }) }}</option>
                       </select>
                     </div>
                   </div>
@@ -356,23 +352,23 @@ const updateExamStatus = async (examId, newStatus) => {
                   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <!-- Module -->
                     <div>
-                      <label for="module_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Module</label>
+                      <label for="module_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.module') }}</label>
                       <select id="module_id" v-model="form.module_id" :disabled="!selectedSemester" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="" disabled>Sélectionner un module</option>
+                        <option value="" disabled>{{ t('teacher.exams.selectionner_module') }}</option>
                         <option v-for="mod in filteredModules" :key="mod.id" :value="mod.id">{{ mod.name }}</option>
                       </select>
                     </div>
                     
                     <!-- Type -->
                     <div>
-                      <label for="exam_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type d'examen</label>
+                      <label for="exam_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('teacher.exams.type_examen') }}</label>
                       <select id="exam_type" v-model="form.exam_type" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="controle">Contrôle</option>
-                        <option value="examen">Examen</option>
-                        <option value="rattrapage">Rattrapage</option>
+                        <option value="controle">{{ t('common.test') }}</option>
+                        <option value="examen">{{ t('common.exam') }}</option>
+                        <option value="rattrapage">{{ t('common.retake') }}</option>
                       </select>
                       <p v-if="form.exam_type === 'rattrapage'" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                        Seuls les stagiaires ayant une moyenne semestrielle inférieure à 10 et une moyenne inférieure à 10 dans ce module pourront être notés. La note remplace celle de l'examen si elle est meilleure.
+                        {{ t('teacher.exams.seuls_stagiaires_ayant_moyenne_semestrie') }}
                       </p>
                     </div>
                   </div>
@@ -380,30 +376,30 @@ const updateExamStatus = async (examId, newStatus) => {
                   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <!-- Group -->
                     <div>
-                      <label for="group" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Groupe</label>
-                      <input type="text" id="group" v-model="form.group" required placeholder="Ex: G1" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                      <label for="group" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.group') }}</label>
+                      <input type="text" id="group" v-model="form.group" required :placeholder="t('teacher.exams.ex_g1')" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
 
                     <!-- Duration -->
                     <div>
-                      <label for="duration_minutes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Durée (minutes)</label>
+                      <label for="duration_minutes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('teacher.exams.duree_minutes') }}</label>
                       <input type="number" id="duration_minutes" v-model="form.duration_minutes" required min="1" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                   </div>
 
                   <!-- Date -->
                   <div>
-                    <label for="exam_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date de l'examen</label>
+                    <label for="exam_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('teacher.exams.date_examen') }}</label>
                     <input type="date" id="exam_date" v-model="form.exam_date" :min="todayDate()" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                   </div>
 
                   <!-- Actions -->
                   <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" :disabled="isSubmitting" class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
-                      {{ isSubmitting ? 'Création...' : 'Créer' }}
+                      {{ isSubmitting ? 'Création...' : t('teacher.exams.creer') }}
                     </button>
                     <button type="button" @click="closeModal" class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
-                      Annuler
+                      {{ t('common.cancel') }}
                     </button>
                   </div>
                 </form>

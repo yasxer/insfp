@@ -12,27 +12,27 @@
           <div class="sm:flex sm:items-start">
             <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
               <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                Add Schedule
+                {{ t('admin.schedule_modal.ajouter_seance') }}
               </h3>
               
               <!-- Time Display -->
               <div class="mt-3 bg-indigo-50 dark:bg-indigo-900 rounded-md p-3">
                 <p class="text-sm text-indigo-700 dark:text-indigo-300">
-                  <strong>Day:</strong> {{ dayName }} &nbsp;|&nbsp;
-                  <strong>Time:</strong> {{ startTime }} - {{ endTime }}
+                  <strong>{{ t('admin.schedule_modal.day') }}</strong> {{ dayName }} &nbsp;|&nbsp;
+                  <strong>{{ t('admin.schedule_modal.time') }}</strong> {{ startTime }} - {{ endTime }}
                 </p>
               </div>
 
               <!-- Step 1: Select Specialty-Semester -->
               <div v-if="!selectedSpecialtySemester" class="mt-4">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Select Specialty & Semester
+                  {{ t('admin.schedule_modal.specialite_semestre') }}
                 </label>
                 
                 <!-- Loading -->
                 <div v-if="loadingSpecialties" class="text-center py-4">
                   <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-                  <p class="text-sm text-gray-500 mt-2">Loading...</p>
+                  <p class="text-sm text-gray-500 mt-2">{{ t('common.loading') }}</p>
                 </div>
 
                 <!-- Empty State -->
@@ -40,7 +40,7 @@
                   <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No specialties available</p>
+                  <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ t('admin.schedule_modal.aucune_specialite_disponible') }}</p>
                 </div>
 
                 <!-- Specialty-Semester Table -->
@@ -49,19 +49,19 @@
                     <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0">
                       <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Specialty
+                          {{ t('common.specialty') }}
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Mode
+                          {{ t('admin.schedule_modal.mode') }}
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Semester
+                          {{ t('common.semester') }}
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Students
+                          {{ t('common.students') }}
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Groups
+                          {{ t('admin.schedule_modal.groupes') }}
                         </th>
                       </tr>
                     </thead>
@@ -112,10 +112,10 @@
                 <div class="bg-green-50 dark:bg-green-900 rounded-md p-3 flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-green-800 dark:text-green-200">
-                      {{ selectedSpecialtySemester.specialty_name }} - Semester {{ selectedSpecialtySemester.semester }}
+                      {{ t('admin.schedule_modal.semestre', { p0: selectedSpecialtySemester.specialty_name, p1: selectedSpecialtySemester.semester }) }}
                     </p>
                     <p class="text-xs text-green-600 dark:text-green-400">
-                      {{ getStudyModeLabel(selectedSpecialtySemester.study_mode) }} | {{ selectedSpecialtySemester.students_count }} students
+                      {{ t('admin.schedule_modal.stagiaire_s', { p0: getStudyModeLabel(selectedSpecialtySemester.study_mode), p1: selectedSpecialtySemester.students_count }) }}
                     </p>
                   </div>
                   <button 
@@ -131,7 +131,7 @@
                 <!-- Module Selection -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Select Module
+                    {{ t('admin.schedule_modal.choisir_module') }}
                   </label>
                   
                   <div v-if="loadingModules" class="text-center py-4">
@@ -139,7 +139,7 @@
                   </div>
                   
                   <div v-else-if="modules.length === 0" class="text-sm text-gray-500 dark:text-gray-400 italic p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                    No modules available for this semester
+                    {{ t('admin.schedule_modal.aucun_module_semestre') }}
                   </div>
 
                   <div v-else class="space-y-2 max-h-40 overflow-y-auto">
@@ -168,16 +168,16 @@
                 <!-- Group Selection -->
                 <div v-if="form.module_id">
                   <label for="group" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Group (Optional)
+                    {{ t('admin.schedule_modal.groupe_facultatif') }}
                   </label>
                   <select 
                     v-model="form.group" 
                     id="group" 
                     class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
-                    <option value="">All Groups</option>
+                    <option value="">{{ t('admin.schedule_modal.tous_groupes') }}</option>
                     <option v-for="group in availableGroups" :key="group" :value="group">
-                      Group {{ group }}
+                      {{ t('admin.schedule_modal.groupe', { p0: group }) }}
                     </option>
                   </select>
                 </div>
@@ -185,7 +185,7 @@
                 <!-- Teacher Selection -->
                 <div v-if="form.module_id">
                   <label for="teacher" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Teacher
+                    {{ t('common.teacher') }}
                   </label>
                   
                   <div v-if="loadingTeachers" class="text-center py-2">
@@ -198,7 +198,7 @@
                     id="teacher" 
                     class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
-                    <option value="">Select Teacher</option>
+                    <option value="">{{ t('admin.schedule_modal.choisir_formateur') }}</option>
                     <option v-for="teacher in moduleTeachers" :key="teacher.id" :value="teacher.id">
                       {{ teacher.full_name }}
                     </option>
@@ -219,14 +219,14 @@
             @click="submit" 
             :disabled="loading || !canSubmit"
           >
-            {{ loading ? 'Saving...' : 'Save' }}
+            {{ loading ? t('common.saving') : t('common.save') }}
           </button>
           <button 
             type="button" 
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-500 shadow-sm px-4 py-2 bg-white dark:bg-gray-600 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" 
             @click="close"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
         </div>
       </div>
@@ -235,6 +235,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, reactive, watch, computed } from 'vue'
 import axios from '@/api/axios'
 import schedulesApi from '@/api/endpoints/schedules'

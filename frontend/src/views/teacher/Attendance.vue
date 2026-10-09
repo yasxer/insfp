@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import teacherApi from '@/api/endpoints/teacherPortal'
@@ -30,7 +33,7 @@ const goToMarkAttendance = (scheduleId, date) => {
 // Helper to format date
 const formatDate = (dateString) => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
+  return date.toLocaleDateString(dateLocale(), { weekday: 'short', day: 'numeric', month: 'short' })
 }
 </script>
 
@@ -39,9 +42,9 @@ const formatDate = (dateString) => {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Gestion des Présences</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('teacher.attendance.gestion_presences') }}</h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Séances programmées pour les deux prochaines semaines
+          {{ t('teacher.attendance.seances_programmees_deux_prochaines_sema') }}
         </p>
       </div>
     </div>
@@ -55,8 +58,8 @@ const formatDate = (dateString) => {
     <template v-else>
       <div v-if="sessions.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
         <CalendarIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucune séance à venir</h3>
-        <p class="mt-1 text-gray-500">Vous n'avez pas de créneaux programmés pour le moment.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('teacher.attendance.aucune_seance_venir') }}</h3>
+        <p class="mt-1 text-gray-500">{{ t('teacher.attendance.vous_n_avez_pas_creneaux') }}</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -80,12 +83,12 @@ const formatDate = (dateString) => {
                 {{ formatDate(session.date) }}
               </span>
               <div v-if="session.attendance_taken" class="flex items-center text-green-600 dark:text-green-400 text-xs font-bold">
-                <CheckCircleIcon class="w-4 h-4 mr-1" /> Fait
+                <CheckCircleIcon class="w-4 h-4 mr-1" /> {{ t('teacher.attendance.fait') }}
               </div>
             </div>
             
             <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-1 truncate" :title="session.module?.name">
-              {{ session.module?.name || 'Session' }}
+              {{ session.module?.name || t('common.session') }}
             </h3>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
               {{ session.module?.code }}
@@ -94,11 +97,11 @@ const formatDate = (dateString) => {
             <div class="space-y-2 mb-4">
               <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
                 <ClockIcon class="w-4 h-4 mr-2 text-gray-400" />
-                <span>{{ session.start_time }} - {{ session.end_time }}</span>
+                <span><span dir="ltr">{{ session.start_time }} - {{ session.end_time }}</span></span>
               </div>
               <div class="flex items-center text-sm text-gray-600 dark:text-gray-300">
                 <MapPinIcon class="w-4 h-4 mr-2 text-gray-400" />
-                <span>{{ session.room || 'Salle non assignée' }}</span>
+                <span>{{ session.room || t('teacher.attendance.salle_non_assignee') }}</span>
               </div>
             </div>
           </div>
@@ -111,8 +114,8 @@ const formatDate = (dateString) => {
                 ? 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600' 
                 : 'text-white bg-blue-600 hover:bg-blue-700'"
             >
-              {{ session.attendance_taken ? 'Modifier l\'appel' : 'Faire l\'appel' }}
-              <ArrowRightIcon class="w-4 h-4" />
+              {{ session.attendance_taken ? t('teacher.attendance.modifier_appel') : t('teacher.attendance.faire_appel') }}
+              <ArrowRightIcon class="rtl:rotate-180 w-4 h-4" />
             </button>
           </div>
         </div>

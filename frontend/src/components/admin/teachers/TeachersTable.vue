@@ -16,22 +16,22 @@
                     />
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Name
+                    {{ t('common.last_name') }}
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Contact
+                    {{ t('admin.teachers_table.contact') }}
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Specialization
+                    {{ t('admin.teachers_table.specialization') }}
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Modules
+                    {{ t('common.modules') }}
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Status
+                    {{ t('common.status') }}
                   </th>
                   <th scope="col" class="relative px-6 py-4">
-                    <span class="sr-only">Actions</span>
+                    <span class="sr-only">{{ t('common.actions') }}</span>
                   </th>
                 </tr>
               </thead>
@@ -48,7 +48,7 @@
                   </tr>
                 </template>
                 <tr v-else-if="teachers.length === 0">
-                  <td colspan="6" class="px-6 py-5 text-center text-gray-500 dark:text-gray-400">No teachers found</td>
+                  <td colspan="6" class="px-6 py-5 text-center text-gray-500 dark:text-gray-400">{{ t('admin.teachers_table.aucun_formateur') }}</td>
                 </tr>
                 <tr v-for="teacher in teachers" :key="teacher.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td class="px-4 py-5 w-12" @click.stop>
@@ -81,19 +81,19 @@
                     {{ teacher.specialization || 'N/A' }}
                   </td>
                   <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {{ teacher.modules_count || 0 }} modules
+                    {{ t('admin.teachers_table.modules', { p0: teacher.modules_count || 0 }) }}
                   </td>
                   <td class="px-6 py-5 whitespace-nowrap">
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                       :class="teacher.is_approved ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'">
-                      {{ teacher.is_approved ? 'Active' : 'Pending' }}
+                      {{ teacher.is_approved ? t('common.active') : t('common.pending') }}
                     </span>
                   </td>
                   <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
                     <button 
                       @click.stop="$emit('message-individual', teacher)" 
                       class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
-                      title="Send message to this teacher"
+                      :title="t('admin.teachers_table.envoyer_message_formateur')"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
@@ -122,6 +122,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { computed } from 'vue'
 
 const props = defineProps({

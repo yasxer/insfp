@@ -1,42 +1,42 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Deliberations Management</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('admin.deliberations.deliberations') }}</h1>
     </div>
 
     <!-- Filters configuration -->
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
       <form @submit.prevent="fetchStudents" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Session</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.session') }}</label>
           <select v-model="filters.session_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm" required>
-            <option value="" disabled>Select Session</option>
+            <option value="" disabled>{{ t('admin.deliberations.choisir_session') }}</option>
             <option v-for="session in sessions" :key="session.id" :value="session.id">{{ session.name }}</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Specialty</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.specialty') }}</label>
             <select v-model="filters.specialty_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm" required :disabled="!filters.session_id">
-              <option value="" disabled>Select Specialty</option>
+              <option value="" disabled>{{ t('admin.deliberations.choisir_specialite') }}</option>
               <option v-for="specialty in availableSpecialties" :key="specialty.id" :value="specialty.id">{{ specialty.name }}</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Semester</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.semester') }}</label>
             <select v-model="filters.semester" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm" :disabled="!filters.specialty_id">
-              <option value="">Auto (Current Student Semester)</option>
-            <option value="3">Semester 3</option>
-            <option value="4">Semester 4</option>
-            <option value="5">Semester 5</option>
-            <option value="6">Semester 6</option>
+              <option value="">{{ t('admin.deliberations.auto_semestre_actuel') }}</option>
+            <option value="3">{{ t('admin.deliberations.semestre_3') }}</option>
+            <option value="4">{{ t('admin.deliberations.semestre_4') }}</option>
+            <option value="5">{{ t('admin.deliberations.semestre_5') }}</option>
+            <option value="6">{{ t('admin.deliberations.semestre_6') }}</option>
           </select>
         </div>
 
         <div>
           <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" :disabled="loading">
-            Search Students
+            {{ t('common.search') }}
           </button>
         </div>
       </form>
@@ -47,10 +47,10 @@
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead class="bg-gray-50 dark:bg-gray-700">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Avg / Result</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Observations</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.student') }}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('admin.deliberations.moyenne_resultat') }}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.observations') }}</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.action') }}</th>
           </tr>
         </thead>
         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -61,18 +61,18 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span v-if="student.deliberation" :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', student.deliberation.result === 'passed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800']">
-                {{ student.deliberation.average }} / 20 - {{ student.deliberation.result }}
+                {{ student.deliberation.average }}/20 - {{ student.deliberation.result }}
               </span>
                 <span v-else class="text-sm text-gray-500">
-                  Not recorded
-                  <span v-if="student.calculated_average" class="text-xs text-indigo-600 block">(Auto: {{ student.calculated_average }} / 20)</span>
+                  {{ t('admin.deliberations.non_enregistree') }}
+                  <span v-if="student.calculated_average" class="text-xs text-indigo-600 block">{{ t('admin.deliberations.auto_20', { p0: student.calculated_average }) }}</span>
                 </span>
               <div v-if="rattrapageBadges[student.rattrapage_status]" class="mt-1 whitespace-normal max-w-[260px]">
                 <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', rattrapageBadges[student.rattrapage_status].class]">
                   {{ rattrapageBadges[student.rattrapage_status].label }}
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400 block mt-0.5">
-                  Avant rattrapage : {{ student.average_before_rattrapage }} / 20
+                  {{ t('admin.deliberations.avant_rattrapage_20', { p0: student.average_before_rattrapage }) }}
                   <template v-if="student.rattrapage_modules?.length"> · {{ student.rattrapage_modules.map(m => m.name).join(', ') }}</template>
                 </span>
               </div>
@@ -83,8 +83,8 @@
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-              <button v-if="!student.deliberation && student.calculated_average != null && student.rattrapage_status !== 'en_attente'" @click="confirmDeliberation(student)" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 font-semibold" title="Confirm Auto Calculated Average">Confirm</button>
-              <button @click="openModal(student)" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">Edit</button>
+              <button v-if="!student.deliberation && student.calculated_average != null && student.rattrapage_status !== 'en_attente'" @click="confirmDeliberation(student)" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 font-semibold" :title="t('admin.deliberations.confirmer_moyenne_calculee')">{{ t('common.confirm') }}</button>
+              <button @click="openModal(student)" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">{{ t('common.edit') }}</button>
             </td>
           </tr>
         </tbody>
@@ -92,7 +92,7 @@
     </div>
 
     <div v-else-if="searched && students.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-      <p class="text-gray-500 dark:text-gray-400">No students found for this configuration.</p>
+      <p class="text-gray-500 dark:text-gray-400">{{ t('admin.deliberations.aucun_stagiaire_selection') }}</p>
     </div>
 
     <!-- Edit/Save Deliberation Modal -->
@@ -106,43 +106,43 @@
 
         <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 text-gray-900 dark:text-white">
           <div>
-            <h3 class="text-lg leading-6 font-medium" id="modal-title">Record Deliberation: {{ activeStudent?.name }}</h3>
+            <h3 class="text-lg leading-6 font-medium" id="modal-title">Délibération : {{ activeStudent?.name }}</h3>
             <div class="mt-4 space-y-4">
               <div>
-                <label class="block text-sm font-medium">Average (out of 20)</label>
+                <label class="block text-sm font-medium">{{ t('admin.deliberations.moyenne_20') }}</label>
                 <input type="number" step="0.01" min="0" max="20" v-model="formData.average" @input="formData.result = Number(formData.average) >= 10 ? 'passed' : 'failed'" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
               </div>
 
               <div>
-                <label class="block text-sm font-medium">Result</label>
+                <label class="block text-sm font-medium">{{ t('admin.deliberations.resultat') }}</label>
                 <select v-model="formData.result" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
-                  <option value="passed">Passed (Admis)</option>
-                  <option value="failed">Failed (Ajourné)</option>
+                  <option value="passed">{{ t('common.passed') }}</option>
+                  <option value="failed">{{ t('common.failed') }}</option>
                 </select>
               </div>
 
               <div>
-                <label class="block text-sm font-medium">Academic Year</label>
+                <label class="block text-sm font-medium">{{ t('admin.deliberations.annee_formation') }}</label>
                 <input type="text" v-model="formData.academic_year" placeholder="e.g. 2025/2026" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
               </div>
 
               <div>
-                <label class="block text-sm font-medium">Deliberation Date</label>
+                <label class="block text-sm font-medium">{{ t('admin.deliberations.date_deliberation') }}</label>
                 <input type="date" v-model="formData.deliberation_date" :max="todayDate()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm" required>
               </div>
 
               <div>
-                <label class="block text-sm font-medium">Observations</label>
+                <label class="block text-sm font-medium">{{ t('common.observations') }}</label>
                 <textarea v-model="formData.observations" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 sm:text-sm"></textarea>
               </div>
             </div>
           </div>
           <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
             <button @click="saveDeliberation" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm" :disabled="saving">
-              {{ saving ? 'Saving...' : 'Save' }}
+              {{ saving ? t('common.saving') : t('common.save') }}
             </button>
             <button @click="closeModal" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm">
-              Cancel
+              {{ t('common.cancel') }}
             </button>
           </div>
         </div>
@@ -152,6 +152,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, computed, watch } from 'vue'
 import { todayDate } from '@/utils/dates'
 import adminApi from '@/api/endpoints/admin'
@@ -245,7 +247,7 @@ const fetchStudents = async () => {
     students.value = res.students
     searched.value = true
   } catch (error) {
-    toastStore.error('Error fetching students')
+    toastStore.error(t('admin.deliberations.impossible_charger_stagiaires'))
   } finally {
     loading.value = false
   }
@@ -279,7 +281,7 @@ const closeModal = () => {
 }
 
 const saveDeliberation = async () => {
-  if (formData.value.average === '') return toastStore.warning('Average is required')
+  if (formData.value.average === '') return toastStore.warning(t('admin.deliberations.moyenne_est_obligatoire'))
 
   saving.value = true
   try {
@@ -301,9 +303,9 @@ const saveDeliberation = async () => {
 
 // Students below 10 retake their failed modules before the final decision.
 const rattrapageBadges = {
-  en_attente: { label: 'Rattrapage en attente', class: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
-  admis_apres_rattrapage: { label: 'Admis après rattrapage', class: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
-  ajourne: { label: 'Ajourné après rattrapage', class: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
+  en_attente: { label: t('labels.rattrapage.en_attente'), class: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
+  admis_apres_rattrapage: { label: t('labels.rattrapage.admis_apres_rattrapage'), class: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+  ajourne: { label: t('labels.rattrapage.ajourne'), class: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
 }
 const autoObservation = (student) => ({
   admis_apres_rattrapage: 'Admis après rattrapage',
@@ -311,7 +313,7 @@ const autoObservation = (student) => ({
 }[student.rattrapage_status] || '')
 
 const confirmDeliberation = async (student) => {
-  if (!confirm(`Are you sure you want to directly confirm the auto-calculated average of ${student.calculated_average}/20 for ${student.name}?`)) return
+  if (!confirm(t('labels.confirmAverage', { avg: student.calculated_average, name: student.name }))) return
   
   const currentYear = new Date().getFullYear();
   const academicYear = `${currentYear}/${currentYear + 1}`;
@@ -328,7 +330,7 @@ const confirmDeliberation = async (student) => {
     })
     await fetchStudents()
   } catch(error) {
-    toastStore.error('Error confirming calculation')
+    toastStore.error(t('admin.deliberations.impossible_confirmer_moyenne'))
   }
 }
 </script>

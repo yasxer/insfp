@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router'
 import apiClient from '@/api/axios'
 import { registerSchema } from '@/validations/schemas'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const emptyForm = () => ({
   session_id: '',
@@ -51,7 +53,7 @@ const fetchSessions = async () => {
     sessions.value = response.data.data || []
   } catch (err) {
     console.error('Failed to fetch sessions:', err)
-    error.value = 'Impossible de charger les sessions. Actualisez la page.'
+    error.value = t('auth.register.errors.sessions')
   }
 }
 
@@ -107,7 +109,7 @@ const lookupRegistration = async (number) => {
     form.value.specialty_id = '' // student chooses the specialty
   } catch (err) {
     clearLookup()
-    lookupError.value = err.response?.data?.message || 'Numéro d’inscription invalide.'
+    lookupError.value = err.response?.data?.message || t('auth.register.errors.invalidNumber')
   } finally {
     lookupLoading.value = false
   }
@@ -138,7 +140,7 @@ const goToStep2 = () => {
 // Send the student back to the step that holds the first invalid field
 const showErrors = (errors) => {
   fieldErrors.value = errors
-  error.value = 'Veuillez corriger les champs signalés.'
+  error.value = t('auth.register.errors.fixFields')
   if (Object.keys(errors).some(field => STEP_ONE_FIELDS.includes(field))) step.value = 1
 }
 
@@ -160,16 +162,16 @@ const handleRegister = async () => {
   loading.value = true
   try {
     await apiClient.post('/api/register', form.value)
-    successMessage.value = 'Votre compte a été créé. Il sera activé après validation de votre dossier par l’administration.'
+    successMessage.value = t('auth.register.successText')
     form.value = emptyForm()
     setTimeout(() => router.push('/login'), 4000)
   } catch (err) {
     if (err.response?.status === 422) {
       showErrors(err.response.data.errors || {})
     } else if (err.response?.status === 429) {
-      error.value = 'Trop de tentatives d’inscription. Réessayez dans une heure.'
+      error.value = t('auth.register.errors.tooMany')
     } else {
-      error.value = err.response?.data?.message || 'L’inscription a échoué. Veuillez réessayer.'
+      error.value = err.response?.data?.message || t('auth.register.errors.failed')
     }
   } finally {
     loading.value = false
@@ -180,35 +182,35 @@ onMounted(fetchSessions)
 </script>
 
 <template>
-  <AuthLayout panel-title="Créez votre compte stagiaire en deux étapes" width="440px">
+  <AuthLayout :panel-title="t('auth.panelRegister')" width="440px">
     <!-- Success -->
     <div v-if="successMessage" class="reg-success">
       <span class="reg-success-icon">
         <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
       </span>
-      <h1 class="auth-title">Inscription enregistrée</h1>
+      <h1 class="auth-title">{{ t('auth.register.successTitle') }}</h1>
       <p class="auth-subtitle">{{ successMessage }}</p>
-      <router-link to="/login" class="auth-btn">Aller à la connexion</router-link>
-      <p class="auth-help">Redirection automatique…</p>
+      <router-link to="/login" class="auth-btn">{{ t('auth.register.goLogin') }}</router-link>
+      <p class="auth-help">{{ t('auth.register.redirecting') }}</p>
     </div>
 
     <template v-else>
-      <h1 class="auth-title">Inscription</h1>
-      <p class="auth-subtitle">Munissez-vous du numéro d’inscription remis par l’administration.</p>
+      <h1 class="auth-title">{{ t('auth.register.title') }}</h1>
+      <p class="auth-subtitle">{{ t('auth.register.subtitle') }}</p>
 
       <!-- Steps -->
-      <ol class="reg-steps" aria-label="Étapes">
+      <ol class="reg-steps" :aria-label="t('auth.register.stepsLabel')">
         <li :class="{ active: step === 1, done: step > 1 }">
           <span class="reg-step-num">
             <svg v-if="step > 1" class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
             <template v-else>1</template>
           </span>
-          Formation
+          {{ t('auth.register.stepTraining') }}
         </li>
         <li class="reg-step-line" aria-hidden="true"></li>
         <li :class="{ active: step === 2 }">
           <span class="reg-step-num">2</span>
-          Compte
+          {{ t('auth.register.stepAccount') }}
         </li>
       </ol>
 
@@ -216,7 +218,7 @@ onMounted(fetchSessions)
         <!-- STEP 1 -->
         <template v-if="step === 1">
           <div class="auth-field">
-            <label for="registration_number" class="auth-label">Numéro d’inscription</label>
+            <label for="registration_number" class="auth-label">{{ t('auth.register.regNumber') }}</label>
             <div class="auth-control">
               <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" /></svg>
               <input
@@ -235,31 +237,31 @@ onMounted(fetchSessions)
             </div>
             <p v-if="lookupError" class="auth-error">{{ lookupError }}</p>
             <p v-else-if="fieldErrors.registration_number" class="auth-error">{{ fieldErrors.registration_number[0] }}</p>
-            <p v-else-if="!lookupData" class="auth-help">La session et le mode de formation sont remplis automatiquement.</p>
+            <p v-else-if="!lookupData" class="auth-help">{{ t('auth.register.regHelp') }}</p>
           </div>
 
           <Transition name="reg-fade">
             <div v-if="lookupData" class="reg-chips">
               <div class="reg-chip">
-                <span>Session</span>
+                <span>{{ t('auth.register.session') }}</span>
                 <strong>{{ sessionLabel || '—' }}</strong>
               </div>
               <div class="reg-chip">
-                <span>Mode de formation</span>
+                <span>{{ t('auth.register.mode') }}</span>
                 <strong>{{ studyModeLabel || '—' }}</strong>
               </div>
             </div>
           </Transition>
 
           <div class="auth-field">
-            <label for="specialty" class="auth-label">Spécialité</label>
+            <label for="specialty" class="auth-label">{{ t('auth.register.specialty') }}</label>
             <select
               id="specialty"
               v-model="form.specialty_id"
               :disabled="!form.study_mode"
               :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.specialty_id }]"
             >
-              <option value="" disabled>{{ form.study_mode ? 'Choisir une spécialité' : 'Saisissez d’abord votre numéro' }}</option>
+              <option value="" disabled>{{ form.study_mode ? t('auth.register.chooseSpecialty') : t('auth.register.enterNumberFirst') }}</option>
               <option v-for="specialty in availableSpecialties" :key="specialty.specialty_id" :value="specialty.specialty_id">
                 {{ specialty.specialty_name }} ({{ specialty.specialty_code }})
               </option>
@@ -269,7 +271,7 @@ onMounted(fetchSessions)
           </div>
 
           <button type="submit" class="auth-btn" :disabled="!canContinue">
-            Continuer
+            {{ t('auth.register.continue') }}
             <svg class="auth-icon reg-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </button>
         </template>
@@ -278,13 +280,13 @@ onMounted(fetchSessions)
         <template v-else>
           <div class="auth-row">
             <div class="auth-field">
-              <label for="first_name" class="auth-label">Prénom</label>
+              <label for="first_name" class="auth-label">{{ t('auth.register.firstName') }}</label>
               <input id="first_name" v-model.trim="form.first_name" type="text" autocomplete="given-name" autofocus
                 :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.first_name }]" />
               <p v-if="fieldErrors.first_name" class="auth-error">{{ fieldErrors.first_name[0] }}</p>
             </div>
             <div class="auth-field">
-              <label for="last_name" class="auth-label">Nom</label>
+              <label for="last_name" class="auth-label">{{ t('auth.register.lastName') }}</label>
               <input id="last_name" v-model.trim="form.last_name" type="text" autocomplete="family-name"
                 :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.last_name }]" />
               <p v-if="fieldErrors.last_name" class="auth-error">{{ fieldErrors.last_name[0] }}</p>
@@ -293,13 +295,13 @@ onMounted(fetchSessions)
 
           <div class="auth-row">
             <div class="auth-field">
-              <label for="email" class="auth-label">Email</label>
-              <input id="email" v-model.trim="form.email" type="email" autocomplete="email" placeholder="nom@exemple.com"
+              <label for="email" class="auth-label">{{ t('auth.register.email') }}</label>
+              <input id="email" v-model.trim="form.email" type="email" autocomplete="email" :placeholder="t('auth.register.emailPlaceholder')"
                 :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.email }]" />
               <p v-if="fieldErrors.email" class="auth-error">{{ fieldErrors.email[0] }}</p>
             </div>
             <div class="auth-field">
-              <label for="phone" class="auth-label">Téléphone <span class="auth-label-hint">(facultatif)</span></label>
+              <label for="phone" class="auth-label">{{ t('auth.register.phone') }} <span class="auth-label-hint">{{ t('auth.register.optional') }}</span></label>
               <input id="phone" v-model.trim="form.phone" type="tel" autocomplete="tel" placeholder="0612345678"
                 :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.phone }]" />
               <p v-if="fieldErrors.phone" class="auth-error">{{ fieldErrors.phone[0] }}</p>
@@ -308,35 +310,35 @@ onMounted(fetchSessions)
 
           <div class="auth-row">
             <div class="auth-field">
-              <label for="password" class="auth-label">Mot de passe</label>
+              <label for="password" class="auth-label">{{ t('auth.register.password') }}</label>
               <div class="auth-control">
                 <input id="password" v-model="form.password" :type="showPassword ? 'text' : 'password'" autocomplete="new-password"
                   :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.password, 'is-valid': form.password.length >= 8 }]" />
-                <button type="button" class="auth-suffix" :aria-label="showPassword ? 'Masquer' : 'Afficher'" @click="showPassword = !showPassword">
+                <button type="button" class="auth-suffix" :aria-label="showPassword ? t('auth.register.hide') : t('auth.register.show')" @click="showPassword = !showPassword">
                   <svg v-if="!showPassword" class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
                   <svg v-else class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
                 </button>
               </div>
               <p v-if="fieldErrors.password" class="auth-error">{{ fieldErrors.password[0] }}</p>
-              <p v-else class="auth-help" :class="{ 'reg-good': form.password.length >= 8 }">{{ Math.min(form.password.length, 8) }}/8 caractères minimum</p>
+              <p v-else class="auth-help" :class="{ 'reg-good': form.password.length >= 8 }">{{ t('auth.register.minChars', { n: Math.min(form.password.length, 8) }) }}</p>
             </div>
             <div class="auth-field">
-              <label for="password_confirmation" class="auth-label">Confirmation</label>
+              <label for="password_confirmation" class="auth-label">{{ t('auth.register.confirm') }}</label>
               <input id="password_confirmation" v-model="form.password_confirmation" :type="showPassword ? 'text' : 'password'" autocomplete="new-password"
                 :class="['auth-input', 'no-icon', { 'is-invalid': fieldErrors.password_confirmation || (form.password_confirmation && form.password_confirmation !== form.password), 'is-valid': form.password_confirmation && form.password_confirmation === form.password }]" />
               <p v-if="fieldErrors.password_confirmation" class="auth-error">{{ fieldErrors.password_confirmation[0] }}</p>
-              <p v-else-if="form.password_confirmation && form.password_confirmation !== form.password" class="auth-error">Les mots de passe ne correspondent pas</p>
+              <p v-else-if="form.password_confirmation && form.password_confirmation !== form.password" class="auth-error">{{ t('auth.register.mismatch') }}</p>
             </div>
           </div>
 
           <div class="reg-actions">
             <button type="button" class="auth-btn auth-btn-ghost" @click="step = 1">
               <svg class="auth-icon reg-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-              Retour
+              {{ t('auth.register.back') }}
             </button>
             <button type="submit" class="auth-btn" :disabled="loading">
               <span v-if="loading" class="auth-spinner" aria-hidden="true"></span>
-              {{ loading ? 'Création…' : 'Créer mon compte' }}
+              {{ loading ? t('auth.register.submitting') : t('auth.register.submit') }}
             </button>
           </div>
         </template>
@@ -348,8 +350,8 @@ onMounted(fetchSessions)
       </form>
 
       <p class="auth-switch">
-        Déjà inscrit ?
-        <router-link to="/login">Se connecter</router-link>
+        {{ t('auth.register.already') }}
+        <router-link to="/login">{{ t('auth.register.signIn') }}</router-link>
       </p>
     </template>
   </AuthLayout>

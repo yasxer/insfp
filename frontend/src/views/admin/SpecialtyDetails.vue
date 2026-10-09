@@ -19,42 +19,42 @@
             </div>
             <div class="flex space-x-3">
               <button @click="openEditModal" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Edit
+                {{ t('common.edit') }}
               </button>
               <button @click="deleteSpecialty" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                Delete
+                {{ t('common.delete') }}
               </button>
             </div>
           </div>
           <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
             <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
               <div class="sm:col-span-1">
-                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Duration</dt>
-                <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ specialty.duration_years }} Years</dd>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('common.duration') }}</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ t('admin.specialty_details.ans', { p0: specialty.duration_years }) }}</dd>
               </div>
               <div class="sm:col-span-1">
-                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Current Semester</dt>
-                <dd class="mt-1 text-sm text-gray-900 dark:text-white">Semester {{ specialty.current_semester }}</dd>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('admin.specialty_details.semestre_actuel') }}</dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ t('admin.specialty_details.semestre', { p0: specialty.current_semester }) }}</dd>
               </div>
               <div class="sm:col-span-2">
-                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Program PDF</dt>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('admin.specialty_details.programme_pdf') }}</dt>
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white">
                   <div v-if="specialty.program_url" class="flex items-center">
                     <svg class="flex-shrink-0 h-5 w-5 text-gray-400 dark:text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
                     </svg>
                     <a :href="specialty.program_url" target="_blank" class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">
-                      Download Program PDF
+                      {{ t('admin.specialty_details.telecharger_programme_pdf') }}
                     </a>
                   </div>
-                  <span v-else class="text-gray-500 dark:text-gray-400 italic">No PDF uploaded</span>
+                  <span v-else class="text-gray-500 dark:text-gray-400 italic">{{ t('admin.specialty_details.aucun_programme_pdf') }}</span>
                 </dd>
               </div>
             </dl>
           </div>
         </div>
         <div v-if="specialty.cover_image_url" class="w-full md:w-1/3 bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-l border-gray-200 dark:border-gray-700">
-            <img :src="specialty.cover_image_url" alt="Cover Image" class="object-cover w-full h-full min-h-[200px] max-h-[400px]" />
+            <img :src="specialty.cover_image_url" :alt="t('admin.specialty_details.cover_image')" class="object-cover w-full h-full min-h-[200px] max-h-[400px]" />
         </div>
       </div>
     </div>
@@ -63,8 +63,8 @@
     <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
       <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
         <div>
-          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Modules</h3>
-          <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Modules taught in this specialty.</p>
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ t('common.modules') }}</h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ t('admin.specialty_details.modules_enseignes_dans_specialite') }}</p>
         </div>
         <button 
           @click="openAddModuleModal" 
@@ -73,7 +73,7 @@
           <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
-          Add Module
+          {{ t('admin.specialty_details.ajouter_module') }}
         </button>
       </div>
       <div class="border-t border-gray-200 dark:border-gray-700 p-6">
@@ -90,12 +90,12 @@
             </div>
             <div class="p-3 border-t border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
                <div class="flex justify-between items-center mb-2">
-                   <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Teachers</h4>
+                   <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('common.teachers') }}</h4>
                    <button @click="openAssignTeacherModal(module)" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center">
                      <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                      </svg>
-                     Assign
+                     {{ t('admin.specialty_details.affecter') }}
                    </button>
                </div>
                <div class="space-y-1 max-h-24 overflow-y-auto">
@@ -107,15 +107,15 @@
                          </svg>
                        </button>
                   </div>
-                   <div v-if="!module.teachers || module.teachers.length === 0" class="text-xs text-center text-gray-400 italic py-1">No teachers assigned</div>
+                   <div v-if="!module.teachers || module.teachers.length === 0" class="text-xs text-center text-gray-400 italic py-1">{{ t('admin.specialty_details.aucun_formateur_affecte') }}</div>
                </div>
             </div>
             <div class="border-t border-gray-100 dark:border-gray-600 pt-2 flex justify-between items-center px-4 pb-2">
-               <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Coefficient: {{ module.coefficient }}</span>
+               <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ t('admin.specialty_details.coefficient', { p0: module.coefficient }) }}</span>
                <button 
                  @click="deleteModule(module)" 
                  class="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                 title="Delete"
+                 :title="t('common.delete')"
                >
                  <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -125,7 +125,7 @@
           </div>
         </div>
         <div v-else class="text-center text-gray-500 dark:text-gray-400 py-4">
-          No modules found.
+          {{ t('admin.specialty_details.aucun_module') }}
         </div>
       </div>
     </div>
@@ -133,8 +133,8 @@
     <!-- Teachers -->
     <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
       <div class="px-4 py-5 sm:px-6">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Teachers</h3>
-        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Teachers assigned to this specialty.</p>
+        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ t('common.teachers') }}</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ t('admin.specialty_details.formateurs_affectes_specialite') }}</p>
       </div>
       <div class="border-t border-gray-200 dark:border-gray-700">
         <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -154,7 +154,7 @@
             </div>
           </li>
           <li v-if="teachers.length === 0" class="px-4 py-4 sm:px-6 text-center text-gray-500 dark:text-gray-400">
-            No teachers found.
+            {{ t('admin.specialty_details.aucun_formateur') }}
           </li>
         </ul>
       </div>
@@ -185,6 +185,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSpecialtiesStore } from '@/stores/specialties'
@@ -234,7 +236,7 @@ const handleSave = async (formData) => {
 }
 
 const deleteSpecialty = async () => {
-  if (confirm('Are you sure you want to delete this specialty? This action cannot be undone.')) {
+  if (confirm(t('admin.specialty_details.supprimer_specialite_action_est_irrevers'))) {
     try {
       await store.deleteSpecialty(specialty.value.id)
       router.push('/admin/specialties')
@@ -270,7 +272,7 @@ const handleModuleSave = async (moduleData) => {
 }
 
 const deleteModule = async (module) => {
-  if (confirm(`Are you sure you want to delete ${module.name}?`)) {
+  if (confirm(`Supprimer le module ${module.name} ?`)) {
     try {
       await modulesApi.deleteModule(module.id)
       // Refresh specialty data
@@ -305,7 +307,7 @@ const handleAssignTeacher = async (data) => {
 }
 
 const removeTeacherFromModule = async (module, teacher) => {
-  if (confirm(`Are you sure you want to remove ${teacher.full_name} from ${module.name}?`)) {
+  if (confirm(`Retirer ${teacher.full_name} du module ${module.name} ?`)) {
     try {
       await modulesApi.removeTeacher({
         module_id: module.id,

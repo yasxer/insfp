@@ -15,7 +15,15 @@ class ChatbotController extends Controller
     {
         $request->validate([
             'message' => 'required|string',
+            'lang' => 'nullable|in:fr,ar,en',
         ]);
+
+        // Answer in the language chosen on the site (the user may still write in another one)
+        $languageRule = [
+            'ar' => "Réponds en arabe (العربية الفصحى), car l'interface est en arabe.",
+            'en' => "Answer in English, because the interface is in English.",
+            'fr' => "Réponds en français, ou en darja si l'utilisateur écrit en darja.",
+        ][$request->input('lang', 'fr')];
 
         $userMessage = $request->message;
         // Read via config (not env()) so it still works once config is cached in prod.
@@ -85,6 +93,7 @@ Règles strictes et impératives :
 2. Si on te pose une question dont la réponse ne se trouve pas dans le contexte, dis poliment : \"Je suis désolé, je n'ai pas cette information car je me base uniquement sur notre base de données. Veuillez contacter l'administration.\"
 3. NE FOURNIS AUCUNE INFORMATION INVENTÉE OU PROVENANT D'INTERNET. TU TE BASES SEULEMENT SUR LE CONTEXTE.
 4. Tu NE DOIS POUVOIR RÉPONDRE à aucune question concernant des informations personnelles (étudiants, professeurs, etc.).
+5. Langue : {$languageRule}
 
 {$contextData}
 

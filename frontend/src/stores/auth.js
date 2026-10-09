@@ -25,7 +25,16 @@ export const useAuthStore = defineStore('auth', () => {
   const userName = computed(() => {
     const u = user.value
     if (!u) return ''
-    return u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || ''
+    // Older accounts keep the name on the teacher/student row only, and the merged
+    // profile responses nest it (user.name, teacher.full_name…): try them in order.
+    return (u.full_name || '').trim()
+      || [u.first_name, u.last_name].filter(Boolean).join(' ')
+      || u.user?.name
+      || u.teacher?.full_name
+      || u.student?.full_name
+      || u.administration?.full_name
+      || u.name
+      || ''
   })
 
   // Check if student profile is actually complete (has date_of_birth and address)

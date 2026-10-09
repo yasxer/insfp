@@ -1,26 +1,15 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useNavigation } from '@/composables/useNavigation'
+import { useI18n } from 'vue-i18n'
 import studentApi from '@/api/endpoints/student'
 import teacherApi from '@/api/endpoints/teacherPortal'
 import adminApi from '@/api/endpoints/admin'
-import {
-  HomeIcon,
-  CalendarIcon,
-  ClipboardDocumentCheckIcon,
-  AcademicCapIcon,
-  UserCircleIcon,
-  ArrowLeftOnRectangleIcon,
-  XMarkIcon,
-  EnvelopeIcon,
-  BookOpenIcon, ClipboardDocumentListIcon,
-  DocumentTextIcon,
-  IdentificationIcon,
-  ArrowTrendingUpIcon
-} from '@heroicons/vue/24/outline'
+import { ArrowLeftOnRectangleIcon, XMarkIcon, Bars3Icon, ChevronDoubleLeftIcon } from '@heroicons/vue/24/outline'
 
-const props = defineProps({
+defineProps({
   open: {
     type: Boolean,
     required: true
@@ -30,8 +19,29 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
+const { items, role, roleLabel, isActive } = useNavigation()
+const { t } = useI18n()
+
+// Desktop: icons only by default, the top button widens it. The choice is remembered.
+// (On mobile the sidebar always opens full width.)
+const COLLAPSED_KEY = 'sidebar-collapsed'
+const readCollapsed = () => {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) !== 'false'
+  } catch {
+    return true
+  }
+}
+const collapsed = ref(readCollapsed())
+const toggleCollapsed = () => {
+  collapsed.value = !collapsed.value
+  try {
+    localStorage.setItem(COLLAPSED_KEY, String(collapsed.value))
+  } catch {
+    // storage unavailable: keep the state for this visit only
+  }
+}
 
 const badges = ref({
   messages: 0,
@@ -40,23 +50,16 @@ const badges = ref({
   advancementReviews: 0
 })
 
-const userDisplay = ref({
-  name: '',
-  role: ''
-})
-
-// Watch for user changes in auth store
-watch(() => authStore.user, (newUser) => {
-  if (newUser) {
-    userDisplay.value = {
-      name: newUser.name || newUser.email || 'User',
-      role: newUser.role || ''
-    }
-  }
-}, { immediate: true, deep: true })
+const userName = computed(() => authStore.userName || authStore.user?.email || t('layout.user'))
+const initials = computed(() => userName.value
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((part) => part[0].toUpperCase())
+  .join('') || 'U')
 
 const fetchBadges = async () => {
-  if (authStore.user?.role === 'student') {
+  if (role.value === 'student') {
     try {
       const [msgRes, lessonRes, docRes] = await Promise.all([
         studentApi.getUnreadMessagesCount(),
@@ -64,6 +67,7 @@ const fetchBadges = async () => {
         studentApi.getNewDocumentsCount()
       ])
       badges.value = {
+        ...badges.value,
         messages: msgRes.count || 0,
         lessons: lessonRes.count || 0,
         documents: docRes.count || 0
@@ -71,21 +75,17 @@ const fetchBadges = async () => {
     } catch (err) {
       console.error('Failed to fetch student badges', err)
     }
-  } else if (authStore.user?.role === 'teacher') {
+  } else if (role.value === 'teacher') {
     try {
       const [msgRes, docRes] = await Promise.all([
         teacherApi.getUnreadMessagesCount(),
         teacherApi.getNewDocumentsCount()
       ])
-      badges.value = {
-        messages: msgRes.count || 0,
-        lessons: 0,
-        documents: docRes.count || 0
-      }
+      badges.value = { ...badges.value, messages: msgRes.count || 0, documents: docRes.count || 0 }
     } catch (err) {
       console.error('Failed to fetch teacher badges', err)
     }
-  } else if (authStore.user?.role === 'administration') {
+  } else if (role.value === 'administration') {
     try {
       const res = await adminApi.getAdvancementReviews('pending')
       badges.value.advancementReviews = res.pending_count || 0
@@ -97,101 +97,13 @@ const fetchBadges = async () => {
 
 onMounted(() => {
   fetchBadges()
-  
-  // Listen for message-read events to refresh badge count
+  // Refresh the counters when a message gets read
   window.addEventListener('message-read', fetchBadges)
 })
 
-// Cleanup on unmount
 onUnmounted(() => {
   window.removeEventListener('message-read', fetchBadges)
 })
-
-// Dynamic navigation items based on user role
-const navigationItems = computed(() => {
-  const role = authStore.user?.role
-  
-  // Student navigation
-  if (role === 'student') {
-    return [
-      { name: 'Dashboard', icon: HomeIcon, path: '/student/dashboard' },
-      { 
-        name: 'Messages', 
-        icon: EnvelopeIcon, 
-        path: '/student/messages',
-        badge: badges.value.messages 
-      },
-      { 
-        name: 'Courses', 
-        icon: BookOpenIcon, ClipboardDocumentListIcon, 
-        path: '/student/courses',
-        badge: badges.value.lessons
-      },
-      { 
-        name: 'Documents', 
-        icon: DocumentTextIcon, 
-        path: '/student/documents',
-        badge: badges.value.documents
-      },
-      { name: 'Deliberations', icon: AcademicCapIcon, path: '/student/deliberations' },
-      { name: 'Tasks/Homeworks', icon: ClipboardDocumentListIcon, path: '/student/homeworks' },
-      { name: 'Schedule', icon: CalendarIcon, path: '/student/schedule' },
-      { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/student/attendance' },
-      { name: 'Exams', icon: AcademicCapIcon, path: '/student/exams' },
-      { name: 'Profile', icon: UserCircleIcon, path: '/student/profile' },
-    ]
-  }
-  
-  // Teacher navigation
-  if (role === 'teacher') {
-    return [
-      { name: 'Dashboard', icon: HomeIcon, path: '/teacher/dashboard' },
-      { 
-        name: 'Messages', 
-        icon: EnvelopeIcon, 
-        path: '/teacher/messages',
-        badge: badges.value.messages 
-      },
-      { 
-        name: 'Documents', 
-        icon: DocumentTextIcon, 
-        path: '/teacher/documents',
-        badge: badges.value.documents
-      },
-      { name: 'Modules', icon: BookOpenIcon, ClipboardDocumentListIcon, path: '/teacher/modules' },
-      { name: 'Courses', icon: DocumentTextIcon, path: '/teacher/courses' },
-      { name: 'Tasks/Homeworks', icon: ClipboardDocumentListIcon, path: '/teacher/homeworks' },
-      { name: 'Schedule', icon: CalendarIcon, path: '/teacher/schedule' },
-      { name: 'Attendance', icon: ClipboardDocumentCheckIcon, path: '/teacher/attendance' },
-      { name: 'Exams & Grades', icon: AcademicCapIcon, path: '/teacher/exams' },
-    ]
-  }
-  
-  // Admin navigation
-  if (role === 'administration') {
-    return [
-      { name: 'Dashboard', icon: HomeIcon, path: '/admin/dashboard' },
-      { name: 'Students', icon: AcademicCapIcon, path: '/admin/students' },
-      { name: 'Teachers', icon: UserCircleIcon, path: '/admin/teachers' },
-      { name: 'Specialties', icon: ClipboardDocumentCheckIcon, path: '/admin/specialties' },
-      { name: 'Sessions', icon: BookOpenIcon, ClipboardDocumentListIcon, path: '/admin/sessions' },
-      { name: 'Deliberations', icon: AcademicCapIcon, path: '/admin/deliberations' },
-      { name: 'Passages', icon: ArrowTrendingUpIcon, path: '/admin/advancement-reviews', badge: badges.value.advancementReviews },
-      { name: 'Registration Gen', icon: IdentificationIcon, path: '/admin/registration-generator' },
-      { name: 'Schedule', icon: CalendarIcon, path: '/admin/schedule' },
-      { name: 'Examens', icon: AcademicCapIcon, path: '/admin/exams' },
-      { name: 'Files', icon: DocumentTextIcon, path: '/admin/files' },
-      { name: 'Profile', icon: UserCircleIcon, path: '/admin/profile' },
-    ]
-  }
-  
-  // Default fallback
-  return []
-})
-
-const isActive = (path) => {
-  return route.path === path
-}
 
 const handleLogout = async () => {
   await authStore.logout()
@@ -203,77 +115,125 @@ const handleLogout = async () => {
 <template>
   <div>
     <!-- Mobile overlay -->
-    <div 
-      v-if="open" 
-      @click="$emit('close')" 
-      class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-    ></div>
+    <Transition name="overlay">
+      <div
+        v-if="open"
+        class="fixed inset-0 z-40 bg-navy-950/40 backdrop-blur-sm lg:hidden"
+        @click="$emit('close')"
+      ></div>
+    </Transition>
 
-    <!-- Sidebar -->
-    <aside 
-      class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-transform duration-200 flex flex-col h-full"
-      :class="[
-        open ? 'translate-x-0' : '-translate-x-full',
-        'lg:translate-x-0'
-      ]"
+    <aside
+      class="fixed inset-y-0 start-0 z-50 flex h-full w-64 flex-col border-e border-gray-200 bg-white transition-[transform,width] duration-200 dark:border-gray-800 dark:bg-gray-900 lg:static lg:translate-x-0"
+      :class="[open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full', collapsed ? 'lg:w-20' : 'lg:w-64']"
     >
-      <!-- Header -->
-      <div class="h-16 px-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shrink-0">
-        <span class="text-xl font-bold text-blue-600 dark:text-white">INSFP</span>
-        <XMarkIcon 
-          class="w-6 h-6 text-gray-500 dark:text-white cursor-pointer lg:hidden" 
-          @click="$emit('close')" 
-        />
+      <!-- Top: logo + widen/narrow button -->
+      <div
+        class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-100 px-4 dark:border-gray-800"
+        :class="{ 'lg:justify-center lg:px-0': collapsed }"
+      >
+        <router-link to="/" class="flex min-w-0 items-center gap-3" :class="{ 'lg:hidden': collapsed }">
+          <img src="/logo.png" alt="Logo INSFP" class="h-9 w-9 shrink-0 object-contain" />
+          <span class="flex min-w-0 flex-col leading-tight">
+            <span class="font-serif text-lg font-bold tracking-wide text-navy-700 dark:text-white">INSFP</span>
+            <span class="truncate text-xs text-gray-500 dark:text-gray-400">{{ roleLabel || t('layout.platform') }}</span>
+          </span>
+        </router-link>
+
+        <!-- Mobile: close -->
+        <button class="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-navy-700 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden" :aria-label="t('layout.closeMenu')" @click="$emit('close')">
+          <XMarkIcon class="h-6 w-6" />
+        </button>
+
+        <!-- Desktop: widen / narrow -->
+        <button
+          class="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-navy-50 hover:text-navy-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white lg:inline-flex"
+          :aria-label="collapsed ? t('layout.expandMenu') : t('layout.collapseMenu')"
+          :title="collapsed ? t('layout.expandMenu') : t('layout.collapseMenu')"
+          :aria-expanded="!collapsed"
+          @click="toggleCollapsed"
+        >
+          <Bars3Icon v-if="collapsed" class="h-6 w-6" />
+          <ChevronDoubleLeftIcon v-else class="h-5 w-5 rtl:rotate-180" />
+        </button>
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-        <router-link 
-          v-for="item in navigationItems" 
-          :key="item.path" 
+      <nav class="flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-3 py-4" :aria-label="t('layout.mainMenu')">
+        <router-link
+          v-for="item in items"
+          :key="item.path"
           :to="item.path"
-          class="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors relative"
-          :class="isActive(item.path) ? 'bg-blue-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
+          class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+          :class="[
+            isActive(item.path)
+              ? 'bg-navy-50 text-navy-700 dark:bg-navy-900/50 dark:text-white'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-navy-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white',
+            { 'lg:justify-center lg:px-0': collapsed }
+          ]"
+          :title="collapsed ? item.name : undefined"
+          :aria-current="isActive(item.path) ? 'page' : undefined"
+          @click="$emit('close')"
         >
-          <div class="flex items-center">
-            <component :is="item.icon" class="w-5 h-5 mr-3" />
-            {{ item.name }}
-          </div>
-          <!-- Red dot indicator -->
-          <span 
-            v-if="item.badge && item.badge > 0" 
-            class="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+          <span
+            v-if="isActive(item.path)"
+            class="absolute start-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-e-full bg-gold-500"
+            aria-hidden="true"
           ></span>
+          <component
+            :is="item.icon"
+            class="h-5 w-5 shrink-0"
+            :class="isActive(item.path) ? 'text-navy-600 dark:text-gold-400' : 'text-gray-400 group-hover:text-navy-600 dark:group-hover:text-gray-200'"
+          />
+          <span class="flex-1 truncate" :class="{ 'lg:hidden': collapsed }">{{ item.name }}</span>
+
+          <template v-if="item.badge && badges[item.badge] > 0">
+            <!-- count when wide, dot on the icon when narrow -->
+            <span
+              class="min-w-[1.25rem] rounded-full bg-gold-500 px-1.5 py-0.5 text-center text-[11px] font-bold leading-none text-navy-900"
+              :class="{ 'lg:hidden': collapsed }"
+            >{{ badges[item.badge] > 99 ? '99+' : badges[item.badge] }}</span>
+            <span
+              v-if="collapsed"
+              class="absolute end-5 top-1.5 hidden h-2.5 w-2.5 rounded-full bg-gold-500 ring-2 ring-white dark:ring-gray-900 lg:block"
+              aria-hidden="true"
+            ></span>
+          </template>
         </router-link>
       </nav>
 
-      <!-- Footer -->
-      <div class="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0 space-y-2">
-        <div class="flex items-center gap-3 mb-3 px-4">
-          <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
-            <span class="text-blue-600 dark:text-blue-400 font-semibold text-xs">
-              {{ userDisplay.name?.charAt(0)?.toUpperCase() || 'U' }}
-            </span>
+      <!-- User -->
+      <div class="shrink-0 border-t border-gray-100 p-3 dark:border-gray-800">
+        <div class="flex items-center gap-3 px-2 py-2" :class="{ 'lg:justify-center lg:px-0': collapsed }" :title="collapsed ? userName : undefined">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">
+            {{ initials }}
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {{ userDisplay.name || 'User' }}
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 capitalize truncate">
-              {{ userDisplay.role }}
-            </p>
+          <div class="min-w-0 flex-1" :class="{ 'lg:hidden': collapsed }">
+            <p class="truncate text-sm font-medium text-gray-900 dark:text-white">{{ userName }}</p>
+            <p class="truncate text-xs text-gray-500 dark:text-gray-400">{{ roleLabel }}</p>
           </div>
         </div>
-        <button 
-          @click="handleLogout" 
-          class="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+        <button
+          class="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-300 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+          :class="{ 'lg:justify-center lg:px-0': collapsed }"
+          :title="collapsed ? t('layout.logout') : undefined"
+          @click="handleLogout"
         >
-          <ArrowLeftOnRectangleIcon class="w-5 h-5 mr-3" />
-          Logout
+          <ArrowLeftOnRectangleIcon class="h-5 w-5 shrink-0" />
+          <span :class="{ 'lg:hidden': collapsed }">{{ t('layout.logout') }}</span>
         </button>
       </div>
     </aside>
   </div>
 </template>
 
-
+<style scoped>
+.overlay-enter-active,
+.overlay-leave-active {
+  transition: opacity 0.2s ease;
+}
+.overlay-enter-from,
+.overlay-leave-to {
+  opacity: 0;
+}
+</style>

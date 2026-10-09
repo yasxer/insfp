@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import teacherApi from '@/api/endpoints/teacherPortal'
@@ -44,14 +46,14 @@ const goBack = () => {
         @click="goBack"
         class="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
       >
-        <ArrowLeftIcon class="w-5 h-5" />
+        <ArrowLeftIcon class="rtl:rotate-180 w-5 h-5" />
       </button>
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ moduleData?.name || 'Chargement...' }}
         </h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Module Code: {{ moduleData?.code || '...' }} | {{ students.length }} Étudiants inscrits
+          Code du module : {{ moduleData?.code || '...' }} | {{ students.length }} Stagiaires inscrits
         </p>
       </div>
     </div>
@@ -65,8 +67,8 @@ const goBack = () => {
     <template v-else>
       <div v-if="students.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
         <UserCircleIcon class="w-12 h-12 mx-auto text-gray-400 mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucun étudiant trouvé</h3>
-        <p class="mt-1 text-gray-500">Il n'y a pas d'étudiants inscrits dans la spécialité de ce module.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('teacher.module_students.aucun_stagiaire_trouve') }}</h3>
+        <p class="mt-1 text-gray-500">{{ t('teacher.module_students.il_n_y_pas_stagiaires') }}</p>
       </div>
 
       <!-- Students Table -->
@@ -76,13 +78,13 @@ const goBack = () => {
             <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Étudiant
+                  {{ t('common.student') }}
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Matricule
+                  {{ t('teacher.module_students.matricule') }}
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Contact
+                  {{ t('teacher.module_students.contact') }}
                 </th>
               </tr>
             </thead>
@@ -116,7 +118,7 @@ const goBack = () => {
                       <PhoneIcon class="flex-shrink-0 w-4 h-4 mr-1.5 text-gray-400" />
                       <span>{{ student.phone }}</span>
                     </div>
-                    <span v-if="!student.email && !student.phone" class="text-gray-400 italic">Aucun contact</span>
+                    <span v-if="!student.email && !student.phone" class="text-gray-400 italic">{{ t('teacher.module_students.aucun_contact') }}</span>
                   </div>
                 </td>
               </tr>

@@ -3,9 +3,9 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sessions (Promotions)</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('admin.sessions.sessions_promotions') }}</h1>
         <p class="text-gray-500 dark:text-gray-400 mt-1">
-          Gérer les sessions de formation et leurs spécialités
+          {{ t('admin.sessions.gerer_sessions_formation_leurs_specialit') }}
         </p>
       </div>
       <div class="flex gap-3">
@@ -14,15 +14,15 @@
           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
         >
           <ArchiveBoxIcon class="w-5 h-5" />
-          <span v-if="!showArchived">Voir les archives</span>
-          <span v-else>Sessions actuelles</span>
+          <span v-if="!showArchived">{{ t('admin.sessions.voir_archives') }}</span>
+          <span v-else>{{ t('admin.sessions.sessions_actuelles') }}</span>
         </button>
         <button
           @click="openCreateModal"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
           <PlusIcon class="w-5 h-5" />
-          Nouvelle Session
+          {{ t('admin.sessions.nouvelle_session') }}
         </button>
       </div>
     </div>
@@ -36,7 +36,7 @@
       <div class="flex items-center gap-3">
         <ExclamationTriangleIcon class="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0" />
         <p class="text-sm text-amber-800 dark:text-amber-200">
-          La <strong>{{ alert.name }}</strong> est prête : son mois est arrivé, vous pouvez l'activer.
+          {{ t('admin.sessions.la') }} <strong>{{ alert.name }}</strong> {{ t('admin.sessions.est_prete_son_mois_est') }}
         </p>
       </div>
       <button
@@ -44,7 +44,7 @@
         :disabled="activating"
         class="px-3 py-1.5 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 shrink-0"
       >
-        Activer
+        {{ t('admin.sessions.activer') }}
       </button>
     </div>
 
@@ -81,7 +81,7 @@
                   </span>
                   <span class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <UsersIcon class="w-4 h-4" />
-                    {{ session.students_count || 0 }} étudiants
+                    {{ t('admin.sessions.etudiants', { p0: session.students_count || 0 }) }}
                   </span>
                 </div>
               </div>
@@ -92,7 +92,7 @@
                 @click="activateSession(session)"
                 :disabled="activating"
                 class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/50 rounded-lg transition-colors disabled:opacity-50"
-                title="Activer cette session"
+                :title="t('admin.sessions.activer_session')"
               >
                 <CheckCircleIcon class="w-5 h-5" />
               </button>
@@ -106,14 +106,14 @@
               <button
                 @click="openSessionDetails(session)"
                 class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
-                title="Gérer les spécialités"
+                :title="t('admin.sessions.gerer_specialites')"
               >
                 <Cog6ToothIcon class="w-5 h-5" />
               </button>
               <button
                 @click="openEditModal(session)"
                 class="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/50 rounded-lg transition-colors"
-                title="Modifier"
+                :title="t('common.edit')"
               >
                 <PencilSquareIcon class="w-5 h-5" />
               </button>
@@ -121,7 +121,7 @@
                 v-if="session.students_count === 0"
                 @click="confirmDelete(session)"
                 class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-lg transition-colors"
-                title="Supprimer"
+                :title="t('common.delete')"
               >
                 <TrashIcon class="w-5 h-5" />
               </button>
@@ -152,7 +152,7 @@
                 </div>
               </div>
               <div v-else class="text-sm text-gray-400 dark:text-gray-500 italic">
-                Aucune spécialité
+                {{ t('admin.sessions.aucune_specialite') }}
               </div>
             </div>
           </div>
@@ -164,17 +164,17 @@
     <div v-else class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
       <FolderOpenIcon class="w-16 h-16 mx-auto text-gray-400 mb-4" />
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        {{ showArchived ? 'Aucune session archivée' : 'Aucune session active' }}
+        {{ showArchived ? t('admin.sessions.aucune_session_archivee') : t('admin.sessions.aucune_session_active') }}
       </h3>
       <p class="text-gray-500 dark:text-gray-400 mb-6">
-        {{ showArchived ? 'Les sessions terminées apparaîtront ici.' : 'Commencez par créer votre première session.' }}
+        {{ showArchived ? t('admin.sessions.sessions_terminees_apparaitront_ici') : t('admin.sessions.commencez_creer_premiere_session') }}
       </p>
       <button
         v-if="!showArchived"
         @click="openCreateModal"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
-        Créer une session
+        {{ t('admin.sessions.creer_session') }}
       </button>
     </div>
 
@@ -184,26 +184,26 @@
         <div class="fixed inset-0 bg-black/50" @click="closeModal"></div>
         <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            {{ editingSession ? 'Modifier la session' : 'Nouvelle session' }}
+            {{ editingSession ? t('admin.sessions.modifier_session') : t('admin.sessions.nouvelle_session') }}
           </h3>
           
           <form @submit.prevent="saveSession" class="space-y-4">
             <!-- Editing an existing session: month/year can still be corrected -->
             <div v-if="editingSession" class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mois</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('admin.sessions.mois') }}</label>
                 <select
                   v-model="formData.month"
                   required
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
                   <option v-for="m in allowedMonths" :key="m.value" :value="m.value">
-                    {{ m.label }}
+                    {{ t('labels.months.' + m.value) }}
                   </option>
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('admin.sessions.annee') }}</label>
                 <select
                   v-model="formData.year"
                   required
@@ -218,19 +218,19 @@
 
             <!-- Creating a new session: the next intake is computed automatically -->
             <p v-if="!editingSession" class="text-sm text-gray-500 dark:text-gray-400">
-              La session est toujours ouverte pour la prochaine rentrée (Février ou Septembre) — elle est calculée automatiquement, pas besoin de choisir.
+              {{ t('admin.sessions.session_est_toujours_ouverte_prochaine') }}
             </p>
 
             <!-- Preview -->
             <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
               <p class="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Session:</strong> {{ previewSessionName }}
+                <strong>{{ t('admin.sessions.session') }}</strong> {{ previewSessionName }}
               </p>
               <p class="text-sm text-blue-800 dark:text-blue-200 mt-1">
-                <strong>Date de fin:</strong> {{ previewEndDate }}
+                <strong>{{ t('admin.sessions.date_fin') }}</strong> {{ previewEndDate }}
               </p>
               <p v-if="!editingSession && nextSlotInfo?.already_exists" class="text-sm text-amber-700 dark:text-amber-300 mt-2">
-                Cette session existe déjà.
+                {{ t('admin.sessions.session_existe_deja') }}
               </p>
             </div>
 
@@ -240,14 +240,14 @@
                 @click="closeModal"
                 class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                Annuler
+                {{ t('common.cancel') }}
               </button>
               <button
                 type="submit"
                 :disabled="saving || (!editingSession && nextSlotInfo?.already_exists)"
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {{ saving ? 'Enregistrement...' : (editingSession ? 'Modifier' : 'Créer') }}
+                {{ saving ? 'Enregistrement...' : (editingSession ? t('common.edit') : t('admin.sessions.creer')) }}
               </button>
             </div>
           </form>
@@ -274,7 +274,7 @@
           <div class="p-6">
             <!-- Add Specialty Form -->
             <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6">
-              <h4 class="font-medium text-gray-900 dark:text-white mb-3">Ajouter une spécialité</h4>
+              <h4 class="font-medium text-gray-900 dark:text-white mb-3">{{ t('admin.sessions.ajouter_specialite') }}</h4>
               <form @submit.prevent="addSpecialty" class="flex flex-wrap gap-3">
                 <div class="flex-1 min-w-[200px]">
                   <select
@@ -282,7 +282,7 @@
                     required
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                    <option value="">Sélectionner une spécialité</option>
+                    <option value="">{{ t('admin.sessions.selectionner_specialite') }}</option>
                     <option v-for="specialty in specialties" :key="specialty.id" :value="specialty.id">
                       {{ specialty.name }} ({{ specialty.code }})
                     </option>
@@ -294,10 +294,10 @@
                     required
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                    <option value="">Type d'étude</option>
-                    <option value="presential">Présentiel</option>
-                    <option value="apprentissage">Apprentissage</option>
-                    <option value="cours_soir">Cours du soir</option>
+                    <option value="">{{ t('admin.sessions.type_etude') }}</option>
+                    <option value="presential">{{ t('admin.sessions.presentiel') }}</option>
+                    <option value="apprentissage">{{ t('admin.sessions.apprentissage') }}</option>
+                    <option value="cours_soir">{{ t('admin.sessions.cours_soir') }}</option>
                   </select>
                 </div>
                 <button
@@ -306,7 +306,7 @@
                   class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
                 >
                   <PlusIcon class="w-4 h-4" />
-                  {{ addingSpecialty ? 'Ajout...' : 'Ajouter' }}
+                  {{ addingSpecialty ? 'Ajout...' : t('common.add') }}
                 </button>
               </form>
             </div>
@@ -339,15 +339,15 @@
                       v-if="specialty.students_count === 0"
                       @click="removeSpecialty(specialty.id)"
                       class="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/50 rounded"
-                      title="Retirer"
+                      :title="t('admin.sessions.retirer')"
                     >
                       <XMarkIcon class="w-4 h-4" />
                     </button>
-                    <span v-else class="text-xs text-gray-400">{{ specialty.students_count }} étud.</span>
+                    <span v-else class="text-xs text-gray-400">{{ t('admin.sessions.etud', { p0: specialty.students_count }) }}</span>
                   </div>
                 </div>
                 <div v-else class="text-sm text-gray-400 dark:text-gray-500 italic py-4 text-center">
-                  Aucune spécialité
+                  {{ t('admin.sessions.aucune_specialite') }}
                 </div>
               </div>
             </div>
@@ -365,25 +365,24 @@
             <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
               <ExclamationTriangleIcon class="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Confirmer la suppression</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('admin.sessions.confirmer_suppression') }}</h3>
           </div>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
-            Êtes-vous sûr de vouloir supprimer la session <strong>{{ sessionToDelete?.name }}</strong> ?
-            Cette action est irréversible.
+            {{ t('admin.sessions.etes_vous_vouloir_supprimer_session') }} <strong>{{ sessionToDelete?.name }}</strong> {{ t('admin.sessions.action_est_irreversible') }}
           </p>
           <div class="flex justify-end gap-3">
             <button
               @click="showDeleteModal = false"
               class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              Annuler
+              {{ t('common.cancel') }}
             </button>
             <button
               @click="deleteSession"
               :disabled="deleting"
               class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
             >
-              {{ deleting ? 'Suppression...' : 'Supprimer' }}
+              {{ deleting ? 'Suppression...' : t('common.delete') }}
             </button>
           </div>
         </div>
@@ -415,6 +414,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue';
 import { useSessionsStore } from '@/stores/sessions';
 import {
@@ -507,12 +509,12 @@ const previewEndDate = computed(() => {
   if (!previewMonth.value || !previewYear.value) return '-';
   const startDate = new Date(previewYear.value, previewMonth.value - 1, 1);
   startDate.setMonth(startDate.getMonth() + 30);
-  return startDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  return startDate.toLocaleDateString(dateLocale(), { month: 'long', year: 'numeric' });
 });
 
 // Methods
 const formatDate = (dateStr) => {
-  return new Date(dateStr).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString(dateLocale(), { month: 'short', year: 'numeric' });
 };
 
 const statusBadgeClass = (status) => {

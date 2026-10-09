@@ -1,5 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
+import { ref, computed, onMounted } from 'vue'
 import { maxBirthDate, MIN_BIRTH_DATE } from '@/utils/dates'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -11,6 +14,7 @@ const authStore = useAuthStore()
 const themeStore = useThemeStore()
 
 const loading = ref(true)
+const studyModeLabels = computed(() => Object.fromEntries(['initial', 'alternance', 'continue'].map((m) => [m, t('labels.studyMode.' + m)])))
 const saving = ref(false)
 const error = ref(null)
 const successMessage = ref(null)
@@ -80,7 +84,7 @@ const loadProfile = async () => {
   } catch (err) {
     console.error('❌ Failed to fetch profile:', err)
     console.error('Error Response:', err.response?.data)
-    error.value = 'Failed to load profile data. Please try again.'
+    error.value = t('student.profile.impossible_charger_profil_reessayez')
   } finally {
     loading.value = false
   }
@@ -129,7 +133,7 @@ const saveProfile = async () => {
       created_at: response.created_at
     }
     
-    successMessage.value = 'Profile updated successfully!'
+    successMessage.value = t('student.profile.profile_updated_successfully')
     editMode.value = false
     
     setTimeout(() => {
@@ -147,12 +151,12 @@ const saveProfile = async () => {
 const changePassword = async () => {
   // Validate
   if (passwordForm.value.new_password !== passwordForm.value.confirm_password) {
-    error.value = 'Passwords do not match'
+    error.value = t('student.profile.mots_passe_ne_correspondent_pas')
     return
   }
   
   if (passwordForm.value.new_password.length < 8) {
-    error.value = 'Password must be at least 8 characters'
+    error.value = t('student.profile.mot_passe_doit_contenir_moins')
     return
   }
   
@@ -165,8 +169,7 @@ const changePassword = async () => {
       new_password: passwordForm.value.new_password
     })
     
-    successMessage.value = 'Password changed successfully!'
-    
+    successMessage.value = t('student.profile.password_changed_successfully')
     // Clear form
     passwordForm.value = {
       current_password: '',
@@ -194,8 +197,8 @@ onMounted(() => {
   <div>
     <!-- Header -->
     <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">My Profile</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-2">Manage your personal information and settings</p>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ t('student.profile.mon_profil') }}</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">{{ t('student.profile.gerez_informations_personnelles_preferen') }}</p>
     </div>
 
     <div v-if="loading" class="flex justify-center items-center h-64">
@@ -222,7 +225,7 @@ onMounted(() => {
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 ]">
-          Personal Information
+          {{ t('student.profile.informations_personnelles') }}
         </button>
         <button @click="activeTab = 'settings'; error = null"
                 :class="[
@@ -231,13 +234,13 @@ onMounted(() => {
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 ]">
-          Settings
+          {{ t('student.profile.parametres') }}
         </button>
       </div>
 
       <!-- Personal Information Tab -->
       <div v-show="activeTab === 'info'">
-        <Card title="Profile Information">
+        <Card :title="t('student.profile.informations_profil')">
           <div class="space-y-6">
             <!-- Avatar + Name -->
             <div class="flex items-center gap-6 pb-6 border-b border-gray-200 dark:border-gray-700">
@@ -246,7 +249,7 @@ onMounted(() => {
               </div>
               <div>
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ profile.first_name }} {{ profile.last_name }}</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Registration Number: {{ profile.registration_number }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ t('student.profile.numero_dinscription', { p0: profile.registration_number }) }}</p>
               </div>
             </div>
             
@@ -254,74 +257,74 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- First Name -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('common.first_name') }}</label>
                 <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.first_name || 'N/A' }}</p>
               </div>
 
               <!-- Last Name -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('common.last_name') }}</label>
                 <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.last_name || 'N/A' }}</p>
               </div>
               
               <!-- Email -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('student.profile.adresse_email') }}</label>
                 <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.email || 'N/A' }}</p>
               </div>
               
               <!-- Phone -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('common.phone') }}</label>
                 <input v-if="editMode" v-model="editableProfile.phone" type="tel" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <p v-else class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.phone || 'N/A' }}</p>
               </div>
               
               <!-- Date of Birth -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('student.profile.date_naissance') }}</label>
                 <input v-if="editMode" v-model="editableProfile.date_of_birth" type="date" :min="MIN_BIRTH_DATE" :max="maxBirthDate()" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <p v-else class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.date_of_birth || 'N/A' }}</p>
               </div>
 
               <!-- Specialty -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Specialty</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('common.specialty') }}</label>
                 <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.specialty?.name || 'N/A' }}</p>
               </div>
 
               <!-- Current Semester -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Semester</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('student.profile.semestre_actuel') }}</label>
                 <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.current_semester || 'N/A' }}</p>
               </div>
 
               <!-- Study Mode -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Study Mode</label>
-                <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.study_mode || 'N/A' }}</p>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('student.profile.mode_formation') }}</label>
+                <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ studyModeLabels[profile.study_mode] || profile.study_mode || 'N/A' }}</p>
               </div>
               
               <!-- Address (full width) -->
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('common.address') }}</label>
                 <textarea v-if="editMode" v-model="editableProfile.address" rows="3" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
                 <p v-else class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[80px]">{{ profile.address || 'N/A' }}</p>
               </div>
               
               <!-- Enrollment Date (read-only) -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Enrollment Date</label>
-                <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A' }}</p>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('student.profile.date_dinscription') }}</label>
+                <p class="px-4 py-2 text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 rounded-lg">{{ profile.created_at ? new Date(profile.created_at).toLocaleDateString(dateLocale()) : 'N/A' }}</p>
               </div>
             </div>
             
             <!-- Action buttons -->
             <div class="flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button v-if="!editMode" @click="enableEdit" class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">Edit Profile</button>
+              <button v-if="!editMode" @click="enableEdit" class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">{{ t('student.profile.modifier_profil') }}</button>
               <template v-else>
-                <button @click="cancelEdit" class="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium">Cancel</button>
-                <button @click="saveProfile" :disabled="saving" class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
+                <button @click="cancelEdit" class="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium">{{ t('common.cancel') }}</button>
+                <button @click="saveProfile" :disabled="saving" class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">{{ saving ? t('common.saving') : t('common.save') }}</button>
               </template>
             </div>
           </div>
@@ -331,11 +334,11 @@ onMounted(() => {
       <!-- Settings Tab -->
       <div v-show="activeTab === 'settings'" class="space-y-6">
         <!-- Theme Settings -->
-        <Card title="Appearance">
+        <Card :title="t('student.profile.apparence')">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">Dark Mode</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Toggle between light and dark theme</p>
+              <h3 class="text-base font-medium text-gray-900 dark:text-white">{{ t('student.profile.mode_sombre') }}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ t('student.profile.basculer_entre_theme_clair_theme') }}</p>
             </div>
             <button @click="themeStore.toggleTheme"
                     type="button"
@@ -349,11 +352,11 @@ onMounted(() => {
         </Card>
         
         <!-- Change Password -->
-        <Card title="Change Password">
+        <Card :title="t('student.profile.changer_mot_passe')">
           <form @submit.prevent="changePassword" class="space-y-5">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Current Password
+                {{ t('student.profile.mot_passe_actuel') }}
               </label>
               <input v-model="passwordForm.current_password"
                      type="password"
@@ -363,19 +366,19 @@ onMounted(() => {
             
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                New Password
+                {{ t('student.profile.nouveau_mot_passe') }}
               </label>
               <input v-model="passwordForm.new_password"
                      type="password"
                      required
                      minlength="8"
                      class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">Must be at least 8 characters long</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">{{ t('student.profile.n8_caracteres_minimum') }}</p>
             </div>
             
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Confirm New Password
+                {{ t('student.profile.confirmer_nouveau_mot_passe') }}
               </label>
               <input v-model="passwordForm.confirm_password"
                      type="password"
@@ -387,7 +390,7 @@ onMounted(() => {
               <button type="submit"
                       :disabled="saving"
                       class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ saving ? 'Updating...' : 'Update Password' }}
+                {{ saving ? t('student.profile.mise_jour') : t('student.profile.changer_mot_passe') }}
               </button>
             </div>
           </form>

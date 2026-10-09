@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import teacherApi from '@/api/endpoints/teacherPortal'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -20,7 +23,7 @@ const loadDocuments = async () => {
     documents.value = response.data || []
   } catch (err) {
     console.error('Failed to load documents:', err)
-    error.value = 'Erreur lors du chargement des documents'
+    error.value = t('teacher.documents.erreur_lors_chargement_documents')
   } finally {
     loading.value = false
   }
@@ -45,7 +48,7 @@ const handleDownload = async (doc) => {
     window.URL.revokeObjectURL(url)
   } catch (err) {
     console.error('Failed to download document:', err)
-    error.value = 'Erreur lors du téléchargement du document'
+    error.value = t('teacher.documents.erreur_lors_telechargement_document')
     // Clear error after 3 seconds
     setTimeout(() => { error.value = null }, 3000)
   }
@@ -88,9 +91,9 @@ onMounted(() => {
   <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Fichiers & Documents</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('teacher.documents.fichiers_documents') }}</h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Documents partagés par l'administration
+          {{ t('teacher.documents.documents_partages_administration') }}
         </p>
       </div>
     </div>
@@ -99,7 +102,7 @@ onMounted(() => {
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       <div class="flex items-center gap-4 text-sm font-medium text-gray-700 dark:text-gray-300">
         <DocumentTextIcon class="w-5 h-5 text-indigo-500" />
-        <span>{{ documents.length }} Documents disponibles</span>
+        <span>{{ t('teacher.documents.documents_disponibles', { p0: documents.length }) }}</span>
       </div>
     </div>
 
@@ -109,14 +112,14 @@ onMounted(() => {
 
     <div v-else-if="error" class="text-center py-12">
       <p class="text-red-600 dark:text-red-400">{{ error }}</p>
-      <button @click="loadDocuments" class="mt-4 text-indigo-600 hover:underline">Réessayer</button>
+      <button @click="loadDocuments" class="mt-4 text-indigo-600 hover:underline">{{ t('teacher.documents.reessayer') }}</button>
     </div>
 
     <template v-else>
       <div v-if="documents.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
         <DocumentTextIcon class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucun document</h3>
-        <p class="text-gray-500 mt-1">L'administration n'a pas encore partagé de fichiers avec vous.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('teacher.documents.aucun_document') }}</h3>
+        <p class="text-gray-500 mt-1">{{ t('teacher.documents.administration_n_pas_encore_partage') }}</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -134,7 +137,7 @@ onMounted(() => {
                 {{ getCategoryLabel(doc.category) }}
               </span>
               <div v-if="doc.is_new" class="flex items-center text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded">
-                NOUVEAU
+                {{ t('teacher.documents.nouveau') }}
               </div>
             </div>
 
@@ -158,7 +161,7 @@ onMounted(() => {
                 </span>
                 <span class="flex items-center">
                   <CalendarIcon class="w-4 h-4 mr-1" />
-                  {{ new Date(doc.created_at).toLocaleDateString('fr-FR') }}
+                  {{ new Date(doc.created_at).toLocaleDateString(dateLocale()) }}
                 </span>
               </div>
             </div>
@@ -170,7 +173,7 @@ onMounted(() => {
               class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium text-sm"
             >
               <ArrowDownTrayIcon class="w-5 h-5" />
-              Télécharger
+              {{ t('common.download') }}
             </button>
           </div>
         </div>

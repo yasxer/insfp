@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -44,11 +46,11 @@ const getGradeClass = (grade) => {
 }
 
 const getGradeBadge = (grade) => {
-  if (grade >= 16) return { text: 'Excellent', class: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' }
-  if (grade >= 14) return { text: 'Very Good', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' }
-  if (grade >= 12) return { text: 'Good', class: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400' }
-  if (grade >= 10) return { text: 'Pass', class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' }
-  return { text: 'Failed', class: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' }
+  if (grade >= 16) return { text: t('labels.gradeBadge.excellent'), class: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' }
+  if (grade >= 14) return { text: t('labels.gradeBadge.tres_bien'), class: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' }
+  if (grade >= 12) return { text: t('labels.gradeBadge.bien'), class: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400' }
+  if (grade >= 10) return { text: t('labels.gradeBadge.passable'), class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' }
+  return { text: t('labels.gradeBadge.insuffisant'), class: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' }
 }
 
 const isExamSoon = (dateString) => {
@@ -70,7 +72,7 @@ onMounted(async () => {
     upcomingExams.value = upcomingData.exams || []
   } catch (err) {
     console.error('Failed to fetch exams:', err)
-    error.value = 'Failed to load exam data'
+    error.value = t('student.exams.impossible_charger_examens')
   } finally {
     loading.value = false
   }
@@ -81,9 +83,9 @@ onMounted(async () => {
   <div>
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Exams & Results</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('student.exams.examens_resultats') }}</h1>
       <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-        View your exam results and upcoming exams
+        {{ t('student.exams.consultez_notes_prochains_examens') }}
       </p>
     </div>
 
@@ -106,9 +108,9 @@ onMounted(async () => {
               <ChartBarIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Average Grade</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('student.exams.moyenne_epreuves') }}</p>
               <h3 class="text-2xl font-bold mt-1" :class="getGradeClass(averageGrade)">
-                {{ averageGrade }} / 20
+                {{ averageGrade }}/20
               </h3>
             </div>
           </div>
@@ -121,7 +123,7 @@ onMounted(async () => {
               <ClipboardDocumentListIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Exams</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('student.exams.epreuves') }}</p>
               <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ totalExams }}</h3>
             </div>
           </div>
@@ -134,7 +136,7 @@ onMounted(async () => {
               <CheckCircleIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Passed</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('student.exams.reussies') }}</p>
               <h3 class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ passedExams }}</h3>
             </div>
           </div>
@@ -147,7 +149,7 @@ onMounted(async () => {
               <XCircleIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Failed</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('student.exams.non_reussies') }}</p>
               <h3 class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ failedExams }}</h3>
             </div>
           </div>
@@ -163,7 +165,7 @@ onMounted(async () => {
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 ]">
-          Exam Results
+          {{ t('student.exams.resultats') }}
         </button>
         <button @click="activeTab = 'upcoming'"
                 :class="[
@@ -172,7 +174,7 @@ onMounted(async () => {
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 ]">
-          Upcoming Exams
+          {{ t('student.exams.examens_venir') }}
           <span v-if="upcomingExams.length > 0" class="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">
             {{ upcomingExams.length }}
           </span>
@@ -181,32 +183,32 @@ onMounted(async () => {
 
       <!-- Results Tab -->
       <div v-if="activeTab === 'results'">
-        <Card title="Exam Results">
+        <Card :title="t('student.exams.resultats')">
           <div class="overflow-x-auto">
             <table class="w-full">
               <thead>
                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Subject</th>
-                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Exam Type</th>
-                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Date</th>
-                  <th class="text-center py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Grade</th>
-                  <th class="text-center py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Status</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.module') }}</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.type') }}</th>
+                  <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.date') }}</th>
+                  <th class="text-center py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.grade') }}</th>
+                  <th class="text-center py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.status') }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="examResults.length === 0">
                   <td colspan="5" class="text-center py-8 text-gray-500 dark:text-gray-400">
-                    No exam results available yet
+                    {{ t('student.exams.aucune_note_disponible_moment') }}
                   </td>
                 </tr>
                 <tr v-for="exam in examResults" :key="exam.id" 
                     class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <td class="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">{{ exam.subject }}</td>
-                  <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{{ exam.type }}</td>
+                  <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{{ exam.type_code ? t('labels.examType.' + exam.type_code) : exam.type }}</td>
                   <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{{ exam.date }}</td>
                   <td class="py-3 px-4 text-center">
                     <span :class="getGradeClass(exam.grade)" class="text-lg">
-                      {{ exam.grade }} / 20
+                      {{ exam.grade }}/20
                     </span>
                   </td>
                   <td class="py-3 px-4 text-center">
@@ -227,7 +229,7 @@ onMounted(async () => {
         <div v-if="upcomingExams.length === 0">
           <Card>
             <p class="text-center py-8 text-gray-500 dark:text-gray-400">
-              No upcoming exams scheduled
+              {{ t('student.exams.aucun_examen_programme') }}
             </p>
           </Card>
         </div>
@@ -237,7 +239,7 @@ onMounted(async () => {
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ exam.subject }}</h3>
               <span v-if="isExamSoon(exam.date)" 
                     class="px-2 py-1 bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 text-xs font-medium rounded">
-                Soon
+                {{ t('student.exams.bientot') }}
               </span>
             </div>
             <div class="space-y-2 text-sm">
@@ -255,11 +257,11 @@ onMounted(async () => {
               </div>
               <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <TagIcon class="w-4 h-4" />
-                <span>{{ exam.type }}</span>
+                <span>{{ exam.type_code ? t('labels.examType.' + exam.type_code) : exam.type }}</span>
               </div>
               <div v-if="exam.duration" class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <ClockIcon class="w-4 h-4" />
-                <span>Duration: {{ exam.duration }}</span>
+                <span>{{ t('student.exams.duree', { p0: exam.duration }) }}</span>
               </div>
             </div>
           </Card>

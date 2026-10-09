@@ -98,18 +98,18 @@ class Document extends Model
     {
         switch ($this->target_type) {
             case self::TARGET_ALL_TEACHERS:
-                return 'All Teachers';
+                return 'Tous les formateurs';
             case self::TARGET_ALL_STUDENTS:
-                return 'All Students';
+                return 'Tous les stagiaires';
             case self::TARGET_SESSION_STUDENTS:
-                $sessionName = $this->session?->name ?? 'Unknown Session';
-                return "Session: {$sessionName} (All Specialties)";
+                $sessionName = $this->session?->name ?? 'Session inconnue';
+                return "{$sessionName} (toutes les spécialités)";
             case self::TARGET_SPECIALTY_STUDENTS:
-                $sessionName = $this->session?->name ?? 'Unknown Session';
+                $sessionName = $this->session?->name ?? 'Session inconnue';
                 $count = is_array($this->specialty_ids) ? count($this->specialty_ids) : 0;
-                return "Session: {$sessionName} ({$count} Specialties)";
+                return "{$sessionName} ({$count} spécialité(s))";
             default:
-                return 'Unknown';
+                return 'Inconnu';
         }
     }
 }

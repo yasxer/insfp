@@ -177,8 +177,9 @@ export const useStudentsStore = defineStore('students', {
         semester: null,
         group: null,
         study_mode: null,
-        approved: null,
-        is_graduated: null
+        // Keep the current tab (active / graduated, approved accounts only)
+        approved: this.filters.approved,
+        is_graduated: this.filters.is_graduated
       }
       this.pagination.current_page = 1
     }

@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import studentApi from '@/api/endpoints/student'
@@ -28,7 +30,7 @@ const loadMessages = async () => {
     console.log('Messages loaded:', messages.value.length)
   } catch (err) {
     console.error('Failed to load messages:', err)
-    error.value = 'Failed to load messages'
+    error.value = t('student.messages.impossible_charger_messages')
   } finally {
     loading.value = false
   }
@@ -49,7 +51,7 @@ const openMessage = async (message) => {
     window.dispatchEvent(new CustomEvent('message-read'))
   } catch (err) {
     console.error('Failed to load message:', err)
-    error.value = 'Failed to load message details'
+    error.value = t('student.messages.impossible_charger_message')
   }
 }
 
@@ -82,7 +84,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Messages</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ t('common.messages') }}</h1>
 
     <div v-if="loading" class="flex justify-center items-center h-64">
       <LoadingSpinner size="large" />
@@ -95,7 +97,7 @@ onMounted(() => {
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Messages List -->
       <div class="lg:col-span-1">
-        <Card title="Inbox">
+        <Card :title="t('student.messages.boite_reception')">
           <div class="space-y-2">
             <button
               v-for="message in messages"
@@ -133,7 +135,7 @@ onMounted(() => {
 
             <div v-if="messages.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
               <EnvelopeIcon class="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p>No messages yet</p>
+              <p>{{ t('student.messages.aucun_message') }}</p>
             </div>
           </div>
         </Card>
@@ -144,7 +146,7 @@ onMounted(() => {
         <Card v-if="selectedMessage">
           <template #title>
             <div class="flex items-center justify-between">
-              <span>Message Details</span>
+              <span>{{ t('student.messages.detail_message') }}</span>
               <button 
                 @click="closeMessage"
                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -164,7 +166,7 @@ onMounted(() => {
               <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <div class="flex items-center gap-2">
                   <UserIcon class="w-4 h-4" />
-                  <span>From: {{ selectedMessage.sender.name }}</span>
+                  <span>{{ t('student.messages.de_p0', { p0: selectedMessage.sender.name }) }}</span>
                   <span :class="['px-2 py-0.5 rounded text-xs capitalize', 
                     selectedMessage.sender.role === 'administration' 
                       ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
@@ -192,7 +194,7 @@ onMounted(() => {
         <div v-else class="flex items-center justify-center h-96 text-gray-500 dark:text-gray-400">
           <div class="text-center">
             <EnvelopeIcon class="w-20 h-20 mx-auto mb-4 opacity-30" />
-            <p class="text-lg">Select a message to read</p>
+            <p class="text-lg">{{ t('student.messages.selectionnez_message_lire') }}</p>
           </div>
         </div>
       </div>

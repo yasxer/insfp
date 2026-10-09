@@ -9,7 +9,7 @@
           @click="$emit('back')"
           class="p-1.5 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="rtl:rotate-180 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </button>
@@ -17,11 +17,11 @@
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
             {{ specialty.specialty_name }}
             <span class="text-indigo-500 dark:text-indigo-400"> · S{{ specialty.semester }}</span>
-            <span v-if="group" class="text-indigo-500 dark:text-indigo-400"> · Groupe {{ group }}</span>
+            <span v-if="group" class="text-indigo-500 dark:text-indigo-400"> {{ t('admin.specialty_timetable.groupe', { p0: group }) }}</span>
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            {{ studyModeLabel(specialty.study_mode) }} · {{ specialty.students_count }} étudiant(s)
-            <span v-if="isReadonly" class="ml-2 text-xs text-amber-600 dark:text-amber-400">(Archive – lecture seule)</span>
+            {{ t('admin.specialty_timetable.etudiant_s', { p0: studyModeLabel(specialty.study_mode), p1: specialty.students_count }) }}
+            <span v-if="isReadonly" class="ml-2 text-xs text-amber-600 dark:text-amber-400">{{ t('admin.specialty_timetable.archive_lecture_seule') }}</span>
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@
           :disabled="saving"
           class="px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700 rounded-lg hover:bg-amber-100 transition-colors disabled:opacity-50"
         >
-          ✎ Modifier
+          {{ t('admin.specialty_timetable.modifier') }}
         </button>
         <button
           v-else
@@ -42,7 +42,7 @@
           :disabled="saving || schedules.length === 0"
           class="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {{ saving ? 'Sauvegarde...' : '✓ Finaliser' }}
+          {{ saving ? 'Sauvegarde...' : t('admin.specialty_timetable.finaliser') }}
         </button>
       </div>
     </div>
@@ -56,7 +56,7 @@
         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
       </svg>
       <p class="text-sm text-green-800 dark:text-green-200">
-        Emploi du temps finalisé. Cliquez <strong>Modifier</strong> pour le rouvrir.
+        {{ t('admin.specialty_timetable.emploi_temps_finalise_cliquez') }} <strong>{{ t('common.edit') }}</strong> {{ t('admin.specialty_timetable.rouvrir') }}
       </p>
     </div>
 
@@ -71,7 +71,7 @@
         <thead>
           <tr class="bg-gray-50 dark:bg-gray-700/60 border-b border-gray-200 dark:border-gray-700">
             <th class="w-20 px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Horaire
+              {{ t('common.time') }}
             </th>
             <th
               v-for="day in days"
@@ -158,6 +158,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted, watch } from 'vue'
 import schedulesApi from '@/api/endpoints/schedules'
 import ScheduleEntryModal from './ScheduleEntryModal.vue'
@@ -260,7 +262,7 @@ async function onEntrySaved() {
 
 // ── Delete ────────────────────────────────────────────────────────────────────
 async function deleteEntry(schedule) {
-  if (!confirm('Supprimer cette séance ?')) return
+  if (!confirm(t('admin.specialty_timetable.supprimer_seance'))) return
   try {
     await schedulesApi.deleteSchedule(schedule.id)
     await fetchSchedules()

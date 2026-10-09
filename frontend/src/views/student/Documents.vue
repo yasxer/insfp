@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import studentApi from '@/api/endpoints/student'
 import Card from '@/components/common/Card.vue'
@@ -24,7 +27,7 @@ const loadDocuments = async () => {
     console.log('Documents loaded:', documents.value.length)
   } catch (err) {
     console.error('Failed to load documents:', err)
-    error.value = 'Failed to load documents'
+    error.value = t('student.documents.impossible_charger_documents')
   } finally {
     loading.value = false
   }
@@ -51,7 +54,7 @@ const downloadDocument = async (doc) => {
     }
   } catch (err) {
     console.error('Failed to download document:', err)
-    toastStore.error('Failed to download file')
+    toastStore.error(t('student.documents.echec_telechargement'))
   }
 }
 
@@ -62,7 +65,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Documents</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ t('student.documents.documents') }}</h1>
 
     <div v-if="loading" class="flex justify-center items-center h-64">
       <LoadingSpinner size="large" />
@@ -84,7 +87,7 @@ onMounted(() => {
               <DocumentTextIcon class="w-8 h-8 text-gray-600 dark:text-gray-300" />
             </div>
             <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-              {{ new Date(doc.created_at).toLocaleDateString('fr-FR') }}
+              {{ new Date(doc.created_at).toLocaleDateString(dateLocale()) }}
             </span>
           </div>
           
@@ -93,7 +96,7 @@ onMounted(() => {
           </h3>
           
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 h-10">
-            {{ doc.description || 'No description provided' }}
+            {{ doc.description || t('student.documents.aucune_description') }}
           </p>
           
           <button 
@@ -101,14 +104,14 @@ onMounted(() => {
             class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
           >
             <ArrowDownTrayIcon class="w-4 h-4" />
-            Download
+            {{ t('common.download') }}
           </button>
         </div>
       </div>
 
       <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">
         <DocumentTextIcon class="w-16 h-16 mx-auto mb-4 opacity-30" />
-        <p>No documents available yet.</p>
+        <p>{{ t('student.documents.aucun_document_disponible_moment') }}</p>
       </div>
     </Card>
   </div>

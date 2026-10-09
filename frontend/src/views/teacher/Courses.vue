@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Courses Management</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('teacher.courses.supports_cours') }}</h1>
     </div>
 
     <!-- Error Alert -->
@@ -21,13 +21,13 @@
       <!-- Upload Form -->
       <div class="lg:col-span-1">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Upload Course Material</h2>
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ t('teacher.courses.deposer_support_cours') }}</h2>
           
           <form @submit.prevent="submitForm" class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Module</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.module') }}</label>
               <select v-model="form.module_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm" required>
-                <option value="" disabled>Select a module</option>
+                <option value="" disabled>{{ t('teacher.courses.choisir_module') }}</option>
                 <option v-for="module in modules" :key="module.id" :value="module.id">
                   {{ module.name }} ({{ module.code }})
                 </option>
@@ -35,23 +35,23 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.title') }}</label>
               <input type="text" v-model="form.title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm" required>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description (Optional)</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('teacher.courses.description_facultatif') }}</label>
               <textarea v-model="form.description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"></textarea>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">File</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.file') }}</label>
               <input type="file" @change="handleFileUpload" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-gray-700 dark:file:text-indigo-400" required>
             </div>
 
             <button type="submit" :disabled="uploading" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400">
-              <span v-if="uploading">Uploading...</span>
-              <span v-else>Upload Course</span>
+              <span v-if="uploading">{{ t('teacher.courses.envoi') }}</span>
+              <span v-else>{{ t('teacher.courses.deposer_support') }}</span>
             </button>
           </form>
         </div>
@@ -61,8 +61,8 @@
       <div class="lg:col-span-2 space-y-6">
         <div v-if="modules.length === 0" class="bg-gray-50 dark:bg-gray-800 p-8 text-center rounded-lg border border-gray-200 dark:border-gray-700">
           <BookOpenIcon class="mx-auto h-12 w-12 text-gray-400" />
-          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No modules assigned</h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">You don't have any modules assigned to you yet.</p>
+          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ t('teacher.courses.aucun_module_affecte') }}</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t('teacher.courses.aucun_module_ne_vous_est') }}</p>
         </div>
 
         <div v-for="module in modules" :key="module.id" class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
@@ -72,13 +72,13 @@
               <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ module.code }}</p>
             </div>
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              {{ module.lessons.length }} courses
+              {{ t('teacher.courses.support_s', { p0: module.lessons.length }) }}
             </span>
           </div>
           
           <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
             <li v-if="module.lessons.length === 0" class="px-4 py-4 sm:px-6 text-sm text-gray-500 dark:text-gray-400 text-center">
-              No courses uploaded yet.
+              {{ t('teacher.courses.aucun_support_depose_moment') }}
             </li>
             <li v-for="lesson in module.lessons" :key="lesson.id" class="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
               <div class="flex items-center justify-between">
@@ -108,6 +108,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import teacherApi from '@/api/endpoints/teacherPortal'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -132,7 +134,7 @@ const fetchCourses = async () => {
     const response = await teacherApi.getCourses()
     modules.value = response.modules || []
   } catch (err) {
-    error.value = 'Failed to load courses. Please try again.'
+    error.value = t('teacher.courses.impossible_charger_cours_reessayez')
   } finally {
     loading.value = false
   }
@@ -147,7 +149,7 @@ const handleFileUpload = (event) => {
 
 const submitForm = async () => {
   if (!form.value.module_id || !form.value.title || !form.value.file) {
-    error.value = 'Please fill out all required fields.'
+    error.value = t('teacher.courses.veuillez_remplir_tous_champs_obligatoire')
     return
   }
   
@@ -185,13 +187,13 @@ const submitForm = async () => {
 }
 
 const deleteLesson = async (id) => {
-  if (!confirm('Are you sure you want to delete this course?')) return
+  if (!confirm(t('teacher.courses.supprimer_support_cours'))) return
   
   try {
     await teacherApi.deleteCourse(id)
     await fetchCourses()
   } catch (err) {
-    error.value = 'Failed to delete course.'
+    error.value = t('teacher.courses.impossible_supprimer_support')
   }
 }
 

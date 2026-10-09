@@ -3,11 +3,11 @@
     <div class="flex flex-wrap gap-4 items-end">
       <!-- Search -->
       <div class="flex-1 min-w-[200px]">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.search') }}</label>
         <input
           v-model="filters.search"
           type="text"
-          placeholder="Name, ID or Email..."
+          :placeholder="t('admin.student_filters.nom_numero_ou_email')"
           class="w-full p-2 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           @input="emitFilters"
         />
@@ -15,13 +15,13 @@
 
       <!-- Specialty -->
       <div class="w-48">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Specialty</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.specialty') }}</label>
         <select
           v-model="filters.specialty_id"
           class="w-full rounded-md p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           @change="emitFilters"
         >
-          <option :value="null">All Specialties</option>
+          <option :value="null">{{ t('admin.student_filters.toutes_specialites') }}</option>
           <option v-for="specialty in specialties" :key="specialty.id" :value="specialty.id">
             {{ specialty.name }}
           </option>
@@ -32,29 +32,29 @@
       <template v-if="tab === 'active'">
         <!-- Year/Semester -->
         <div class="w-32">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.semester') }}</label>
           <select
             v-model="filters.semester"
             class="w-full rounded-md p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             @change="emitFilters"
           >
-            <option :value="null">All</option>
+            <option :value="null">{{ t('common.all') }}</option>
             <option v-for="n in 6" :key="n" :value="n">S{{ n }}</option>
           </select>
         </div>
 
         <!-- Group -->
         <div class="w-32">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Group</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.group') }}</label>
           <select
             v-model="filters.group"
             class="w-full rounded-md p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             @change="emitFilters"
           >
-            <option :value="null">All</option>
-            <option value="A">Group A</option>
-            <option value="B">Group B</option>
-            <option value="C">Group C</option>
+            <option :value="null">{{ t('common.all') }}</option>
+            <option value="A">{{ t('admin.student_filters.groupe') }}</option>
+            <option value="B">{{ t('admin.student_filters.groupe_b') }}</option>
+            <option value="C">{{ t('admin.student_filters.groupe_c') }}</option>
           </select>
         </div>
       </template>
@@ -63,11 +63,11 @@
       <template v-else>
         <!-- Graduation Year -->
         <div class="w-32">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Graduation Year</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('admin.student_filters.annee_diplome') }}</label>
           <input
             v-model="filters.graduation_year"
             type="number"
-            placeholder="Year"
+            :placeholder="t('admin.student_filters.annee')"
             class="w-full rounded-md p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             @input="emitFilters"
           />
@@ -79,13 +79,15 @@
         @click="clearFilters"
         class="px-4 py-2 bg-gray-100 p-2 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
       >
-        Clear
+        {{ t('common.clear') }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, watch } from 'vue'
 import axios from '@/api/axios'
 

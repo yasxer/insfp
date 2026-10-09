@@ -10,16 +10,16 @@
           <div class="sm:flex sm:items-start">
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
               <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                Assign Teacher to {{ module?.name }}
+                Affecter un formateur à {{ module?.name }}
               </h3>
               <div class="mt-4">
-                <label for="teacher" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Teacher</label>
+                <label for="teacher" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.assign_teacher_modal.choisir_formateur') }}</label>
                 <select 
                   v-model="selectedTeacherId" 
                   id="teacher" 
                   class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
-                  <option value="" disabled>Select a teacher</option>
+                  <option value="" disabled>{{ t('admin.assign_teacher_modal.choisir_formateur') }}</option>
                   <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
                     {{ teacher.full_name }} ({{ teacher.specialization }})
                   </option>
@@ -36,14 +36,14 @@
             @click="assign"
             :disabled="loading || !selectedTeacherId"
           >
-            {{ loading ? 'Assigning...' : 'Assign' }}
+            {{ loading ? t('admin.assign_teacher_modal.affectation') : t('admin.assign_teacher_modal.affecter') }}
           </button>
           <button 
             type="button" 
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
             @click="close"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
         </div>
       </div>
@@ -52,6 +52,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, watch } from 'vue'
 import { useTeachersStore } from '@/stores/teachers'
 

@@ -10,25 +10,25 @@
           <div class="sm:flex sm:items-start">
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
               <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                Add New Module
+                {{ t('admin.module_form.nouveau_module') }}
               </h3>
               <div class="mt-4 space-y-4">
                 <!-- Name -->
                 <div>
-                  <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                  <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.last_name') }}</label>
                   <input 
                     type="text" 
                     v-model="form.name" 
                     id="name" 
                     class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md" 
-                    placeholder="Database Management"
+                    :placeholder="t('admin.module_form.ex_bases_donnees')"
                   >
                   <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
                 </div>
 
                 <!-- Code -->
                 <div>
-                  <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Code</label>
+                  <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.code') }}</label>
                   <input 
                     type="text" 
                     v-model="form.code" 
@@ -41,7 +41,7 @@
 
                 <!-- Description -->
                 <div>
-                  <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                  <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.description') }}</label>
                   <textarea 
                     v-model="form.description" 
                     id="description" 
@@ -52,25 +52,25 @@
 
                 <!-- Semester -->
                 <div>
-                  <label for="semester" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Semester</label>
+                  <label for="semester" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.semester') }}</label>
                   <select 
                     v-model="form.semester" 
                     id="semester" 
                     class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
-                    <option :value="1">Semester 1</option>
-                    <option :value="2">Semester 2</option>
-                    <option :value="3">Semester 3</option>
-                    <option :value="4">Semester 4</option>
-                    <option :value="5">Semester 5</option>
-                    <option :value="6">Semester 6</option>
+                    <option :value="1">{{ t('admin.module_form.semestre_1') }}</option>
+                    <option :value="2">{{ t('admin.module_form.semestre_2') }}</option>
+                    <option :value="3">{{ t('admin.module_form.semestre_3') }}</option>
+                    <option :value="4">{{ t('admin.module_form.semestre_4') }}</option>
+                    <option :value="5">{{ t('admin.module_form.semestre_5') }}</option>
+                    <option :value="6">{{ t('admin.module_form.semestre_6') }}</option>
                   </select>
                   <p v-if="errors.semester" class="mt-1 text-sm text-red-600">{{ errors.semester }}</p>
                 </div>
 
                 <!-- Coefficient -->
                 <div>
-                  <label for="coefficient" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coefficient</label>
+                  <label for="coefficient" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.coefficient') }}</label>
                   <input 
                     type="number" 
                     step="0.5" 
@@ -85,7 +85,7 @@
 
                 <!-- Hours per week -->
                 <div>
-                  <label for="hours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hours per Week</label>
+                  <label for="hours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.module_form.heures_semaine') }}</label>
                   <input 
                     type="number" 
                     min="1" 
@@ -107,14 +107,14 @@
             @click="submit" 
             :disabled="loading"
           >
-            {{ loading ? 'Saving...' : 'Save' }}
+            {{ loading ? t('common.saving') : t('common.save') }}
           </button>
           <button 
             type="button" 
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-500 shadow-sm px-4 py-2 bg-white dark:bg-gray-600 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" 
             @click="close"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
         </div>
       </div>
@@ -123,6 +123,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, reactive, watch } from 'vue'
 
 const props = defineProps({

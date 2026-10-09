@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 defineProps({
   students: {
     type: Array,
@@ -22,16 +24,16 @@ const getYearLabel = (year) => {
       <thead class="bg-gray-50 dark:bg-gray-800/50">
         <tr>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            {{ isTeachers ? 'Enseignant' : 'Étudiant' }}
+            {{ isTeachers ? t('common.teacher') : t('common.student') }}
           </th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            {{ isTeachers ? 'Email' : 'Numéro d\'inscription' }}
+            {{ isTeachers ? t('common.email') : t('admin.featured_students_table.numero_inscription') }}
           </th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            Spécialité
+            {{ t('common.specialty') }}
           </th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            Année
+            {{ t('admin.featured_students_table.annee') }}
           </th>
         </tr>
       </thead>
@@ -73,7 +75,7 @@ const getYearLabel = (year) => {
         </tr>
         <tr v-if="students.length === 0">
           <td colspan="4" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-            {{ isTeachers ? 'Aucun enseignant trouvé' : 'Aucun étudiant trouvé' }}
+            {{ isTeachers ? t('admin.featured_students_table.aucun_formateur') : t('admin.featured_students_table.aucun_stagiaire') }}
           </td>
         </tr>
       </tbody>

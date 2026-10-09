@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import { maxBirthDate, MIN_BIRTH_DATE } from '@/utils/dates'
 import { useRouter } from 'vue-router'
@@ -89,7 +91,7 @@ const handleSubmit = async () => {
     
     if (err.response?.status === 422) {
       fieldErrors.value = err.response.data.errors
-      error.value = 'Please correct the errors below.'
+      error.value = t('student.complete_profile.veuillez_corriger_champs_signales')
     } else {
       error.value = err.response?.data?.message || 'Failed to complete profile'
     }
@@ -110,7 +112,7 @@ const handleSubmit = async () => {
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         </div>
-        <p class="text-gray-600 dark:text-gray-400">Loading your profile...</p>
+        <p class="text-gray-600 dark:text-gray-400">{{ t('student.complete_profile.chargement_profil') }}</p>
       </div>
 
       <!-- Success State -->
@@ -118,8 +120,8 @@ const handleSubmit = async () => {
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900 mb-4">
           <CheckCircleIcon class="w-10 h-10 text-green-600" />
         </div>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Profile Completed!</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-4">Redirecting to dashboard...</p>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ t('student.complete_profile.profil_complete') }}</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">{{ t('student.complete_profile.redirection_vers_tableau_bord') }}</p>
         <div class="flex justify-center">
           <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
         </div>
@@ -133,10 +135,10 @@ const handleSubmit = async () => {
             <UserCircleIcon class="w-12 h-12 text-blue-600 dark:text-blue-300" />
           </div>
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Complete Your Profile
+            {{ t('student.complete_profile.completez_profil') }}
           </h1>
           <p class="text-gray-600 dark:text-gray-400">
-            We need a few more details to set up your account
+            {{ t('student.complete_profile.quelques_informations_sont_necessaires_f') }}
           </p>
         </div>
 
@@ -144,7 +146,7 @@ const handleSubmit = async () => {
           <!-- Date of Birth -->
           <div>
             <label for="date_of_birth" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Date of Birth <span class="text-red-500">*</span>
+              {{ t('student.complete_profile.date_naissance') }} <span class="text-red-500">*</span>
             </label>
             <input
               id="date_of_birth"
@@ -164,14 +166,14 @@ const handleSubmit = async () => {
           <!-- Address -->
           <div>
             <label for="address" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Address <span class="text-red-500">*</span>
+              {{ t('common.address') }} <span class="text-red-500">*</span>
             </label>
             <textarea
               id="address"
               v-model="form.address"
               required
               rows="4"
-              placeholder="Enter your full address (e.g., Street, City, Wilaya)"
+              :placeholder="t('student.complete_profile.adresse_complete_rue_ville_wilaya')"
               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
               :class="{'border-red-500': fieldErrors.address}"
             ></textarea>
@@ -179,14 +181,14 @@ const handleSubmit = async () => {
               {{ fieldErrors.address[0] }}
             </p>
             <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Minimum 10 characters required
+              {{ t('student.complete_profile.n10_caracteres_minimum') }}
             </p>
           </div>
 
           <!-- Phone (Optional) -->
           <div>
             <label for="phone" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Phone Number <span class="text-gray-400 font-normal">(Optional)</span>
+              {{ t('common.phone') }} <span class="text-gray-400 font-normal">{{ t('student.complete_profile.facultatif') }}</span>
             </label>
             <input
               id="phone"
@@ -218,14 +220,14 @@ const handleSubmit = async () => {
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {{ loading ? 'Completing Profile...' : 'Complete Profile & Continue' }}
+            {{ loading ? t('common.saving') : t('student.complete_profile.enregistrer_continuer') }}
           </button>
         </form>
 
         <!-- Info -->
         <div class="mt-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
           <p class="text-sm text-blue-700 dark:text-blue-300">
-            <strong>Note:</strong> You need to complete your profile to access the dashboard and other features.
+            <strong>{{ t('student.complete_profile.remarque') }}</strong> {{ t('student.complete_profile.completez_profil_acceder_espace_stagiair') }}
           </p>
         </div>
       </div>

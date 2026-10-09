@@ -2,8 +2,8 @@
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Emplois du Temps</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Gérer les emplois du temps par spécialité et par session</p>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('admin.schedule.emplois_temps') }}</h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t('admin.schedule.gerer_emplois_temps_specialite_session') }}</p>
     </div>
 
     <!-- Loading sessions -->
@@ -33,7 +33,7 @@
                 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400': session.status === 'archived',
               }"
             >
-              {{ session.status === 'active' ? 'Actuel' : session.status === 'pending' ? 'En attente' : 'Archive' }}
+              {{ session.status === 'active' ? t('admin.schedule.actuel') : session.status === 'pending' ? t('common.pending') : t('admin.schedule.archive') }}
             </span>
           </button>
         </nav>
@@ -41,7 +41,7 @@
 
       <!-- No sessions -->
       <div v-if="sessions.length === 0" class="text-center py-16">
-        <p class="text-gray-500 dark:text-gray-400">Aucune session trouvée. Créez d'abord une session.</p>
+        <p class="text-gray-500 dark:text-gray-400">{{ t('admin.schedule.aucune_session_trouvee_creez_abord') }}</p>
       </div>
 
       <!-- Session content -->
@@ -82,20 +82,20 @@
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
               <p class="text-sm font-medium text-green-800 dark:text-green-200">
-                Tous les emplois du temps sont finalisés !
+                {{ t('admin.schedule.tous_emplois_temps_sont_finalises') }}
               </p>
             </div>
             <button
               @click="showNotifyDialog = true"
               class="ml-4 shrink-0 px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
             >
-              Notifier étudiants &amp; enseignants
+              {{ t('admin.schedule.notifier_etudiants_enseignants') }}
             </button>
           </div>
 
           <!-- No specialties -->
           <div v-if="specialties.length === 0" class="text-center py-12">
-            <p class="text-gray-500 dark:text-gray-400">Aucune spécialité avec des étudiants actifs dans cette session.</p>
+            <p class="text-gray-500 dark:text-gray-400">{{ t('admin.schedule.aucune_specialite_avec_etudiants_actifs') }}</p>
           </div>
 
           <template v-else>
@@ -108,29 +108,29 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <span>
-                Brouillon (projection) : les cohortes sont affichées <strong>au semestre qu'elles auront après activation</strong> (+1), et la nouvelle promotion apparaît en <strong>S1</strong>. L'emploi du temps préparé ici deviendra l'emploi du temps actif une fois la session activée.
+                {{ t('admin.schedule.brouillon_projection_cohortes_sont_affic') }} <strong>{{ t('admin.schedule.semestre_qu_elles_auront_apres') }}</strong> {{ t('admin.schedule.n1_nouvelle_promotion_apparait') }} <strong>S1</strong>{{ t('admin.schedule.emploi_temps_prepare_ici_deviendra') }}
               </span>
             </div>
 
             <!-- Filters: semester + study mode -->
             <div class="flex flex-wrap items-center gap-3">
               <div class="flex items-center gap-2">
-                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Semestre :</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('admin.schedule.semestre') }}</label>
                 <select
                   v-model="filterSemester"
                   class="text-sm py-1.5 px-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Tous</option>
+                  <option value="">{{ t('common.all') }}</option>
                   <option v-for="s in availableSemesters" :key="s" :value="s">S{{ s }}</option>
                 </select>
               </div>
               <div class="flex items-center gap-2">
-                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Mode d'étude :</label>
+                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('admin.schedule.mode_etude') }}</label>
                 <select
                   v-model="filterStudyMode"
                   class="text-sm py-1.5 px-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Tous</option>
+                  <option value="">{{ t('common.all') }}</option>
                   <option v-for="m in availableStudyModes" :key="m" :value="m">{{ studyModeLabel(m) }}</option>
                 </select>
               </div>
@@ -139,16 +139,16 @@
                 @click="filterSemester = ''; filterStudyMode = ''"
                 class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
               >
-                Réinitialiser
+                {{ t('admin.schedule.reinitialiser') }}
               </button>
               <span class="ml-auto text-xs text-gray-400 dark:text-gray-500">
-                {{ filteredSpecialties.length }} / {{ specialties.length }} affichée(s)
+                {{ t('admin.schedule.affichee_s', { p0: filteredSpecialties.length, p1: specialties.length }) }}
               </span>
             </div>
 
             <!-- No results after filtering -->
             <div v-if="filteredSpecialties.length === 0" class="text-center py-12">
-              <p class="text-gray-500 dark:text-gray-400">Aucune spécialité ne correspond aux filtres.</p>
+              <p class="text-gray-500 dark:text-gray-400">{{ t('admin.schedule.aucune_specialite_ne_correspond_filtres') }}</p>
             </div>
 
             <!-- Specialty cards grid -->
@@ -164,7 +164,7 @@
                   <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate">
                     {{ item.specialty_name }}
                     <span v-if="item.is_new" class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 align-middle">
-                      Nouvelle promo
+                      {{ t('admin.schedule.nouvelle_promo') }}
                     </span>
                   </h3>
                   <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ item.specialty_code }} · S{{ item.semester }}</p>
@@ -178,26 +178,26 @@
                     'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400': !item.is_published && !item.is_partial,
                   }"
                 >
-                  {{ item.is_published ? '✓ Finalisé' : item.is_partial ? '⏳ En cours' : '○ À faire' }}
+                  {{ item.is_published ? t('admin.schedule.finalise') : item.is_partial ? t('admin.schedule.cours') : t('admin.schedule.faire') }}
                 </span>
               </div>
 
               <!-- Info row -->
               <div class="flex flex-wrap gap-x-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
                 <span>{{ studyModeLabel(item.study_mode) }}</span>
-                <span>{{ item.students_count }} étudiant(s)</span>
-                <span v-if="item.groups_count > 0">{{ item.groups_count }} groupe(s)</span>
+                <span>{{ t('admin.schedule.etudiant_s', { p0: item.students_count }) }}</span>
+                <span v-if="item.groups_count > 0">{{ t('admin.schedule.groupe_s', { p0: item.groups_count }) }}</span>
               </div>
 
               <!-- Schedules count -->
               <p class="text-xs text-indigo-500 dark:text-indigo-400 mb-3">
-                {{ item.schedules_count }} séance(s) planifiée(s)
+                {{ t('admin.schedule.seance_s_planifiee_s', { p0: item.schedules_count }) }}
               </p>
 
               <!-- Group buttons (when has groups) -->
               <div v-if="item.groups_count > 0" class="mb-3">
                 <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                  {{ !isArchived ? 'Gérer par groupe :' : 'Voir par groupe :' }}
+                  {{ !isArchived ? t('admin.schedule.gerer_groupe') : t('admin.schedule.voir_groupe') }}
                 </p>
                 <div class="flex flex-wrap gap-1.5">
                   <button
@@ -209,7 +209,7 @@
                       ? 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200'"
                   >
-                    Groupe {{ grp }}
+                    {{ t('admin.schedule.groupe', { p0: grp }) }}
                   </button>
                 </div>
               </div>
@@ -226,8 +226,8 @@
                     : 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200'"
                 >
                   {{ !isArchived
-                      ? (item.is_published ? '✎ Modifier' : '+ Éditer')
-                      : '👁 Voir' }}
+                      ? (item.is_published ? t('admin.schedule.modifier') : t('admin.schedule.editer'))
+                      : t('admin.schedule.voir') }}
                 </button>
               </div>
             </div>
@@ -242,23 +242,23 @@
       <div v-if="showNotifyDialog" class="fixed inset-0 z-50 flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-gray-900/60" @click="showNotifyDialog = false"></div>
         <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Notifier tout le monde ?</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ t('admin.schedule.notifier_tout_monde') }}</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-            Un message sera envoyé à tous les étudiants et enseignants pour les informer que les emplois du temps de la session <strong>{{ selectedSession?.name }}</strong> sont disponibles.
+            {{ t('admin.schedule.message_sera_envoye_tous_etudiants') }} <strong>{{ selectedSession?.name }}</strong> {{ t('admin.schedule.sont_disponibles') }}
           </p>
           <div class="flex justify-end space-x-3">
             <button
               @click="showNotifyDialog = false"
               class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50"
             >
-              Annuler
+              {{ t('common.cancel') }}
             </button>
             <button
               @click="sendNotification"
               :disabled="notifying"
               class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
             >
-              {{ notifying ? 'Envoi...' : 'Oui, notifier' }}
+              {{ notifying ? 'Envoi...' : t('admin.schedule.oui_notifier') }}
             </button>
           </div>
         </div>
@@ -268,6 +268,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue'
 import schedulesApi from '@/api/endpoints/schedules'
 import SpecialtyTimetable from '@/components/admin/schedules/SpecialtyTimetable.vue'
@@ -395,9 +397,9 @@ async function sendNotification() {
       recipient_type: 'all',
     })
     showNotifyDialog.value = false
-    toastStore.success('Notifications envoyées avec succès !')
+    toastStore.success(t('admin.schedule.notifications_envoyees_avec_succes'))
   } catch (e) {
-    toastStore.error('Erreur lors de l\'envoi des notifications.')
+    toastStore.error(t('admin.schedule.erreur_lors_envoi_notifications'))
   } finally {
     notifying.value = false
   }

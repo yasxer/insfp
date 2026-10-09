@@ -16,22 +16,22 @@
                     />
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Name
+                    {{ t('common.last_name') }}
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     ID
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Specialty
+                    {{ t('common.specialty') }}
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Year / Group
+                    {{ t('admin.active_students_table.semestre_groupe') }}
                   </th>
                   <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Status
+                    {{ t('common.status') }}
                   </th>
                   <th scope="col" class="relative px-6 py-4">
-                    <span class="sr-only">Actions</span>
+                    <span class="sr-only">{{ t('common.actions') }}</span>
                   </th>
                 </tr>
               </thead>
@@ -48,7 +48,7 @@
                   </tr>
                 </template>
                 <tr v-else-if="students.length === 0">
-                  <td colspan="7" class="px-6 py-5 text-center text-gray-500 dark:text-gray-400">No students found</td>
+                  <td colspan="7" class="px-6 py-5 text-center text-gray-500 dark:text-gray-400">{{ t('admin.active_students_table.aucun_stagiaire') }}</td>
                 </tr>
                 <tr v-for="student in students" :key="student.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td class="px-4 py-5 w-12" @click.stop>
@@ -88,14 +88,14 @@
                   <td class="px-6 py-5 whitespace-nowrap cursor-pointer" @click="$emit('view', student)">
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                       :class="student.is_graduated ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'">
-                      {{ student.is_graduated ? 'Graduated' : 'Enrolled' }}
+                      {{ student.is_graduated ? t('common.graduated') : t('common.enrolled') }}
                     </span>
                   </td>
                   <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
                     <button 
                       @click.stop="$emit('message-individual', student)" 
                       class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
-                      title="Send message to this student"
+                      :title="t('admin.active_students_table.envoyer_message_stagiaire')"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
@@ -124,6 +124,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { computed } from 'vue'
 
 const props = defineProps({

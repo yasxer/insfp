@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import teacherApi from '@/api/endpoints/teacherPortal'
@@ -95,14 +98,7 @@ const saveGrades = async () => {
   }
 }
 
-const formatType = (type) => {
-  const types = {
-    'controle': 'Contrôle',
-    'examen': 'Examen',
-    'rattrapage': 'Rattrapage'
-  }
-  return types[type] || type
-}
+const formatType = (type) => (['controle', 'examen', 'rattrapage'].includes(type) ? t('labels.examType.' + type) : type)
 
 const getGradeColor = (mark) => {
   if (!mark && mark !== 0) return 'text-gray-500'
@@ -123,9 +119,9 @@ const getGradeColor = (mark) => {
           @click="goBack"
           class="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
-          <ArrowLeftIcon class="w-5 h-5" />
+          <ArrowLeftIcon class="rtl:rotate-180 w-5 h-5" />
         </button>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Saisie des notes</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('teacher.grading.saisie_notes') }}</h1>
       </div>
     </div>
 
@@ -152,10 +148,10 @@ const getGradeColor = (mark) => {
             {{ examData.title }}
           </h2>
           <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mt-2">
-            <span class="flex items-center"><CalendarIcon class="w-4 h-4 mr-1"/> {{ new Date(examData.date).toLocaleDateString('fr-FR') }}</span>
+            <span class="flex items-center"><CalendarIcon class="w-4 h-4 mr-1"/> {{ new Date(examData.date).toLocaleDateString(dateLocale()) }}</span>
             <span class="flex items-center"><BookOpenIcon class="w-4 h-4 mr-1"/> {{ examData.module?.name }}</span>
             <span class="font-medium bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-800 dark:text-gray-200">
-              Sur {{ examData.max_mark }}
+              {{ t('teacher.grading.sur_p0', { p0: examData.max_mark }) }}
             </span>
           </div>
         </div>
@@ -163,9 +159,9 @@ const getGradeColor = (mark) => {
 
       <!-- Action Required Empty state -->
       <div v-if="students.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucun étudiant</h3>
-        <p v-if="examData?.type === 'rattrapage'" class="mt-1 text-gray-500">Aucun stagiaire n'est concerné par le rattrapage de ce module (moyenne semestrielle et moyenne du module inférieures à 10).</p>
-        <p v-else class="mt-1 text-gray-500">Aucun étudiant n'est inscrit dans le module pour cet examen.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('teacher.grading.aucun_stagiaire') }}</h3>
+        <p v-if="examData?.type === 'rattrapage'" class="mt-1 text-gray-500">{{ t('teacher.grading.aucun_stagiaire_n_est_concerne') }}</p>
+        <p v-else class="mt-1 text-gray-500">{{ t('teacher.grading.aucun_stagiaire_n_est_inscrit') }}</p>
       </div>
 
       <!-- Grading List -->
@@ -174,14 +170,14 @@ const getGradeColor = (mark) => {
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Étudiant</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.student') }}</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   <div class="flex items-center gap-1">
-                    Note <span class="text-gray-400">(/{{ examData.max_mark }})</span>
+                    {{ t('common.grade') }} <span class="text-gray-400">(/{{ examData.max_mark }})</span>
                   </div>
                 </th>
-                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Lettre</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/3">Observations (optionnel)</th>
+                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('teacher.grading.lettre') }}</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/3">{{ t('teacher.grading.observations_optionnel') }}</th>
               </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -236,7 +232,7 @@ const getGradeColor = (mark) => {
             class="flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <LoadingSpinner v-if="saving" size="sm" class="mr-2" color="text-white" />
-            Enregistrer les notes
+            {{ t('teacher.grading.enregistrer_notes') }}
           </button>
         </div>
       </div>

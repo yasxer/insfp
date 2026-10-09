@@ -13,20 +13,20 @@
       <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No pending registrations</h3>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">All registrations have been reviewed.</p>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ t('admin.pending_registrations_table.aucune_inscription_attente') }}</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t('admin.pending_registrations_table.toutes_inscriptions_ont_ete_traitees') }}</p>
     </div>
 
     <!-- Table -->
     <table v-else class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
       <thead class="bg-gray-50 dark:bg-gray-900">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Registration Number</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Specialty</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Applied Date</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.last_name') }}</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('admin.pending_registrations_table.numero_dinscription') }}</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.email') }}</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.specialty') }}</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('admin.pending_registrations_table.date_demande') }}</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.actions') }}</th>
         </tr>
       </thead>
       <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -52,19 +52,19 @@
                 @click="$emit('view', student)"
                 class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
               >
-                View
+                {{ t('common.view') }}
               </button>
               <button
                 @click="$emit('approve', student)"
                 class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 font-medium"
               >
-                Approve
+                {{ t('common.approve') }}
               </button>
               <button
                 @click="$emit('reject', student)"
                 class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 font-medium"
               >
-                Reject
+                {{ t('common.reject') }}
               </button>
             </div>
           </td>
@@ -75,6 +75,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 defineProps({
   students: {
     type: Array,
@@ -90,7 +93,7 @@ defineEmits(['approve', 'reject', 'view'])
 
 const formatDate = (date) => {
   if (!date) return 'N/A'
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(dateLocale(), {
     year: 'numeric',
     month: 'short',
     day: 'numeric'

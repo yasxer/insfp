@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import teacherApi from '@/api/endpoints/teacherPortal'
@@ -92,9 +95,9 @@ const saveAttendance = async () => {
         @click="goBack"
         class="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
       >
-        <ArrowLeftIcon class="w-5 h-5" />
+        <ArrowLeftIcon class="rtl:rotate-180 w-5 h-5" />
       </button>
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Faire l'appel</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('teacher.mark_attendance.faire_appel') }}</h1>
     </div>
 
     <!-- Error/Success Indicators -->
@@ -114,31 +117,31 @@ const saveAttendance = async () => {
       <div v-if="scheduleData" class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold rounded-full mb-2 uppercase">
-            {{ new Date(sessionDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
+            {{ new Date(sessionDate).toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}
           </span>
           <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
             {{ scheduleData.module.name }} ({{ scheduleData.module.code }})
           </h2>
           <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mt-2">
-            <span class="flex items-center"><ClockIcon class="w-4 h-4 mr-1"/> {{ scheduleData.start_time }} - {{ scheduleData.end_time }}</span>
-            <span class="flex items-center"><MapPinIcon class="w-4 h-4 mr-1"/> {{ scheduleData.room || 'Salle N/A' }}</span>
+            <span class="flex items-center"><ClockIcon class="w-4 h-4 mr-1"/> <span dir="ltr">{{ scheduleData.start_time }} - {{ scheduleData.end_time }}</span></span>
+            <span class="flex items-center"><MapPinIcon class="w-4 h-4 mr-1"/> {{ scheduleData.room || t('teacher.mark_attendance.salle_n') }}</span>
           </div>
         </div>
         
         <!-- Summary Stats -->
         <div class="flex gap-4">
           <div class="text-center px-4">
-            <p class="text-sm font-medium text-gray-500">Inscrits</p>
+            <p class="text-sm font-medium text-gray-500">{{ t('teacher.mark_attendance.inscrits') }}</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ students.length }}</p>
           </div>
           <div class="text-center px-4 border-l border-gray-200 dark:border-gray-700">
-            <p class="text-sm font-medium text-gray-500">Présents</p>
+            <p class="text-sm font-medium text-gray-500">{{ t('teacher.mark_attendance.presents') }}</p>
             <p class="text-2xl font-bold text-green-600 dark:text-green-400">
               {{ students.filter(s => s.status === 'present').length }}
             </p>
           </div>
           <div class="text-center px-4 border-l border-gray-200 dark:border-gray-700">
-            <p class="text-sm font-medium text-gray-500">Absents</p>
+            <p class="text-sm font-medium text-gray-500">{{ t('teacher.mark_attendance.absents') }}</p>
             <p class="text-2xl font-bold text-red-600 dark:text-red-400">
               {{ students.filter(s => s.status === 'absent').length }}
             </p>
@@ -148,8 +151,8 @@ const saveAttendance = async () => {
 
       <!-- Action Required Empty state -->
       <div v-if="students.length === 0" class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Aucun étudiant</h3>
-        <p class="mt-1 text-gray-500">Aucun étudiant n'est inscrit dans ce groupe/module.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('teacher.mark_attendance.aucun_stagiaire') }}</h3>
+        <p class="mt-1 text-gray-500">{{ t('teacher.mark_attendance.aucun_stagiaire_n_est_inscrit') }}</p>
       </div>
 
       <!-- Attendance List -->
@@ -158,9 +161,9 @@ const saveAttendance = async () => {
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Étudiant</th>
-                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Présenced</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Notes (Optionnel)</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('common.student') }}</th>
+                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('teacher.mark_attendance.presenced') }}</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ t('teacher.mark_attendance.notes_optionnel') }}</th>
               </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -184,7 +187,7 @@ const saveAttendance = async () => {
                         ? 'bg-green-100 border-green-500 text-green-700 dark:bg-green-900/30' 
                         : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'"
                     >
-                      Présent
+                      {{ t('common.present') }}
                     </button>
                     <button 
                       @click="setStatus(student.id, 'late')"
@@ -194,7 +197,7 @@ const saveAttendance = async () => {
                         ? 'bg-yellow-100 border-yellow-500 text-yellow-700 dark:bg-yellow-900/30' 
                         : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'"
                     >
-                      En retard
+                      {{ t('common.late') }}
                     </button>
                     <button 
                       @click="setStatus(student.id, 'absent')"
@@ -204,7 +207,7 @@ const saveAttendance = async () => {
                         ? 'bg-red-100 border-red-500 text-red-700 dark:bg-red-900/30' 
                         : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300'"
                     >
-                      Absent
+                      {{ t('common.absent') }}
                     </button>
                   </div>
                 </td>
@@ -212,7 +215,7 @@ const saveAttendance = async () => {
                   <input 
                     v-model="student.notes"
                     type="text" 
-                    placeholder="Motif / Observations..." 
+                    :placeholder="t('teacher.mark_attendance.motif_observations')" 
                     class="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </td>
@@ -229,7 +232,7 @@ const saveAttendance = async () => {
             class="flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <LoadingSpinner v-if="saving" size="sm" class="mr-2" color="text-white" />
-            Enregistrer l'appel
+            {{ t('teacher.mark_attendance.enregistrer_appel') }}
           </button>
         </div>
       </div>

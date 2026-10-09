@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import studentApi from '@/api/endpoints/student'
 import Card from '@/components/common/Card.vue'
@@ -28,7 +30,7 @@ const loadModules = async () => {
     console.log('Modules loaded:', modules.value.length)
   } catch (err) {
     console.error('Failed to load modules:', err)
-    error.value = 'Failed to load courses'
+    error.value = t('student.courses.impossible_charger_cours')
   } finally {
     loading.value = false
   }
@@ -49,7 +51,7 @@ const selectModule = async (module) => {
     console.log('Lessons loaded:', selectedModule.value.lessons.length)
   } catch (err) {
     console.error('Failed to load module details:', err)
-    error.value = 'Failed to load lessons'
+    error.value = t('student.courses.impossible_charger_cours_module')
   } finally {
     loadingDetails.value = false
   }
@@ -78,7 +80,7 @@ const downloadLesson = async (lesson) => {
     }
   } catch (err) {
     console.error('Failed to download lesson:', err)
-    toastStore.error('Failed to download file')
+    toastStore.error(t('student.courses.echec_telechargement'))
   }
 }
 
@@ -89,7 +91,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">My Courses</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ t('student.courses.mes_cours') }}</h1>
 
     <div v-if="loading" class="flex justify-center items-center h-64">
       <LoadingSpinner size="large" />
@@ -102,7 +104,7 @@ onMounted(() => {
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Modules List -->
       <div class="lg:col-span-1">
-        <Card title="Modules">
+        <Card :title="t('common.modules')">
           <div class="space-y-2">
             <button
               v-for="module in modules"
@@ -119,22 +121,22 @@ onMounted(() => {
                 <FolderIcon class="w-5 h-5 text-gray-400" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">{{ module.name }}</p>
-                  <p class="text-xs text-gray-500">{{ module.code }} • {{ module.lessons_count }} lessons</p>
+                  <p class="text-xs text-gray-500">{{ t('student.courses.cours', { p0: module.code, p1: module.lessons_count }) }}</p>
                 </div>
               </div>
-              <ChevronRightIcon class="w-4 h-4 text-gray-400" />
+              <ChevronRightIcon class="rtl:rotate-180 w-4 h-4 text-gray-400" />
             </button>
           </div>
         </Card>
       </div>
 
-      <!-- Lessons List -->
+      <!-— Cours List -->
       <div class="lg:col-span-2">
         <Card v-if="selectedModule">
           <template #title>
             <div class="flex items-center gap-2">
               <BookOpenIcon class="w-5 h-5 text-blue-500" />
-              <span>{{ selectedModule.name }} - Lessons</span>
+              <span>{{ t('student.courses.cours_2', { p0: selectedModule.name }) }}</span>
             </div>
           </template>
 
@@ -155,7 +157,7 @@ onMounted(() => {
                 <div>
                   <h3 class="font-medium text-gray-900 dark:text-white">{{ lesson.title }}</h3>
                   <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ lesson.description }}</p>
-                  <p class="text-xs text-gray-400 mt-2">Added {{ lesson.created_at }}</p>
+                  <p class="text-xs text-gray-400 mt-2">{{ t('student.courses.ajoute', { p0: lesson.created_at }) }}</p>
                 </div>
               </div>
               
@@ -163,20 +165,20 @@ onMounted(() => {
                 @click="downloadLesson(lesson)"
                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded-lg transition-colors"
               >
-                Download
+                {{ t('common.download') }}
               </button>
             </div>
           </div>
 
           <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">
-            <p>No lessons available for this module yet.</p>
+            <p>{{ t('student.courses.aucun_cours_disponible_module') }}</p>
           </div>
         </Card>
 
         <div v-else class="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <div class="text-center">
             <BookOpenIcon class="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p>Select a module to view lessons</p>
+            <p>{{ t('student.courses.choisissez_module_voir_ses_cours') }}</p>
           </div>
         </div>
       </div>

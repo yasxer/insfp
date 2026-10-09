@@ -2,7 +2,7 @@
   <div>
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Students Management</h1>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ t('common.students') }}</h1>
       <div class="flex space-x-3">
         <button
           @click="refreshList"
@@ -11,7 +11,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          Refresh
+          {{ t('common.refresh') }}
         </button>
         <button
           @click="openAddModal"
@@ -20,7 +20,7 @@
           <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
-          Add Student
+          {{ t('admin.students_list.ajouter_stagiaire') }}
         </button>
       </div>
     </div>
@@ -38,7 +38,7 @@
               'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
             ]"
           >
-            Active Students
+            {{ t('admin.students_list.stagiaires_actifs') }}
           </button>
           <button
             @click="activeTab = 'graduated'"
@@ -49,7 +49,7 @@
               'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
             ]"
           >
-            Graduated Students
+            {{ t('admin.students_list.diplomes') }}
           </button>
           <button
             @click="activeTab = 'pending'"
@@ -60,7 +60,7 @@
               'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm'
             ]"
           >
-            Pending Registrations
+            {{ t('admin.students_list.inscriptions_attente') }}
           </button>
         </nav>
       </div>
@@ -85,7 +85,7 @@
           @click="clearSelection"
           class="px-3 py-1.5 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100"
         >
-          Clear
+          {{ t('common.clear') }}
         </button>
         <button
           @click="openMessageComposer"
@@ -95,7 +95,7 @@
             <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
             <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
           </svg>
-          Send Message
+          {{ t('admin.students_list.envoyer_message') }}
         </button>
       </div>
     </div>
@@ -169,6 +169,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, computed, watch } from 'vue'
 import { useStudentsStore } from '@/stores/students'
 import axios from '@/api/axios'
@@ -217,12 +219,13 @@ watch(activeTab, (newTab) => {
   }
 
   const isGraduated = newTab === 'graduated'
-  studentsStore.setFilters({ is_graduated: isGraduated })
+  // Registrations waiting for approval only appear in the pending tab
+  studentsStore.setFilters({ is_graduated: isGraduated, approved: true })
   studentsStore.fetchStudents(1)
 })
 
 onMounted(() => {
-  studentsStore.setFilters({ is_graduated: false })
+  studentsStore.setFilters({ is_graduated: false, approved: true })
   studentsStore.fetchStudents()
 })
 
@@ -299,7 +302,7 @@ const handleSendMessage = async (messageData) => {
     }
   } catch (error) {
     console.error('Failed to send message', error)
-    toastStore.error('Failed to send message: ' + (error.response?.data?.message || error.message))
+    toastStore.error('Échec de l’envoi du message : ' + (error.response?.data?.message || error.message))
   }
 }
 
@@ -371,7 +374,7 @@ const handleDeleteStudent = async () => {
 }
 
 const confirmApprove = async (student) => {
-  if (confirm(`Approve registration for ${student.full_name}?`)) {
+  if (confirm(`Approuver l’inscription de ${student.full_name} ?`)) {
     try {
       await studentsStore.approveStudent(student.id)
     } catch (error) {

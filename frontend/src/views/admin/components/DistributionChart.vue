@@ -62,10 +62,10 @@ const chartOptions = computed(() => ({
       }
     },
     tooltip: {
-      backgroundColor: isDark.value ? '#1f2937' : '#ffffff',
+      backgroundColor: isDark.value ? '#111a27' : '#ffffff',
       titleColor: isDark.value ? '#f3f4f6' : '#111827',
       bodyColor: isDark.value ? '#d1d5db' : '#4b5563',
-      borderColor: isDark.value ? '#374151' : '#e5e7eb',
+      borderColor: isDark.value ? '#3c4757' : '#e1e6ed',
       borderWidth: 1,
       padding: 12,
       callbacks: {

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Specialties Management</h1>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ t('admin.specialties.specialites') }}</h1>
     </div>
 
     <div v-if="loading" class="flex justify-center py-12">
@@ -16,7 +16,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Add New Specialty</h3>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ t('admin.specialties.nouvelle_specialite') }}</h3>
       </div>
 
       <!-- Specialty Cards -->
@@ -36,7 +36,7 @@
               <span class="text-white font-bold text-xl">{{ specialty.code }}</span>
             </div>
             <div v-else class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-              <img :src="specialty.cover_image_url" class="h-full w-full object-cover" alt="Cover" />
+              <img :src="specialty.cover_image_url" class="h-full w-full object-cover" :alt="t('admin.specialties.cover')" />
             </div>
             <div class="ml-5 w-0 flex-1">
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
@@ -44,7 +44,7 @@
               </dt>
               <dd class="flex items-baseline">
                 <div class="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {{ specialty.students_count }} Students
+                  {{ t('admin.specialties.stagiaire_s', { p0: specialty.students_count }) }}
                 </div>
               </dd>
             </div>
@@ -52,7 +52,7 @@
           
           <div class="mt-4">
             <span :class="[specialty.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize']">
-              {{ specialty.is_active ? 'Active' : 'Inactive' }}
+              {{ specialty.is_active ? t('common.active') : t('common.inactive') }}
             </span>
           </div>
 
@@ -61,13 +61,13 @@
               <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
               </svg>
-              {{ specialty.classes_count }} Classes
+              {{ t('admin.specialties.classe_s', { p0: specialty.classes_count }) }}
             </div>
             <div class="flex items-center">
               <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
               </svg>
-              {{ specialty.teachers_count }} Teachers
+              {{ t('admin.specialties.formateur_s', { p0: specialty.teachers_count }) }}
             </div>
           </div>
         </div>
@@ -84,6 +84,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, computed } from 'vue'
 import { useSpecialtiesStore } from '@/stores/specialties'
 import { useRouter } from 'vue-router'

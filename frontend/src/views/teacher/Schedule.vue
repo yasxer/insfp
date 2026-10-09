@@ -1,5 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
+import { ref, computed, onMounted } from 'vue'
 import Card from '@/components/common/Card.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import teacherApi from '@/api/endpoints/teacherPortal'
@@ -13,6 +16,8 @@ const currentWeekType = ref('current') // 'current' or 'next'
 
 // Days starting from Saturday (Algerian week)
 const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday']
+// `days` are the keys used to match the API; these are only the column titles
+const dayLabels = computed(() => Object.fromEntries(days.map((d) => [d, t('labels.days.' + d.toLowerCase())])))
 const timeSlots = [
   '08:00 - 09:30',
   '09:30 - 11:00',
@@ -39,7 +44,7 @@ const frenchToEnglish = (frenchDay) => {
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return date.toLocaleDateString(dateLocale(), { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 const getClassForSlot = (day, timeSlot) => {
@@ -72,7 +77,7 @@ const fetchSchedule = async () => {
     }
   } catch (err) {
     console.error('Failed to load schedule:', err)
-    error.value = 'Failed to load schedule'
+    error.value = t('teacher.schedule.impossible_charger_lemploi_temps')
   } finally {
     loading.value = false
   }
@@ -93,9 +98,9 @@ const toggleWeek = () => {
     <!-- Header Controls -->
     <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Emploi du temps</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('teacher.schedule.emploi_temps') }}</h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Semaine du {{ formatDate(weekInfo.start_date) }} au {{ formatDate(weekInfo.end_date) }}
+          {{ t('teacher.schedule.semaine', { p0: formatDate(weekInfo.start_date), p1: formatDate(weekInfo.end_date) }) }}
         </p>
       </div>
 
@@ -106,10 +111,10 @@ const toggleWeek = () => {
           class="p-2 rounded-md transition-colors disabled:opacity-50"
           :class="currentWeekType === 'current' ? 'text-gray-300 dark:text-gray-600' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
         >
-          <ChevronLeftIcon class="w-5 h-5" />
+          <ChevronLeftIcon class="rtl:rotate-180 w-5 h-5" />
         </button>
         <span class="px-4 text-sm font-medium text-gray-900 dark:text-white w-40 text-center">
-          {{ currentWeekType === 'current' ? 'Cette semaine' : 'Semaine prochaine' }}
+          {{ currentWeekType === 'current' ? t('teacher.schedule.semaine_2') : t('teacher.schedule.semaine_prochaine') }}
         </span>
         <button 
           @click="toggleWeek" 
@@ -117,7 +122,7 @@ const toggleWeek = () => {
           class="p-2 rounded-md transition-colors disabled:opacity-50"
           :class="currentWeekType === 'next' ? 'text-gray-300 dark:text-gray-600' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'"
         >
-          <ChevronRightIcon class="w-5 h-5" />
+          <ChevronRightIcon class="rtl:rotate-180 w-5 h-5" />
         </button>
       </div>
     </div>
@@ -138,16 +143,16 @@ const toggleWeek = () => {
           <table class="w-full border-collapse min-w-[800px]">
             <thead>
               <tr class="bg-gray-50 dark:bg-gray-800">
-                <th class="border border-gray-200 dark:border-gray-700 p-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-32">Time</th>
+                <th class="border border-gray-200 dark:border-gray-700 p-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-32">{{ t('common.time') }}</th>
                 <th v-for="day in days" :key="day" class="border border-gray-200 dark:border-gray-700 p-3 text-center font-semibold text-gray-700 dark:text-gray-300">
-                  {{ day }}
+                  {{ dayLabels[day] }}
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="timeSlot in timeSlots" :key="timeSlot">
                 <td class="border border-gray-200 dark:border-gray-700 p-3 font-medium text-sm whitespace-nowrap bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                  {{ timeSlot }}
+                  <span dir="ltr">{{ timeSlot }}</span>
                 </td>
                 <td v-for="day in days" :key="day" class="border border-gray-200 dark:border-gray-700 p-2 min-w-[140px]">
                   <div v-if="getClassForSlot(day, timeSlot)" class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded h-full relative group">
@@ -155,11 +160,11 @@ const toggleWeek = () => {
                       {{ getClassForSlot(day, timeSlot).module?.name }}
                     </p>
                     <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium truncate">
-                      {{ getClassForSlot(day, timeSlot).specialty?.code || 'Spécialité N/A' }}
-                      <span v-if="getClassForSlot(day, timeSlot).group">- Gr: {{ getClassForSlot(day, timeSlot).group }}</span>
+                      {{ getClassForSlot(day, timeSlot).specialty?.code || t('teacher.schedule.specialite_n') }}
+                      <span v-if="getClassForSlot(day, timeSlot).group">{{ t('teacher.schedule.gr', { p0: getClassForSlot(day, timeSlot).group }) }}</span>
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      Salle {{ getClassForSlot(day, timeSlot).room || 'N/A' }}
+                      {{ getClassForSlot(day, timeSlot).room || '—' }}
                     </p>
                   </div>
                   <div v-else class="h-20"></div>
@@ -174,7 +179,7 @@ const toggleWeek = () => {
       <div class="mt-6 flex gap-4 text-sm">
         <div class="flex items-center gap-2">
           <div class="w-4 h-4 bg-blue-500 rounded"></div>
-          <span class="text-gray-600 dark:text-gray-400">Cours planifié</span>
+          <span class="text-gray-600 dark:text-gray-400">{{ t('teacher.schedule.cours_planifie') }}</span>
         </div>
       </div>
     </div>

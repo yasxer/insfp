@@ -1,11 +1,14 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
 import { storeToRefs } from 'pinia'
 import { useThemeStore } from '@/stores/theme'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.defaults.font.family = "'IBM Plex Sans', 'Segoe UI', sans-serif"
 
 const props = defineProps({
   data: {
@@ -33,12 +36,12 @@ const chartData = computed(() => {
   return {
     labels: props.data.map(item => item.name),
     datasets: [{
-      label: 'Étudiants',
+      label: t('labels.charts.trainees'),
       data: props.data.map(item => item.count),
-      backgroundColor: isDark.value ? '#60a5fa' : '#3b82f6',
+      backgroundColor: isDark.value ? '#8eaacf' : '#0f3460',
       borderRadius: 8,
       barThickness: 32,
-      hoverBackgroundColor: isDark.value ? '#93c5fd' : '#2563eb'
+      hoverBackgroundColor: isDark.value ? '#b9cce4' : '#2f5a92'
     }]
   }
 })
@@ -58,10 +61,10 @@ const chartOptions = computed(() => ({
       text: 'Étudiants par Spécialité' 
     },
     tooltip: {
-      backgroundColor: isDark.value ? '#1f2937' : '#ffffff',
+      backgroundColor: isDark.value ? '#111a27' : '#ffffff',
       titleColor: isDark.value ? '#f3f4f6' : '#111827',
       bodyColor: isDark.value ? '#d1d5db' : '#4b5563',
-      borderColor: isDark.value ? '#374151' : '#e5e7eb',
+      borderColor: isDark.value ? '#3c4757' : '#e1e6ed',
       borderWidth: 1,
       padding: 12,
       displayColors: false
@@ -71,7 +74,7 @@ const chartOptions = computed(() => ({
     x: { 
       beginAtZero: true,
       grid: {
-        color: isDark.value ? '#374151' : '#e5e7eb',
+        color: isDark.value ? '#3c4757' : '#e1e6ed',
         drawBorder: false
       },
       ticks: {

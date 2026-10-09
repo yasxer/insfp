@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="pagination && pagination.last_page > 1"
-    class="flex items-center justify-between px-4 py-3 sm:px-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-b-lg"
+    class="flex items-center justify-between px-4 py-3 sm:px-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 rounded-b-xl"
   >
     <!-- Mobile -->
     <div class="flex flex-1 justify-between sm:hidden">
@@ -10,35 +10,32 @@
         :disabled="pagination.current_page <= 1"
         class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
       >
-        Previous
+        {{ t('common.previous') }}
       </button>
       <button
         @click="goTo(pagination.current_page + 1)"
         :disabled="pagination.current_page >= pagination.last_page"
         class="relative ml-3 inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
       >
-        Next
+        {{ t('common.next') }}
       </button>
     </div>
 
     <!-- Desktop -->
     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
       <p class="text-sm text-gray-700 dark:text-gray-300">
-        Showing
-        <span class="font-medium">{{ rangeStart }}</span>
-        to
-        <span class="font-medium">{{ rangeEnd }}</span>
-        of
+        <span class="font-medium">{{ rangeStart }}</span>–<span class="font-medium">{{ rangeEnd }}</span>
+        {{ t('app.pagination_bar.sur') }}
         <span class="font-medium">{{ pagination.total }}</span>
-        results
+        {{ t('app.pagination_bar.resultats') }}
       </p>
-      <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+      <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" :aria-label="t('app.pagination_bar.pagination')">
         <button
           @click="goTo(pagination.current_page - 1)"
           :disabled="pagination.current_page <= 1"
           class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
         >
-          <span class="sr-only">Previous</span>
+          <span class="sr-only">{{ t('app.pagination_bar.page_precedente') }}</span>
           &laquo;
         </button>
 
@@ -61,7 +58,7 @@
           :disabled="pagination.current_page >= pagination.last_page"
           class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-600"
         >
-          <span class="sr-only">Next</span>
+          <span class="sr-only">{{ t('app.pagination_bar.page_suivante') }}</span>
           &raquo;
         </button>
       </nav>
@@ -70,6 +67,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { computed } from 'vue'
 
 const props = defineProps({

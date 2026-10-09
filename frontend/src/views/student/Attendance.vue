@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue'
 import { todayDate } from '@/utils/dates'
 import Card from '@/components/common/Card.vue'
@@ -41,7 +43,7 @@ const loadAttendance = async () => {
     console.log('Attendance records loaded:', attendanceRecords.value.length)
   } catch (err) {
     console.error('Failed to fetch attendance:', err)
-    error.value = 'Failed to load attendance records'
+    error.value = t('student.attendance.impossible_charger_presences')
   } finally {
     loading.value = false
   }
@@ -114,13 +116,7 @@ const getStatusClass = (status) => {
 }
 
 const getStatusText = (status) => {
-  switch(status) {
-    case 'present': return 'Present'
-    case 'absent': return 'Absent'
-    case 'late': return 'Late'
-    case 'excused': return 'Excused'
-    default: return status
-  }
+  return ['present', 'absent', 'late', 'excused'].includes(status) ? t('labels.attendance.' + status) : status
 }
 
 const getRateColorClass = (rate) => {
@@ -138,9 +134,9 @@ onMounted(async () => {
   <div>
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Attendance Records</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('student.attendance.mon_assiduite') }}</h1>
       <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-        Track your class attendance and punctuality
+        {{ t('student.attendance.suivez_presence_ponctualite') }}
       </p>
     </div>
 
@@ -163,7 +159,7 @@ onMounted(async () => {
               <BookOpenIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Sessions</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('student.attendance.seances') }}</p>
               <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ totalSessions }}</h3>
             </div>
           </div>
@@ -176,7 +172,7 @@ onMounted(async () => {
               <CheckCircleIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Present</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('common.present') }}</p>
               <h3 class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ attendedSessions }}</h3>
             </div>
           </div>
@@ -189,7 +185,7 @@ onMounted(async () => {
               <XCircleIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Absent</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('common.absent') }}</p>
               <h3 class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ absentSessions }}</h3>
             </div>
           </div>
@@ -202,7 +198,7 @@ onMounted(async () => {
               <ChartPieIcon class="w-6 h-6" />
             </div>
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Attendance Rate</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('student.attendance.taux_dassiduite') }}</p>
               <h3 class="text-2xl font-bold mt-1" :class="getRateColorClass(attendanceRate)">
                 {{ attendanceRate }}%
               </h3>
@@ -217,7 +213,7 @@ onMounted(async () => {
           <div class="flex-1 min-w-[180px]">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <CalendarIcon class="w-5 h-5" />
-              Filter by Date
+              {{ t('common.date') }}
             </label>
             <input 
               v-model="selectedDate"
@@ -225,20 +221,20 @@ onMounted(async () => {
               type="date" 
               :max="todayDate()"
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Select a date"
+              :placeholder="t('student.attendance.choisir_date')"
             />
           </div>
           <div class="flex-1 min-w-[180px]">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <AcademicCapIcon class="w-5 h-5" />
-              Filter by Module
+              {{ t('common.module') }}
             </label>
             <select 
               v-model="selectedModule"
               @change="applyFilters"
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">All Modules</option>
+              <option value="">{{ t('student.attendance.tous_modules') }}</option>
               <option v-for="module in modules" :key="module.id" :value="module.id">
                 {{ module.name }}
               </option>
@@ -247,18 +243,18 @@ onMounted(async () => {
           <div class="flex-1 min-w-[180px]">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <FunnelIcon class="w-5 h-5" />
-              Filter by Status
+              {{ t('common.status') }}
             </label>
             <select 
               v-model="selectedStatus"
               @change="applyFilters"
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">All Status</option>
-              <option value="present">Present</option>
-              <option value="absent">Absent</option>
-              <option value="late">Late</option>
-              <option value="excused">Excused</option>
+              <option value="">{{ t('student.attendance.tous_statuts') }}</option>
+              <option value="present">{{ t('common.present') }}</option>
+              <option value="absent">{{ t('common.absent') }}</option>
+              <option value="late">{{ t('common.late') }}</option>
+              <option value="excused">{{ t('common.excused') }}</option>
             </select>
           </div>
           <button 
@@ -266,42 +262,42 @@ onMounted(async () => {
             @click="clearFilter"
             class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
           >
-            Clear Filters
+            {{ t('student.attendance.effacer_filtres') }}
           </button>
         </div>
         <p v-if="selectedDate || selectedModule || selectedStatus" class="mt-3 text-sm text-blue-600 dark:text-blue-400">
-          <span v-if="selectedDate">Date: <strong>{{ selectedDate }}</strong></span>
+          <span v-if="selectedDate">{{ t('student.attendance.date') }} <strong>{{ selectedDate }}</strong></span>
           <span v-if="selectedDate && (selectedModule || selectedStatus)"> • </span>
-          <span v-if="selectedModule">Module: <strong>{{ modules.find(m => m.id === parseInt(selectedModule))?.name }}</strong></span>
+          <span v-if="selectedModule">{{ t('student.attendance.module') }} <strong>{{ modules.find(m => m.id === parseInt(selectedModule))?.name }}</strong></span>
           <span v-if="selectedModule && selectedStatus"> • </span>
-          <span v-if="selectedStatus">Status: <strong>{{ getStatusText(selectedStatus) }}</strong></span>
+          <span v-if="selectedStatus">{{ t('student.attendance.statut') }} <strong>{{ getStatusText(selectedStatus) }}</strong></span>
         </p>
       </Card>
 
       <!-- Attendance History -->
-      <Card title="Attendance History">
+      <Card :title="t('student.attendance.historique_presences')">
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead>
               <tr class="border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Date</th>
-                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Subject</th>
-                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Time</th>
-                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Instructor</th>
-                <th class="text-center py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">Status</th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.date') }}</th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.module') }}</th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.time') }}</th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.teacher') }}</th>
+                <th class="text-center py-3 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300">{{ t('common.status') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="attendanceRecords.length === 0">
                 <td colspan="5" class="text-center py-8 text-gray-500 dark:text-gray-400">
-                  No attendance records found
+                  {{ t('student.attendance.aucune_presence_enregistree') }}
                 </td>
               </tr>
               <tr v-for="record in attendanceRecords" :key="record.id" 
                   class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <td class="py-3 px-4 text-sm text-gray-900 dark:text-white">{{ record.date }}</td>
                 <td class="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white">{{ record.module?.name || 'N/A' }}</td>
-                <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{{ record.start_time }} - {{ record.end_time }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400"><span dir="ltr">{{ record.start_time }} - {{ record.end_time }}</span></td>
                 <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{{ record.instructor }}</td>
                 <td class="py-3 px-4 text-center">
                   <span :class="getStatusClass(record.status)" 
@@ -320,7 +316,7 @@ onMounted(async () => {
            class="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start">
         <XCircleIcon class="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-3 flex-shrink-0 mt-0.5" />
         <p class="text-yellow-800 dark:text-yellow-400 text-sm font-medium pt-0.5">
-          Warning: Your attendance rate is below 75%. Please attend classes regularly to avoid academic penalties.
+          {{ t('student.attendance.attention_taux_dassiduite_est_inferieur') }}
         </p>
       </div>
     </div>

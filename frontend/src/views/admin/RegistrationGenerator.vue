@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, watch } from 'vue'
 import axios from '@/api/axios'
 import { useToastStore } from '@/stores/toast'
@@ -33,7 +35,7 @@ onMounted(async () => {
     sessions.value = response.data
   } catch (err) {
     console.error('Error fetching sessions:', err)
-    error.value = 'Failed to load sessions.'
+    error.value = t('admin.registration_generator.failed_to_load_sessions')
   }
 })
 
@@ -53,7 +55,7 @@ watch(selectedSession, async (newSessionId) => {
     specialties.value = response.data
   } catch (err) {
     console.error('Error fetching specialties:', err)
-    error.value = 'Failed to load specialties.'
+    error.value = t('admin.registration_generator.failed_to_load_specialties')
   } finally {
     loading.value = false
   }
@@ -62,11 +64,11 @@ watch(selectedSession, async (newSessionId) => {
 // Function to generate the registration number
 const generateNumber = async (specialtyId, specialtyName) => {
   if (!selectedSession.value) {
-    toastStore.warning('Please select a session first.')
+    toastStore.warning(t('admin.registration_generator.choisissez_dabord_session'))
     return
   }
   
-  if(!confirm(`Are you sure you want to generate a new registration number for the specialty: ${specialtyName}?`)) return;
+  if(!confirm(`Générer un nouveau numéro d’inscription pour la spécialité ${specialtyName} ?`)) return;
 
   try {
     const response = await axios.post('/api/admin/generate-registration', {
@@ -87,7 +89,7 @@ const generateNumber = async (specialtyId, specialtyName) => {
     
   } catch (err) {
     console.error(err)
-    toastStore.error('An error occurred while generating the number.')
+    toastStore.error(t('admin.registration_generator.erreur_lors_generation_numero'))
   }
 }
 
@@ -122,7 +124,7 @@ watch(() => [activeTab.value], () => {
 <template>
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Registration Numbers</h1>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">{{ t('admin.registration_generator.numeros_dinscription') }}</h1>
       
       <!-- Tabs Navigation -->
       <div class="flex space-x-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
@@ -130,20 +132,20 @@ watch(() => [activeTab.value], () => {
           @click="activeTab = 'generator'"
           :class="['px-4 py-2 text-sm font-medium rounded-md transition-colors', activeTab === 'generator' ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-800 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white']"
         >
-          Generator
+          {{ t('admin.registration_generator.generer') }}
         </button>
         <button 
           @click="activeTab = 'list'"
           :class="['px-4 py-2 text-sm font-medium rounded-md transition-colors', activeTab === 'list' ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-800 dark:text-blue-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white']"
         >
-          All Numbers List
+          {{ t('admin.registration_generator.liste_numeros') }}
         </button>
       </div>
     </div>
 
     <!-- Error Message -->
     <div v-if="error" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-      <strong class="font-bold">Error!</strong>
+      <strong class="font-bold">{{ t('admin.registration_generator.error') }}</strong>
       <span class="block sm:inline"> {{ error }}</span>
     </div>
 
@@ -151,14 +153,14 @@ watch(() => [activeTab.value], () => {
     <div v-show="activeTab === 'generator'">
       <!-- Session Selector -->
       <div class="mb-8 max-w-xl">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Session to Generate For</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('admin.registration_generator.session_concernee') }}</label>
         <select 
             v-model="selectedSession"
             class="w-full border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border dark:bg-gray-700 dark:text-white"
         >
-            <option value="" disabled>-- Select a Session --</option>
+            <option value="" disabled>{{ t('admin.registration_generator.choisir_session') }}</option>
             <option v-for="session in sessions" :key="session.id" :value="session.id">
-            {{ session.name }} (Start: {{ session.start_date }})
+            {{ t('admin.registration_generator.start', { p0: session.name, p1: session.start_date }) }}
             </option>
         </select>
       </div>
@@ -166,11 +168,11 @@ watch(() => [activeTab.value], () => {
       <!-- Generated Number Display -->
       <div v-if="generatedNumber" class="mb-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 flex justify-between items-center shadow-lg transform transition-all duration-300 ease-in-out">
         <div>
-          <p class="text-green-800 dark:text-green-300 font-semibold text-lg">Registration Number Generated Successfully:</p>
+          <p class="text-green-800 dark:text-green-300 font-semibold text-lg">{{ t('admin.registration_generator.numero_dinscription_genere') }}</p>
           <p class="text-4xl font-mono font-bold text-green-700 dark:text-green-400 mt-2 tracking-widest bg-white dark:bg-gray-800 inline-block px-4 py-2 rounded border border-green-100 dark:border-green-900 shadow-sm">{{ generatedNumber.number }}</p>
           <div class="text-sm text-green-700 dark:text-green-400 mt-3 space-y-1">
-            <p><span class="font-medium">Specialty:</span> {{ generatedNumber.specialty }}</p>
-            <p><span class="font-medium">Session:</span> {{ generatedNumber.session }}</p>
+            <p><span class="font-medium">{{ t('admin.registration_generator.specialite') }}</span> {{ generatedNumber.specialty }}</p>
+            <p><span class="font-medium">{{ t('admin.registration_generator.session') }}</span> {{ generatedNumber.session }}</p>
           </div>
         </div>
         <button @click="generatedNumber = null" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 focus:outline-none p-2 rounded-full hover:bg-green-100 dark:hover:bg-green-900/50 transition">
@@ -183,17 +185,17 @@ watch(() => [activeTab.value], () => {
       <!-- Specialties Table -->
       <div v-if="selectedSession" class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
         <div v-if="loading" class="p-8 text-center text-gray-500 dark:text-gray-400">
-          Loading specialties...
+          {{ t('admin.registration_generator.chargement_specialites') }}
         </div>
         
         <div v-else-if="specialties.length > 0">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700/50">
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Specialty</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Code</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Study Mode</th>
-                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('common.specialty') }}</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('common.code') }}</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('admin.registration_generator.study_mode') }}</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -210,7 +212,7 @@ watch(() => [activeTab.value], () => {
                     @click="generateNumber(spec.id, spec.name)"
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition"
                     >
-                    Generate Number
+                    {{ t('admin.registration_generator.generer_numero') }}
                     </button>
                 </td>
               </tr>
@@ -219,12 +221,12 @@ watch(() => [activeTab.value], () => {
         </div>
 
         <div v-else class="text-center py-10 text-gray-500 dark:text-gray-400">
-          No specialties found available for this session.
+          {{ t('admin.registration_generator.aucune_specialite_disponible_dans_sessio') }}
         </div>
       </div>
       
       <div v-else class="text-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-        <p class="text-gray-500 dark:text-gray-400">Please select a session above to start generating numbers.</p>
+        <p class="text-gray-500 dark:text-gray-400">{{ t('admin.registration_generator.choisissez_session_generer_numeros_dinsc') }}</p>
       </div>
     </div>
 
@@ -233,47 +235,47 @@ watch(() => [activeTab.value], () => {
         <!-- Filters -->
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 items-end">
             <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Number</label>
-                <input v-model="listFilters.search" type="text" placeholder="Search..." class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border dark:bg-gray-700 dark:text-white">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('admin.registration_generator.rechercher_numero') }}</label>
+                <input v-model="listFilters.search" type="text" :placeholder="t('admin.registration_generator.rechercher')" class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border dark:bg-gray-700 dark:text-white">
             </div>
             
             <div class="w-48">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.status') }}</label>
                 <select v-model="listFilters.status" class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border dark:bg-gray-700 dark:text-white">
-                    <option value="all">All Status</option>
-                    <option value="available">Available</option>
-                    <option value="used">Used</option>
+                    <option value="all">{{ t('admin.registration_generator.tous_statuts') }}</option>
+                    <option value="available">{{ t('admin.registration_generator.disponible') }}</option>
+                    <option value="used">{{ t('admin.registration_generator.utilise') }}</option>
                 </select>
             </div>
 
              <div class="w-64">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Session</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.session') }}</label>
                 <select v-model="listFilters.session_id" class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border dark:bg-gray-700 dark:text-white">
-                    <option value="">All Sessions</option>
+                    <option value="">{{ t('admin.registration_generator.toutes_sessions') }}</option>
                     <option v-for="session in sessions" :key="session.id" :value="session.id">
                         {{ session.name }}
                     </option>
                 </select>
             </div>
 
-            <button @click="fetchRegistrationList(1)" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Filter</button>
+            <button @click="fetchRegistrationList(1)" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">{{ t('common.filter') }}</button>
         </div>
 
         <!-- Table -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
             <div v-if="listLoading" class="p-8 text-center text-gray-500 dark:text-gray-400">
-                Loading list...
+                {{ t('common.loading') }}
             </div>
             <div v-else>
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Number</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Specialty</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Session</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Used By</th>
-                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Created</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('admin.registration_generator.numero') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.specialty') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.session') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.status') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('admin.registration_generator.utilise_2') }}</th>
+                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('admin.registration_generator.created') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -292,7 +294,7 @@ watch(() => [activeTab.value], () => {
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ item.created_at }}</td>
                         </tr>
                         <tr v-if="registrationList.length === 0">
-                            <td colspan="6" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">No records found.</td>
+                            <td colspan="6" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">{{ t('admin.registration_generator.aucun_resultat') }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -304,15 +306,15 @@ watch(() => [activeTab.value], () => {
                         :disabled="listPagination.current_page <= 1"
                         class="px-3 py-1 border rounded disabled:opacity-50 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
                     >
-                        Previous
+                        {{ t('common.previous') }}
                     </button>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Page {{ listPagination.current_page }} of {{ listPagination.last_page }}</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('admin.registration_generator.page', { p0: listPagination.current_page, p1: listPagination.last_page }) }}</span>
                     <button 
                          @click="fetchRegistrationList(listPagination.current_page + 1)"
                          :disabled="listPagination.current_page >= listPagination.last_page"
                          class="px-3 py-1 border rounded disabled:opacity-50 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
                     >
-                        Next
+                        {{ t('common.next') }}
                     </button>
                 </div>
             </div>

@@ -5,6 +5,9 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { loginSchema } from '@/validations/schemas'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -48,12 +51,12 @@ const handleLogin = handleSubmit(async (credentials) => {
 
 <template>
   <AuthLayout>
-    <h1 class="auth-title">Connexion</h1>
-    <p class="auth-subtitle">Accédez à votre espace stagiaire, formateur ou administration.</p>
+    <h1 class="auth-title">{{ t('auth.login.title') }}</h1>
+    <p class="auth-subtitle">{{ t('auth.login.subtitle') }}</p>
 
     <form class="auth-form" novalidate @submit.prevent="handleLogin">
       <div class="auth-field">
-        <label for="registration_number" class="auth-label">Email ou numéro d’inscription</label>
+        <label for="registration_number" class="auth-label">{{ t('auth.login.identifier') }}</label>
         <div class="auth-control">
           <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" /></svg>
           <input
@@ -64,14 +67,14 @@ const handleLogin = handleSubmit(async (credentials) => {
             autocomplete="username"
             autofocus
             :class="['auth-input', { 'is-invalid': errors.registration_number }]"
-            placeholder="nom@insfp.dz ou 0001125P1647"
+            :placeholder="t('auth.login.identifierPlaceholder')"
           />
         </div>
         <p v-if="errors.registration_number" class="auth-error">{{ errors.registration_number }}</p>
       </div>
 
       <div class="auth-field">
-        <label for="password" class="auth-label">Mot de passe</label>
+        <label for="password" class="auth-label">{{ t('auth.login.password') }}</label>
         <div class="auth-control">
           <svg class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z" /></svg>
           <input
@@ -83,7 +86,7 @@ const handleLogin = handleSubmit(async (credentials) => {
             :class="['auth-input', { 'is-invalid': errors.password }]"
             placeholder="••••••••"
           />
-          <button type="button" class="auth-suffix" :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'" @click="showPassword = !showPassword">
+          <button type="button" class="auth-suffix" :aria-label="showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')" @click="showPassword = !showPassword">
             <svg v-if="!showPassword" class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
             <svg v-else class="auth-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
           </button>
@@ -94,9 +97,9 @@ const handleLogin = handleSubmit(async (credentials) => {
       <div class="auth-inline">
         <label class="auth-check">
           <input v-model="rememberMe" type="checkbox" />
-          Se souvenir de moi
+          {{ t('auth.login.remember') }}
         </label>
-        <span class="auth-muted" title="L’administration peut réinitialiser votre mot de passe">Mot de passe oublié ? Contactez l’administration</span>
+        <span class="auth-muted" :title="t('auth.login.forgotTitle')">{{ t('auth.login.forgot') }}</span>
       </div>
 
       <div v-if="authStore.error" class="auth-alert auth-alert-error" role="alert">
@@ -106,13 +109,13 @@ const handleLogin = handleSubmit(async (credentials) => {
 
       <button type="submit" class="auth-btn" :disabled="loading">
         <span v-if="loading" class="auth-spinner" aria-hidden="true"></span>
-        {{ loading ? 'Connexion…' : 'Se connecter' }}
+        {{ loading ? t('auth.login.submitting') : t('auth.login.submit') }}
       </button>
     </form>
 
     <p class="auth-switch">
-      Nouveau stagiaire ?
-      <router-link to="/register">Créer un compte</router-link>
+      {{ t('auth.login.newStudent') }}
+      <router-link to="/register">{{ t('auth.login.createAccount') }}</router-link>
     </p>
   </AuthLayout>
 </template>

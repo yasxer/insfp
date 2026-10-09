@@ -1,25 +1,29 @@
 import * as yup from 'yup'
+import { i18n } from '@/i18n'
 
 const phoneRegex = /^0[5-7][0-9]{8}$/
 
+// Messages are functions so they follow the language chosen at validation time
+const m = (key) => () => i18n.global.t(`validation.${key}`)
+
 export const loginSchema = yup.object({
-  registration_number: yup.string().required('Email ou numéro d’inscription requis'),
-  password: yup.string().required('Mot de passe requis')
+  registration_number: yup.string().required(m('identifierRequired')),
+  password: yup.string().required(m('passwordRequired'))
 })
 
 export const registerSchema = yup.object({
-  session_id: yup.string().required('Session introuvable : vérifiez votre numéro d’inscription'),
-  registration_number: yup.string().required('Numéro d’inscription requis'),
-  first_name: yup.string().required('Prénom requis'),
-  last_name: yup.string().required('Nom requis'),
-  email: yup.string().email('Adresse email invalide').required('Email requis'),
-  phone: yup.string().matches(phoneRegex, { message: 'Numéro invalide (ex : 0612345678)', excludeEmptyString: true }).nullable().notRequired(),
-  specialty_id: yup.string().required('Choisissez une spécialité'),
-  study_mode: yup.string().required('Mode d’étude introuvable : vérifiez votre numéro d’inscription'),
-  password: yup.string().min(8, 'Au moins 8 caractères').required('Mot de passe requis'),
+  session_id: yup.string().required(m('sessionMissing')),
+  registration_number: yup.string().required(m('regNumberRequired')),
+  first_name: yup.string().required(m('firstNameRequired')),
+  last_name: yup.string().required(m('lastNameRequired')),
+  email: yup.string().email(m('emailInvalid')).required(m('emailRequired')),
+  phone: yup.string().matches(phoneRegex, { message: m('phoneInvalid'), excludeEmptyString: true }).nullable().notRequired(),
+  specialty_id: yup.string().required(m('specialtyRequired')),
+  study_mode: yup.string().required(m('modeMissing')),
+  password: yup.string().min(8, m('passwordMin')).required(m('passwordRequired')),
   password_confirmation: yup.string()
-    .oneOf([yup.ref('password')], 'Les mots de passe ne correspondent pas')
-    .required('Confirmez le mot de passe')
+    .oneOf([yup.ref('password')], m('passwordsMismatch'))
+    .required(m('confirmRequired'))
 })
 
 export const studentSchema = yup.object({

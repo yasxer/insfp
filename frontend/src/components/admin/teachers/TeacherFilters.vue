@@ -3,11 +3,11 @@
     <div class="flex flex-wrap gap-4 items-end">
       <!-- Search -->
       <div class="flex-1 min-w-[200px]">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.search') }}</label>
         <input
           v-model="filters.search"
           type="text"
-          placeholder="Name, Email or Phone..."
+          :placeholder="t('admin.teacher_filters.nom_email_ou_telephone')"
           class="w-full p-2 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           @input="emitFilters"
         />
@@ -15,13 +15,13 @@
 
       <!-- Specialization -->
       <div class="w-48">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Specialization</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('admin.teacher_filters.specialization') }}</label>
         <select
           v-model="filters.specialization"
           class="w-full rounded-md p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           @change="emitFilters"
         >
-          <option :value="null">All Specializations</option>
+          <option :value="null">{{ t('admin.teacher_filters.toutes_specialisations') }}</option>
           <option v-for="spec in specializations" :key="spec" :value="spec">
             {{ spec }}
           </option>
@@ -30,15 +30,15 @@
 
       <!-- Status -->
       <div class="w-32">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('common.status') }}</label>
         <select
           v-model="filters.approved"
           class="w-full rounded-md p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           @change="emitFilters"
         >
-          <option :value="null">All</option>
-          <option :value="true">Active</option>
-          <option :value="false">Pending</option>
+          <option :value="null">{{ t('common.all') }}</option>
+          <option :value="true">{{ t('common.active') }}</option>
+          <option :value="false">{{ t('common.pending') }}</option>
         </select>
       </div>
 
@@ -47,13 +47,15 @@
         @click="clearFilters"
         class="px-4 py-2 bg-gray-100 p-2 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
       >
-        Clear
+        {{ t('common.clear') }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import axios from '@/api/axios'
 

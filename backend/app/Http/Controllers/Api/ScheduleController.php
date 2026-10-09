@@ -329,6 +329,8 @@ class ScheduleController extends Controller
             ->where('is_excluded', false)
             ->whereNotNull('specialty_id')
             ->whereNotNull('current_semester')
+            // Registrations still waiting for approval are not a cohort yet
+            ->whereHas('user', fn ($q) => $q->where('is_approved', true))
             ->groupBy('specialty_id', 'study_mode', 'current_semester')
             ->get()
             ->map(fn ($r) => (object) array_merge($r->toArray(), ['is_new' => false]));
@@ -345,6 +347,8 @@ class ScheduleController extends Controller
         // Existing cohorts, advanced +1 (skip those reaching the last semester → graduating)
         $advanced = Student::query()
             ->join('specialties', 'students.specialty_id', '=', 'specialties.id')
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->where('users.is_approved', true)
             ->where('students.is_graduated', false)
             ->where('students.is_excluded', false)
             ->whereNotNull('students.specialty_id')

@@ -1,64 +1,64 @@
 <template>
   <div class="space-y-6">
-    <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-900 dark:border-gray-800">
       <div>
-        <h1 class="text-2xl font-bold text-gray-800">Mes Devoirs</h1>
-        <p class="text-gray-500 text-sm mt-1">Consultez et soumettez vos travaux</p>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ t('student.homeworks.mes_devoirs') }}</h1>
+        <p class="text-gray-500 text-sm mt-1 dark:text-gray-400">{{ t('student.homeworks.consultez_soumettez_travaux') }}</p>
       </div>
     </div>
 
     <!-- Error/Success Messages -->
-    <div v-if="error" class="bg-red-50 text-red-600 p-4 rounded-lg flex items-center">
+    <div v-if="error" class="bg-red-50 text-red-600 p-4 rounded-lg flex items-center dark:bg-red-900/30 dark:text-red-300">
       <ExclamationCircleIcon class="mr-2 w-5 h-5" />
       {{ error }}
     </div>
     
-    <div v-if="success" class="bg-green-50 text-green-600 p-4 rounded-lg flex items-center shadow-sm">
+    <div v-if="success" class="bg-green-50 text-green-600 p-4 rounded-lg flex items-center shadow-sm dark:bg-green-900/30 dark:text-green-300">
       <CheckCircleIcon class="mr-2 w-5 h-5" />
       {{ success }}
     </div>
 
     <!-- Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6" v-if="!loading && homeworks.length > 0">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 dark:bg-gray-900 dark:border-gray-800">
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg dark:bg-blue-900/30 dark:text-blue-300">
           <ClipboardDocumentListIcon class="text-2xl" />
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-500">Total des devoirs</p>
-          <p class="text-xl font-bold text-gray-800">{{ homeworks.length }}</p>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('student.homeworks.total_devoirs') }}</p>
+          <p class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ homeworks.length }}</p>
         </div>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-        <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 dark:bg-gray-900 dark:border-gray-800">
+        <div class="p-3 bg-red-50 text-red-600 rounded-lg dark:bg-red-900/30 dark:text-red-300">
           <ClockIcon class="text-2xl" />
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-500">À rendre</p>
-          <p class="text-xl font-bold text-gray-800">{{ pendingCount }}</p>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('student.homeworks.rendre') }}</p>
+          <p class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ pendingCount }}</p>
         </div>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-        <div class="p-3 bg-green-50 text-green-600 rounded-lg">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 dark:bg-gray-900 dark:border-gray-800">
+        <div class="p-3 bg-green-50 text-green-600 rounded-lg dark:bg-green-900/30 dark:text-green-300">
           <CheckCircleIcon class="w-6 h-6" />
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-500">Terminés</p>
-          <p class="text-xl font-bold text-gray-800">{{ completedCount }}</p>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('student.homeworks.termines') }}</p>
+          <p class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ completedCount }}</p>
         </div>
       </div>
     </div>
 
     <!-- Filter/Sort Tabs -->
-    <div class="flex space-x-1 bg-white p-1 rounded-lg border border-gray-200 mt-6" style="width: fit-content;" v-if="!loading && homeworks.length > 0">
-      <button @click="currentFilter = 'all'" :class="currentFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'" class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
-        Tous
+    <div class="flex space-x-1 bg-white p-1 rounded-lg border border-gray-200 mt-6 dark:bg-gray-900 dark:border-gray-700" style="width: fit-content;" v-if="!loading && homeworks.length > 0">
+      <button @click="currentFilter = 'all'" :class="currentFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'" class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+        {{ t('common.all') }}
       </button>
-      <button @click="currentFilter = 'pending'" :class="currentFilter === 'pending' ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'" class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
-        À rendre
+      <button @click="currentFilter = 'pending'" :class="currentFilter === 'pending' ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'" class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+        {{ t('student.homeworks.rendre') }}
       </button>
-      <button @click="currentFilter = 'submitted'" :class="currentFilter === 'submitted' ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'" class="px-4 py-2 rounded-md text-sm font-medium transition-colors border-none">
-        Terminés
+      <button @click="currentFilter = 'submitted'" :class="currentFilter === 'submitted' ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'" class="px-4 py-2 rounded-md text-sm font-medium transition-colors border-none">
+        {{ t('student.homeworks.termines') }}
       </button>
     </div>
 
@@ -73,14 +73,14 @@
       <div 
         v-for="hw in filteredHomeworks" 
         :key="hw.id"
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group relative"
+        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group relative dark:bg-gray-900 dark:border-gray-800"
       >
         <!-- Status Indicator Band -->
         <div class="absolute top-0 left-0 w-1.5 h-full" :class="getStatusColorBand(hw)"></div>
         
         <div class="p-6 pl-8 flex-grow">
           <div class="flex justify-between items-start mb-3">
-            <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-full border border-indigo-100">
+            <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-full border border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800">
               {{ hw.module }}
             </span>
             <div class="flex flex-col items-end">
@@ -91,61 +91,61 @@
             </div>
           </div>
           
-          <h2 class="text-xl font-bold text-gray-800 mb-2 mt-4">{{ hw.title }}</h2>
-          <p class="text-sm font-medium text-gray-500 mb-3">Par: M/Mme {{ hw.teacher }}</p>
-          <div class="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 mb-4 whitespace-pre-wrap leading-relaxed border border-gray-100">
+          <h2 class="text-xl font-bold text-gray-800 mb-2 mt-4 dark:text-gray-100">{{ hw.title }}</h2>
+          <p class="text-sm font-medium text-gray-500 mb-3 dark:text-gray-400">{{ t('student.homeworks.m_mme', { p0: hw.teacher }) }}</p>
+          <div class="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 mb-4 whitespace-pre-wrap leading-relaxed border border-gray-100 dark:bg-gray-800/60 dark:text-gray-200 dark:border-gray-800">
             {{ hw.description }}
           </div>
           
           <div v-if="hw.file_path" class="mb-4">
-            <a :href="hw.file_path" target="_blank" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100">
+            <a :href="hw.file_path" target="_blank" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30">
               <ArrowDownTrayIcon class="w-5 h-5 mr-1.5" />
-              Télécharger la pièce jointe
+              {{ t('student.homeworks.telecharger_piece_jointe') }}
             </a>
           </div>
           
-          <div class="flex items-center text-sm mt-6 pt-4 border-t border-gray-100 font-semibold" :class="getDueDateClass(hw.due_date)">
+          <div class="flex items-center text-sm mt-6 pt-4 border-t border-gray-100 font-semibold dark:border-gray-800" :class="getDueDateClass(hw.due_date)">
             <ClockIcon class="mr-1.5 w-5 h-5" />
-            À rendre pour le: {{ formatDate(hw.due_date) }}
+            {{ t('student.homeworks.rendre_2', { p0: formatDate(hw.due_date) }) }}
           </div>
         </div>
 
         <!-- Grade Display -->
-        <div v-if="hw.status === 'graded'" class="bg-green-50 border-t border-green-100 p-4 pl-8 flex items-start gap-4">
-          <div class="bg-white border-2 border-green-300 text-green-700 font-black text-xl px-3 py-1.5 rounded-lg shadow-sm">
+        <div v-if="hw.status === 'graded'" class="bg-green-50 border-t border-green-100 p-4 pl-8 flex items-start gap-4 dark:bg-green-900/30 dark:border-green-800">
+          <div class="bg-white border-2 border-green-300 text-green-700 font-black text-xl px-3 py-1.5 rounded-lg shadow-sm dark:bg-gray-900 dark:text-green-300">
             {{ hw.submission.grade }}/20
           </div>
           <div>
-            <p class="text-xs font-bold text-green-800 uppercase tracking-wider mb-0.5">Commentaire du professeur</p>
-            <p class="text-sm text-green-700">{{ hw.submission.feedback || 'Aucun commentaire détaillé.' }}</p>
+            <p class="text-xs font-bold text-green-800 uppercase tracking-wider mb-0.5 dark:text-green-300">{{ t('student.homeworks.commentaire_professeur') }}</p>
+            <p class="text-sm text-green-700 dark:text-green-300">{{ hw.submission.feedback || t('student.homeworks.aucun_commentaire_detaille') }}</p>
           </div>
         </div>
 
         <!-- Submission Display -->
-          <div v-if="hw.submission_type === 'in_person'" class="bg-emerald-50 border-t border-emerald-100 p-4 pl-8 flex justify-between items-center">
-            <div class="flex items-center text-sm text-emerald-700 font-medium">
+          <div v-if="hw.submission_type === 'in_person'" class="bg-emerald-50 border-t border-emerald-100 p-4 pl-8 flex justify-between items-center dark:bg-emerald-900/30 dark:border-emerald-800">
+            <div class="flex items-center text-sm text-emerald-700 font-medium dark:text-emerald-300">
               <CheckCircleIcon class="text-emerald-500 w-5 h-5 mr-2" />
-              Devoir à rendre en présentiel
+              {{ t('student.homeworks.devoir_rendre_presentiel') }}
             </div>
           </div>
-        <div v-else-if="hw.submission_type !== 'in_person' && hw.status === 'submitted'" class="bg-gray-50 border-t border-gray-100 p-4 pl-8 flex justify-between items-center">
-          <div class="flex items-center text-sm text-gray-600 font-medium">
+        <div v-else-if="hw.submission_type !== 'in_person' && hw.status === 'submitted'" class="bg-gray-50 border-t border-gray-100 p-4 pl-8 flex justify-between items-center dark:bg-gray-800/60 dark:border-gray-800">
+          <div class="flex items-center text-sm text-gray-600 font-medium dark:text-gray-300">
             <CheckCircleIcon class="text-green-500 mr-2" />
-            Devoir remis le {{ formatDate(hw.submission.submitted_at) }}
+            {{ t('student.homeworks.devoir_remis', { p0: formatDate(hw.submission.submitted_at) }) }}
           </div>
-          <button @click="openSubmitModal(hw)" class="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline">
-            Modifier ma remise
+          <button @click="openSubmitModal(hw)" class="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline dark:text-blue-300">
+            {{ t('student.homeworks.modifier_ma_remise') }}
           </button>
         </div>
 
         <!-- Submit Button -->
-        <div v-else-if="hw.submission_type !== 'in_person'" class="bg-red-50/50 border-t border-red-100 p-4 pl-8">
+        <div v-else-if="hw.submission_type !== 'in_person'" class="bg-red-50/50 border-t border-red-100 p-4 pl-8 dark:border-red-800">
           <button 
             @click="openSubmitModal(hw)"
-            class="w-full py-2.5 bg-white border border-[blue-600] text-blue-600 font-semibold rounded-lg hover:bg-blue-600 hover:text-white transition-colors flex justify-center items-center group"
+            class="w-full py-2.5 bg-white border border-[blue-600] text-blue-600 font-semibold rounded-lg hover:bg-blue-600 hover:text-white transition-colors flex justify-center items-center group dark:bg-gray-900 dark:text-blue-300"
           >
             <ArrowUpTrayIcon class="mr-2 w-5 h-5 group-hover:-translate-y-1 transition-transform" />
-            Remettre mon travail
+            {{ t('student.homeworks.remettre_mon_travail') }}
           </button>
         </div>
         
@@ -153,84 +153,84 @@
       
     </div>
     
-    <div v-else class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-      <div class="text-gray-300 mb-4 inline-flex p-4 rounded-full bg-gray-50">
+    <div v-else class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center dark:bg-gray-900 dark:border-gray-800">
+      <div class="text-gray-300 mb-4 inline-flex p-4 rounded-full bg-gray-50 dark:bg-gray-800/60">
         <InboxIcon class="w-10 h-10" />
       </div>
-      <h3 class="text-lg font-bold text-gray-800">Aucun devoir</h3>
-      <p class="text-gray-500 mt-2 max-w-sm mx-auto">Vous n'avez pas de devoirs correspondant à ce critère dans vos modules actuels.</p>
+      <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">{{ t('student.homeworks.aucun_devoir') }}</h3>
+      <p class="text-gray-500 mt-2 max-w-sm mx-auto dark:text-gray-400">{{ t('student.homeworks.vous_n_avez_pas_devoirs') }}</p>
     </div>
 
     <!-- Submit Modal -->
     <div v-if="showSubmitModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col">
-        <div class="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+      <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col dark:bg-gray-900">
+        <div class="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 dark:border-gray-800">
           <div>
-            <h2 class="text-xl font-bold text-gray-800">Remettre un travail</h2>
-            <p class="text-sm text-gray-500 mt-1 font-medium">{{ activeHomework?.title }}</p>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ t('student.homeworks.remettre_travail') }}</h2>
+            <p class="text-sm text-gray-500 mt-1 font-medium dark:text-gray-400">{{ activeHomework?.title }}</p>
           </div>
-          <button @click="showSubmitModal = false" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
+          <button @click="showSubmitModal = false" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
             <XMarkIcon class=" w-5 h-5" />
           </button>
         </div>
         
         <form @submit.prevent="submitWork" class="p-6 space-y-5">
-          <div v-if="activeHomework?.submission" class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg text-sm mb-4 flex items-start">
-            <InformationCircleIcon class="text-yellow-600 mr-2 w-5 h-5" />
-            Vous avez déjà remis ce devoir. Vous pouvez le modifier en renvoyant le formulaire.
+          <div v-if="activeHomework?.submission" class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg text-sm mb-4 flex items-start dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-300">
+            <InformationCircleIcon class="text-yellow-600 mr-2 w-5 h-5 dark:text-yellow-300" />
+            {{ t('student.homeworks.vous_avez_deja_remis_devoir') }}
           </div>
           
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Votre réponse / texte</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5 dark:text-gray-200">{{ t('student.homeworks.reponse_texte') }}</label>
             <textarea 
               v-model="form.submission_text" 
               rows="5" 
-              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors outline-none resize-y" 
-              placeholder="Tapez votre réponse, vos remarques, ou un lien externe ici..."
+              class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors outline-none resize-y dark:bg-gray-800/60 dark:border-gray-700 dark:focus:bg-gray-900" 
+              :placeholder="t('student.homeworks.tapez_reponse_remarques_ou_lien')"
             ></textarea>
           </div>
           
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pièce jointe</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5 dark:text-gray-200">{{ t('student.homeworks.piece_jointe') }}</label>
             
-            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors dark:border-gray-600 dark:hover:bg-gray-800"
                  :class="{'border-blue-600/50 bg-blue-50/50': form.file}">
               <div class="space-y-1 text-center">
-                <span v-if="!form.file" class="material-icons text-gray-400 text-3xl mb-2">upload_file</span>
-                <span v-else class="material-icons text-green-500 text-3xl mb-2">check_circle</span>
+                <ArrowUpTrayIcon v-if="!form.file" class="h-8 w-8 text-gray-400 mb-2" />
+                <CheckCircleIcon v-else class="h-8 w-8 text-green-500 mb-2" />
                 
-                <div class="flex text-sm text-gray-600 justify-center">
-                  <label for="student-file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-700 focus-within:outline-none">
-                    <span>{{ form.file ? 'Changer le fichier' : 'Parcourir les fichiers' }}</span>
+                <div class="flex text-sm text-gray-600 justify-center dark:text-gray-300">
+                  <label for="student-file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-700 focus-within:outline-none dark:bg-gray-900 dark:text-blue-300">
+                    <span>{{ form.file ? t('student.homeworks.changer_fichier') : t('student.homeworks.parcourir_fichiers') }}</span>
                     <input id="student-file" type="file" class="sr-only" @change="handleFileUpload">
                   </label>
                 </div>
-                <p class="text-xs text-gray-500 mt-2" v-if="!form.file">
-                  PDF, DOC, ZIP, Images (Max 10MB)
+                <p class="text-xs text-gray-500 mt-2 dark:text-gray-400" v-if="!form.file">
+                  {{ t('student.homeworks.pdf_doc_zip_images_max') }}
                 </p>
-                <p class="text-xs font-semibold text-gray-700 mt-2 flex items-center justify-center gap-1 truncate w-48 mx-auto" v-else>
+                <p class="text-xs font-semibold text-gray-700 mt-2 flex items-center justify-center gap-1 truncate w-48 mx-auto dark:text-gray-200" v-else>
                   {{ form.file.name }}
                 </p>
               </div>
             </div>
             
             <div v-if="activeHomework?.submission?.file_path" class="mt-3 flex items-center gap-2 text-sm">
-              <span class="text-gray-500">Fichier actuel:</span>
-              <a :href="activeHomework.submission.file_path" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline flex items-center">
+              <span class="text-gray-500 dark:text-gray-400">{{ t('student.homeworks.fichier_actuel') }}</span>
+              <a :href="activeHomework.submission.file_path" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline flex items-center dark:text-blue-300">
                 <LinkIcon class="w-4 h-4 mr-1" />
-                  Voir la pièce
+                  {{ t('student.homeworks.voir_piece') }}
               </a>
             </div>
           </div>
           
-          <div class="pt-4 flex justify-end gap-3 border-t border-gray-100">
-            <button type="button" @click="showSubmitModal = false" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl transition-colors">
-              Annuler
+          <div class="pt-4 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800">
+            <button type="button" @click="showSubmitModal = false" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl transition-colors dark:text-gray-200 dark:bg-gray-900 dark:border-gray-600 dark:hover:bg-gray-800">
+              {{ t('common.cancel') }}
             </button>
             <button type="submit" :disabled="submitting || (!form.submission_text && !form.file && !activeHomework?.submission)" class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors flex items-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-              <span v-if="submitting" class="material-icons animate-spin mr-2 text-[18px]">autorenew</span>
-              <span v-else class="material-icons mr-2 text-[18px]">send</span>
-              Envoyer mon travail
+              <ArrowPathIcon v-if="submitting" class="h-[18px] w-[18px] animate-spin mr-2" />
+              <PaperAirplaneIcon v-else class="h-[18px] w-[18px] mr-2" />
+              {{ t('student.homeworks.envoyer_mon_travail') }}
             </button>
           </div>
         </form>
@@ -241,7 +241,10 @@
 </template>
 
 <script setup>
-import { ExclamationCircleIcon, CheckCircleIcon, ClipboardDocumentListIcon, ClockIcon, ArrowDownTrayIcon, XMarkIcon, InformationCircleIcon, ArrowUpTrayIcon, InboxIcon, LinkIcon } from '@heroicons/vue/24/outline'
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
+import { ExclamationCircleIcon, CheckCircleIcon, ClipboardDocumentListIcon, ClockIcon, ArrowDownTrayIcon, XMarkIcon, InformationCircleIcon, ArrowUpTrayIcon, InboxIcon, LinkIcon, ArrowPathIcon, PaperAirplaneIcon } from '@heroicons/vue/24/outline'
 import { ref, onMounted, computed } from 'vue'
 import { studentHomeworkApi } from '@/api/endpoints/homework'
 
@@ -278,7 +281,7 @@ const fetchHomeworks = async () => {
     const response = await studentHomeworkApi.getHomeworks()
     homeworks.value = response.data.data
   } catch (err) {
-    error.value = 'Erreur lors du chargement des devoirs'
+    error.value = t('student.homeworks.erreur_lors_chargement_devoirs')
     console.error(err)
   } finally {
     loading.value = false
@@ -316,7 +319,7 @@ const submitWork = async () => {
 
     const res = await studentHomeworkApi.submitHomework(activeHomework.value.id, formData)
     
-    success.value = 'Devoir remis avec succès !'
+    success.value = t('student.homeworks.devoir_remis_avec_succes')
     showSubmitModal.value = false
     
     // Refresh list
@@ -339,19 +342,19 @@ const formatDate = (dateString, withTime = true) => {
     options.hour = '2-digit'
     options.minute = '2-digit'
   }
-  return new Date(dateString).toLocaleDateString('fr-FR', options).replace(',', ' à')
+  return new Date(dateString).toLocaleDateString(dateLocale(), options).replace(',', ' ·')
 }
 
 const getDueDateClass = (dateString) => {
   const date = new Date(dateString)
   const now = new Date()
-  if (date < now) return 'text-red-600'
+  if (date < now) return 'text-red-600 dark:text-red-300'
   
   const diffTime = Math.abs(date - now);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
   if (diffDays <= 2) return 'text-orange-500'
   
-  return 'text-emerald-600'
+  return 'text-emerald-600 dark:text-emerald-300'
 }
 
 const getStatusColorBand = (hw) => {
@@ -364,21 +367,21 @@ const getStatusColorBand = (hw) => {
 }
 
 const getStatusBadge = (hw) => {
-  if (hw.status === 'graded') return 'bg-green-100 text-green-700 border-green-200'
-  if (hw.status === 'submitted') return 'bg-blue-100 text-blue-700 border-blue-200'
+  if (hw.status === 'graded') return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
+  if (hw.status === 'submitted') return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
   
   const date = new Date(hw.due_date)
-  if (date < new Date()) return 'bg-red-100 text-red-700 border-red-200'
-  return 'bg-amber-100 text-amber-700 border-amber-200'
+  if (date < new Date()) return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
+  return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800'
 }
 
 const getStatusText = (hw) => {
-  if (hw.status === 'graded') return 'Noté'
-  if (hw.status === 'submitted') return 'Remis'
+  if (hw.status === 'graded') return t('labels.homework.graded')
+  if (hw.status === 'submitted') return t('labels.homework.submitted')
   
   const date = new Date(hw.due_date)
-  if (date < new Date()) return 'En retard'
-  return 'À rendre'
+  if (date < new Date()) return t('labels.homework.late')
+  return t('labels.homework.todo')
 }
 
 const getStatusIcon = (hw) => {

@@ -10,39 +10,39 @@
           <div class="sm:flex sm:items-start">
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
               <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                {{ isEditing ? 'Edit Student' : 'Add New Student' }}
+                {{ isEditing ? t('admin.student_form.modifier_stagiaire') : t('admin.student_form.nouveau_stagiaire') }}
               </h3>
               <div class="mt-4">
                 <form @submit.prevent="handleSubmit" class="space-y-4">
                   <!-- Personal Information -->
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.first_name') }}</label>
                       <input v-model="form.first_name" type="text" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.first_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.first_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.first_name }}</p>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.last_name') }}</label>
                       <input v-model="form.last_name" type="text" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.last_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.last_name" class="mt-1 text-xs text-red-600">{{ fieldErrors.last_name }}</p>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.email') }}</label>
                       <input v-model="form.email" type="email" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.email" class="mt-1 text-xs text-red-600">{{ fieldErrors.email }}</p>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.phone') }}</label>
                       <input v-model="form.phone" type="tel" placeholder="0612345678" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.phone" class="mt-1 text-xs text-red-600">{{ fieldErrors.phone }}</p>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.student_form.date_naissance') }}</label>
                       <input v-model="form.date_of_birth" type="date" :min="MIN_BIRTH_DATE" :max="maxBirthDate()" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.date_of_birth ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.date_of_birth" class="mt-1 text-xs text-red-600">{{ fieldErrors.date_of_birth }}</p>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.address') }}</label>
                       <input v-model="form.address" type="text" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', fieldErrors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.address" class="mt-1 text-xs text-red-600">{{ fieldErrors.address }}</p>
                     </div>
@@ -53,12 +53,12 @@
                   <!-- Academic Information -->
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Registration Number</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.student_form.numero_dinscription') }}</label>
                       <input v-model="form.registration_number" type="text" :disabled="isEditing" :class="['mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:bg-gray-100 dark:disabled:bg-gray-600', fieldErrors.registration_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                       <p v-if="fieldErrors.registration_number" class="mt-1 text-xs text-red-600">{{ fieldErrors.registration_number }}</p>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Specialty</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.specialty') }}</label>
                       <select v-model="form.specialty_id" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         <option v-for="specialty in specialties" :key="specialty.id" :value="specialty.id">
                           {{ specialty.name }}
@@ -66,30 +66,30 @@
                       </select>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Study Mode</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.student_form.study_mode') }}</label>
                       <select v-model="form.study_mode" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="initial">Initial</option>
-                        <option value="alternance">Alternance</option>
-                        <option value="continue">Continue</option>
+                        <option value="initial">{{ t('admin.student_form.initial') }}</option>
+                        <option value="alternance">{{ t('admin.student_form.alternance') }}</option>
+                        <option value="continue">{{ t('admin.student_form.continue') }}</option>
                       </select>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Semester</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.student_form.semestre_actuel') }}</label>
                       <select v-model="form.current_semester" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option v-for="n in 6" :key="n" :value="n">Semester {{ n }}</option>
+                        <option v-for="n in 6" :key="n" :value="n">{{ t('admin.student_form.semestre', { p0: n }) }}</option>
                       </select>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Group</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.group') }}</label>
                       <select v-model="form.group" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option :value="null">None</option>
-                        <option value="A">Group A</option>
-                        <option value="B">Group B</option>
-                        <option value="C">Group C</option>
+                        <option :value="null">{{ t('admin.student_form.none') }}</option>
+                        <option value="A">{{ t('admin.student_form.groupe') }}</option>
+                        <option value="B">{{ t('admin.student_form.groupe_b') }}</option>
+                        <option value="C">{{ t('admin.student_form.groupe_c') }}</option>
                       </select>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Years Enrolled</label>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.student_form.annees_dinscription') }}</label>
                       <input v-model="form.years_enrolled" type="number" min="1" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                     </div>
                   </div>
@@ -100,10 +100,10 @@
 
                   <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button type="submit" :disabled="loading" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
-                      {{ loading ? 'Saving...' : (isEditing ? 'Update Student' : 'Create Student') }}
+                      {{ loading ? t('common.saving') : (isEditing ? t('common.save') : t('admin.student_form.creer_stagiaire')) }}
                     </button>
                     <button type="button" @click="$emit('close')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
-                      Cancel
+                      {{ t('common.cancel') }}
                     </button>
                   </div>
                 </form>
@@ -117,6 +117,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted, computed } from 'vue'
 import { maxBirthDate, MIN_BIRTH_DATE } from '@/utils/dates'
 import axios from '@/api/axios'
@@ -182,7 +184,7 @@ const handleSubmit = async () => {
       if (!errors[issue.path]) errors[issue.path] = issue.message
     }
     fieldErrors.value = errors
-    error.value = 'Please correct the errors below.'
+    error.value = t('admin.student_form.please_correct_the_errors_below')
     return
   }
 

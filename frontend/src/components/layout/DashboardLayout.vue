@@ -18,7 +18,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+  <div class="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-200">
     <!-- Sidebar -->
     <Sidebar 
       :open="sidebarOpen" 
@@ -29,7 +29,7 @@ onMounted(() => {
     <div class="flex-1 flex flex-col overflow-hidden">
       <Topbar @toggle-sidebar="toggleSidebar" />
 
-      <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+      <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />

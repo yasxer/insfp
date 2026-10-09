@@ -361,7 +361,8 @@ class TeacherController extends Controller
         foreach ($schedules as $schedule) {
             $dayOfWeek = $dayMap[strtolower($schedule->day)] ?? null;
 
-            if ($dayOfWeek) {
+            // Carbon::SUNDAY is 0: compare with null so Sunday classes are kept
+            if ($dayOfWeek !== null) {
                 // Find the date for this day in the requested week
                 $date = $startOfWeek->copy()->setISODate($startOfWeek->year, $startOfWeek->weekOfYear, $dayOfWeek);
 

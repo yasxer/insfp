@@ -10,39 +10,39 @@
           <div class="sm:flex sm:items-start">
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
               <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                {{ isEditing ? 'Edit Specialty' : 'Add New Specialty' }}
+                {{ isEditing ? t('admin.specialty_form.modifier_specialite') : t('admin.specialty_form.nouvelle_specialite') }}
               </h3>
               <div class="mt-4 space-y-4">
                 <!-- Name -->
                 <div>
-                  <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                  <input type="text" v-model="form.name" id="name" :class="['mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white rounded-md', errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']" placeholder="Computer Science">
+                  <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.last_name') }}</label>
+                  <input type="text" v-model="form.name" id="name" :class="['mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white rounded-md', errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']" :placeholder="t('admin.specialty_form.computer_science')">
                   <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
                 </div>
 
                 <!-- Code -->
                 <div>
-                  <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Code</label>
+                  <label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.code') }}</label>
                   <input type="text" v-model="form.code" id="code" :class="['mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white rounded-md', errors.code ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']" placeholder="CS">
                   <p v-if="errors.code" class="mt-1 text-sm text-red-600">{{ errors.code }}</p>
                 </div>
 
                 <!-- Description -->
                 <div>
-                  <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                  <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('common.description') }}</label>
                   <textarea v-model="form.description" id="description" rows="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"></textarea>
                 </div>
 
                 <!-- Duration -->
                 <div>
-                  <label for="duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Duration (Years)</label>
+                  <label for="duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.specialty_form.duree_annees') }}</label>
                   <input type="number" step="0.5" v-model="form.duration_years" id="duration" :class="['mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm dark:bg-gray-700 dark:text-white rounded-md', errors.duration_years ? 'border-red-500' : 'border-gray-300 dark:border-gray-600']">
                   <p v-if="errors.duration_years" class="mt-1 text-sm text-red-600">{{ errors.duration_years }}</p>
                 </div>
 
                 <!-- PDF Upload -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Program PDF</label>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.specialty_form.programme_pdf') }}</label>
                   <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
                     <div class="space-y-1 text-center">
                       <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
@@ -50,20 +50,20 @@
                       </svg>
                       <div class="flex text-sm text-gray-600 dark:text-gray-400">
                         <label for="file-upload" class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                          <span>Upload a file</span>
+                          <span>{{ t('admin.specialty_form.deposer_fichier') }}</span>
                           <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".pdf" @change="handleFileUpload">
                         </label>
-                        <p class="pl-1">or drag and drop</p>
+                        <p class="pl-1">{{ t('admin.specialty_form.ou_glisser_deposer') }}</p>
                       </div>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">PDF up to 10MB</p>
-                      <p v-if="selectedFile" class="text-sm text-green-600 dark:text-green-400 mt-2">Selected: {{ selectedFile.name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.specialty_form.pdf_10_mo_max') }}</p>
+                      <p v-if="selectedFile" class="text-sm text-green-600 dark:text-green-400 mt-2">{{ t('admin.specialty_form.selected', { p0: selectedFile.name }) }}</p>
                     </div>
                   </div>
                 </div>
 
                 <!-- Cover Image Upload -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Cover Image</label>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.specialty_form.cover_image') }}</label>
                   <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
                     <div class="space-y-1 text-center">
                       <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
@@ -71,13 +71,13 @@
                       </svg>
                       <div class="flex text-sm text-gray-600 dark:text-gray-400">
                         <label for="image-upload" class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                          <span>Upload an image</span>
+                          <span>{{ t('admin.specialty_form.deposer_image') }}</span>
                           <input id="image-upload" name="image-upload" type="file" class="sr-only" accept="image/*" @change="handleImageUpload">
                         </label>
-                        <p class="pl-1">or drag and drop</p>
+                        <p class="pl-1">{{ t('admin.specialty_form.ou_glisser_deposer') }}</p>
                       </div>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 5MB</p>
-                      <p v-if="selectedImage" class="text-sm text-green-600 dark:text-green-400 mt-2">Selected: {{ selectedImage.name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.specialty_form.png_jpg_gif_5_mo') }}</p>
+                      <p v-if="selectedImage" class="text-sm text-green-600 dark:text-green-400 mt-2">{{ t('admin.specialty_form.selected', { p0: selectedImage.name }) }}</p>
                     </div>
                   </div>
                 </div>
@@ -87,10 +87,10 @@
         </div>
         <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
           <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" @click="submit" :disabled="loading">
-            {{ loading ? 'Saving...' : 'Save' }}
+            {{ loading ? t('common.saving') : t('common.save') }}
           </button>
           <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-500 shadow-sm px-4 py-2 bg-white dark:bg-gray-600 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" @click="close">
-            Cancel
+            {{ t('common.cancel') }}
           </button>
         </div>
       </div>
@@ -99,6 +99,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, reactive, watch } from 'vue'
 import { specialtySchema } from '@/validations/schemas'
 

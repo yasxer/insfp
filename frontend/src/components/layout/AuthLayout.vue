@@ -13,8 +13,8 @@
       </router-link>
 
       <div class="auth-brand-body">
-        <p class="auth-brand-eyebrow">Plateforme numérique</p>
-        <h2 class="auth-brand-title">{{ panelTitle }}</h2>
+        <p class="auth-brand-eyebrow">{{ t('auth.eyebrow') }}</p>
+        <h2 class="auth-brand-title">{{ panelTitle || t('auth.panelLogin') }}</h2>
         <ul class="auth-brand-points">
           <li v-for="point in points" :key="point">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
@@ -23,7 +23,8 @@
         </ul>
       </div>
 
-      <p class="auth-brand-foot" lang="ar" dir="rtl">المعهد الوطني المتخصص في التكوين المهني</p>
+      <p v-if="locale !== 'ar'" class="auth-brand-foot" lang="ar" dir="rtl">المعهد الوطني المتخصص في التكوين المهني</p>
+      <p v-else class="auth-brand-foot">{{ t('landing.instituteName') }}</p>
     </aside>
 
     <!-- Form side -->
@@ -33,10 +34,13 @@
           <img src="/logo.png" alt="Logo INSFP" width="36" height="36" />
           <strong>INSFP</strong>
         </router-link>
-        <router-link to="/" class="auth-back">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-          Accueil
-        </router-link>
+        <div class="auth-top-actions">
+          <LanguageSwitcher />
+          <router-link to="/" class="auth-back">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+            {{ t('auth.home') }}
+          </router-link>
+        </div>
       </div>
 
       <div class="auth-card" :style="{ maxWidth: width }">
@@ -47,16 +51,17 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
+
 defineProps({
-  panelTitle: { type: String, default: 'Votre espace de formation, partout et à tout moment' },
+  panelTitle: { type: String, default: '' },
   width: { type: String, default: '400px' },
 })
 
-const points = [
-  'Emploi du temps, cours et devoirs en ligne',
-  'Notes, absences et résultats des délibérations',
-  'Avis et documents de l’administration',
-]
+const { t, tm, rt, locale } = useI18n()
+const points = computed(() => tm('auth.points').map((p) => rt(p)))
 </script>
 
 <style>
@@ -84,6 +89,13 @@ const points = [
   color: var(--ink);
   background: #fff;
 }
+[dir="rtl"] .auth {
+  --sans: 'IBM Plex Sans Arabic', 'IBM Plex Sans', Tahoma, sans-serif;
+  --serif: 'Noto Naskh Arabic', 'Source Serif 4', serif;
+}
+[dir="rtl"] .auth-brand-eyebrow { letter-spacing: normal; }
+[dir="rtl"] .auth-back svg, [dir="rtl"] .reg-arrow { transform: scaleX(-1); }
+.auth-top-actions { display: flex; align-items: center; gap: 10px; }
 
 /* Brand panel */
 .auth-brand {
@@ -111,7 +123,7 @@ const points = [
 .auth-brand-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .auth-brand-points li { display: flex; align-items: flex-start; gap: 10px; color: #d3dceb; font-size: 15px; }
 .auth-brand-points svg { flex-shrink: 0; width: 20px; height: 20px; padding: 3px; border-radius: 50%; background: rgba(95, 224, 214, .18); fill: none; stroke: #5fe0d6; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.auth-brand-foot { margin: 0; font-family: 'Noto Naskh Arabic', serif; font-size: 15px; color: #9fb0c6; text-align: left; }
+.auth-brand-foot { margin: 0; font-family: 'Noto Naskh Arabic', serif; font-size: 15px; color: #9fb0c6; text-align: start; }
 
 /* Form side */
 .auth-main { display: flex; flex-direction: column; padding: 24px 40px; background: #fff; }
@@ -142,24 +154,25 @@ const points = [
 }
 .auth-label-hint { color: var(--muted); font-weight: 400; }
 .auth-control { position: relative; }
-.auth-control > .auth-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #8a96a6; pointer-events: none; }
+.auth-control > .auth-icon { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #8a96a6; pointer-events: none; }
 .auth-icon { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .auth .auth-input {
   /* .auth prefix: beats the global input/select rule in main.css */
-  width: 100%; height: 44px; padding: 0 12px 0 40px;
+  width: 100%; height: 44px; padding-block: 0; padding-inline: 40px 12px;
   border: 1px solid var(--line); border-radius: 8px; background: #fff;
   font: 400 15px var(--sans); color: var(--ink);
   transition: border-color .15s, box-shadow .15s;
 }
-.auth .auth-input.no-icon { padding-left: 12px; }
-.auth .auth-control:has(.auth-suffix) .auth-input { padding-right: 44px; }
+.auth .auth-input.no-icon { padding-inline-start: 12px; }
+.auth .auth-control:has(.auth-suffix) .auth-input { padding-inline-end: 44px; }
 .auth-input::placeholder { color: #9aa5b4; }
 .auth .auth-input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14, 124, 123, .15); }
 .auth-input.is-invalid { border-color: var(--danger); }
 .auth-input.is-valid { border-color: var(--success); }
 .auth-input:disabled { background: var(--soft); color: #9aa5b4; cursor: not-allowed; }
-.auth select.auth-input { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a96a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 18px; }
-.auth-suffix { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 6px; background: none; color: #8a96a6; cursor: pointer; }
+.auth select.auth-input { appearance: none; padding-inline-end: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a96a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 18px; }
+[dir="rtl"] .auth select.auth-input { background-position: left 10px center; }
+.auth-suffix { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 6px; background: none; color: #8a96a6; cursor: pointer; }
 .auth-suffix:hover { color: var(--navy); background: var(--soft); }
 .auth-suffix svg { width: 18px; height: 18px; }
 .auth-error { margin: 0; font-size: 12.5px; color: var(--danger); }

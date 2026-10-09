@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import studentApi from '@/api/endpoints/student'
@@ -17,7 +19,7 @@ const loading = ref(true)
 const error = ref(null)
 const stats = ref({
   modulesCount: 0,
-  currentGPA: 0,
+  semesterAverage: null,
   classesThisWeek: 0,
   pendingTasks: 0
 })
@@ -41,7 +43,7 @@ onMounted(async () => {
     // Update stats with API response
     stats.value = {
       modulesCount: data.statistics?.modules_count || 0,
-      currentGPA: data.statistics?.gpa || 0,
+      semesterAverage: data.statistics?.semester_average ?? null,
       classesThisWeek: data.statistics?.classes_this_week || 0,
       pendingTasks: data.statistics?.pending_homeworks ?? data.statistics?.pending_tasks ?? 0
     }
@@ -68,10 +70,46 @@ onMounted(async () => {
     
   } catch (err) {
     console.error('Failed to fetch dashboard stats:', err)
-    error.value = 'Failed to load dashboard data'
+    error.value = t('student.dashboard.impossible_charger_tableau_bord')
   } finally {
     loading.value = false
   }
+})
+
+// Real figures only: no invented trends
+const statCards = computed(() => {
+  const avg = stats.value.semesterAverage
+  const pending = stats.value.pendingTasks
+  return [
+    {
+      label: t('labels.studentStats.modules'),
+      value: stats.value.modulesCount,
+      icon: BookOpenIcon,
+      hint: authStore.user?.current_semester ? t('labels.semester', { n: authStore.user.current_semester }) : t('labels.currentSemester'),
+      hintClass: 'text-gray-500 dark:text-gray-400',
+    },
+    {
+      label: t('labels.studentStats.average'),
+      value: avg === null ? '—' : Number(avg).toFixed(2),
+      icon: AcademicCapIcon,
+      hint: avg === null ? t('labels.studentStats.noGrade') : avg >= 10 ? t('labels.studentStats.above') : t('labels.studentStats.below'),
+      hintClass: avg === null ? 'text-gray-500 dark:text-gray-400' : avg >= 10 ? 'text-teal-600 dark:text-teal-300' : 'text-red-600 dark:text-red-300',
+    },
+    {
+      label: t('labels.studentStats.sessions'),
+      value: stats.value.classesThisWeek,
+      icon: ClockIcon,
+      hint: t('labels.studentStats.perSchedule'),
+      hintClass: 'text-gray-500 dark:text-gray-400',
+    },
+    {
+      label: t('labels.studentStats.homeworks'),
+      value: pending,
+      icon: ClipboardDocumentListIcon,
+      hint: pending > 0 ? t('labels.studentStats.beforeDeadline') : t('labels.studentStats.noPending'),
+      hintClass: pending > 0 ? 'text-amber-600 dark:text-amber-300' : 'text-gray-500 dark:text-gray-400',
+    },
+  ]
 })
 
 const maxAttendanceValue = computed(() => {
@@ -101,12 +139,12 @@ const getClassForSlot = (day, time) => {
     <div v-else>
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Student Dashboard</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('student.dashboard.tableau_bord') }}</h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Welcome back, {{ authStore.user?.full_name || authStore.user?.name || 'Student' }}
+          {{ t('labels.welcome', { name: authStore.userName || t('common.student') }) }}
         </p>
         <div v-if="authStore.user?.specialty" class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-          {{ authStore.user.specialty.name }} - Semester {{ authStore.user.current_semester }}
+          {{ t('student.dashboard.semestre', { p0: authStore.user.specialty.name, p1: authStore.user.current_semester }) }}
         </div>
       </div>
 
@@ -116,94 +154,47 @@ const getClassForSlot = (day, time) => {
 
       <!-- Stats Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Enrolled Courses -->
-        <Card no-padding>
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Enrolled Courses</p>
-              <BookOpenIcon class="w-5 h-5 text-blue-500" />
-            </div>
-            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.modulesCount }}</h3>
-            <div class="mt-2 flex items-center text-xs text-green-600 dark:text-green-400">
-              <span class="mr-1">●</span>
-              <span>Active</span>
-            </div>
+        <div v-for="card in statCards" :key="card.label" class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
+          <span class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-navy-600 via-teal-600 to-gold-500 opacity-80" aria-hidden="true"></span>
+          <div class="flex items-start justify-between gap-3">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ card.label }}</p>
+            <span class="rounded-lg bg-navy-50 p-2 dark:bg-navy-900/40">
+              <component :is="card.icon" class="h-5 w-5 text-navy-600 dark:text-navy-200" />
+            </span>
           </div>
-        </Card>
-
-        <!-- Current GPA -->
-        <Card no-padding>
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Current GPA</p>
-              <AcademicCapIcon class="w-5 h-5 text-green-500" />
-            </div>
-            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.currentGPA.toFixed(1) }}</h3>
-            <div class="mt-2 flex items-center text-xs text-green-600 dark:text-green-400">
-              <span>▲ Top 10%</span>
-            </div>
-          </div>
-        </Card>
-
-        <!-- Classes This Week -->
-        <Card no-padding>
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Classes This Week</p>
-              <ClockIcon class="w-5 h-5 text-orange-500" />
-            </div>
-            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.classesThisWeek }}</h3>
-            <div class="mt-2 flex items-center text-xs text-gray-600 dark:text-gray-400">
-              <span>Same load</span>
-            </div>
-          </div>
-        </Card>
-
-        <!-- Pending Tasks -->
-        <Card no-padding>
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Tasks</p>
-              <ClipboardDocumentListIcon class="w-5 h-5 text-red-500" />
-            </div>
-            <h3 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.pendingTasks }}</h3>
-            <div class="mt-2 flex items-center text-xs text-red-600 dark:text-red-400">
-              <span>▲ Due soon</span>
-            </div>
-          </div>
-        </Card>
+          <p class="mt-1 font-serif text-3xl font-bold leading-none text-navy-800 dark:text-white">{{ card.value }}</p>
+          <p class="mt-3 text-xs font-medium" :class="card.hintClass">{{ card.hint }}</p>
+        </div>
       </div>
 
       <!-- Attendance Overview Chart -->
-      <Card title="Student Attendance Overview" class="mb-8">
+      <Card :title="t('student.dashboard.mon_assiduite')" class="mb-8">
         <div v-if="attendanceData.total > 0" class="relative py-8">
           <!-- Y-axis labels -->
           <div class="absolute left-0 top-8 h-80 flex flex-col justify-between text-xs text-gray-500 dark:text-gray-400 pr-2 text-right">
             <span>{{ maxAttendanceValue }}</span>
-            <span>{{ Math.floor(maxAttendanceValue * 0.75) }}</span>
-            <span>{{ Math.floor(maxAttendanceValue * 0.5) }}</span>
-            <span>{{ Math.floor(maxAttendanceValue * 0.25) }}</span>
+            <span>{{ maxAttendanceValue / 2 }}</span>
             <span>0</span>
           </div>
 
           <!-- Chart container -->
           <div class="ml-12 flex items-end justify-center space-x-12 h-80 border-l-2 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
-            <!-- Total Sessions Bar -->
+            <!-- Séances Bar -->
             <div class="flex flex-col items-center justify-end h-full group">
-              <div class="w-32 bg-blue-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-blue-400/50 transition-all duration-300"
+              <div class="w-32 bg-navy-600 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-navy-600/30 transition-all duration-300"
                    :style="{ height: `${(attendanceData.total / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
                 {{ attendanceData.total }}
               </div>
-              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Total Sessions</p>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('student.dashboard.seances') }}</p>
             </div>
 
             <!-- Present Bar -->
             <div class="flex flex-col items-center justify-end h-full group">
-              <div class="w-32 bg-cyan-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-cyan-400/50 transition-all duration-300"
+              <div class="w-32 bg-teal-500 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-teal-500/30 transition-all duration-300"
                    :style="{ height: `${(attendanceData.present / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
                 {{ attendanceData.present }}
               </div>
-              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Present</p>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.present') }}</p>
             </div>
 
             <!-- Late Bar -->
@@ -212,7 +203,7 @@ const getClassForSlot = (day, time) => {
                    :style="{ height: `${(attendanceData.late / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
                 {{ attendanceData.late }}
               </div>
-              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Late</p>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.late') }}</p>
             </div>
 
             <!-- Absent Bar -->
@@ -221,58 +212,58 @@ const getClassForSlot = (day, time) => {
                    :style="{ height: `${(attendanceData.absent / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
                 {{ attendanceData.absent }}
               </div>
-              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Absent</p>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.absent') }}</p>
             </div>
 
             <!-- Excused Bar -->
             <div class="flex flex-col items-center justify-end h-full group">
-              <div v-if="attendanceData.excused > 0" class="w-32 bg-purple-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-purple-400/50 transition-all duration-300"
+              <div v-if="attendanceData.excused > 0" class="w-32 bg-gray-400 rounded-t-xl flex items-center justify-center text-white font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-gray-400/30 transition-all duration-300"
                    :style="{ height: `${(attendanceData.excused / maxAttendanceValue * 100)}%`, minHeight: '60px' }">
                 {{ attendanceData.excused }}
               </div>
-              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Excused</p>
+              <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.excused') }}</p>
             </div>
           </div>
         </div>
         <div v-else class="h-80 flex items-center justify-center text-gray-500 dark:text-gray-400">
-          No attendance data available
+          {{ t('student.dashboard.aucune_donnee_dassiduite_moment') }}
         </div>
 
         <!-- Legend -->
         <div class="flex items-center justify-center flex-wrap gap-6 mt-8">
           <div class="flex items-center">
-            <div class="w-5 h-5 bg-blue-400 rounded mr-2"></div>
-            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Total Sessions</span>
+            <div class="w-5 h-5 bg-navy-600 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('student.dashboard.seances') }}</span>
           </div>
           <div class="flex items-center">
-            <div class="w-5 h-5 bg-cyan-400 rounded mr-2"></div>
-            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Present</span>
+            <div class="w-5 h-5 bg-teal-500 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.present') }}</span>
           </div>
           <div class="flex items-center">
             <div class="w-5 h-5 bg-amber-300 rounded mr-2"></div>
-            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Late</span>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.late') }}</span>
           </div>
           <div class="flex items-center">
             <div class="w-5 h-5 bg-red-400 rounded mr-2"></div>
-            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Absent</span>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.absent') }}</span>
           </div>
           <div class="flex items-center">
-            <div class="w-5 h-5 bg-purple-400 rounded mr-2"></div>
-            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Excused</span>
+            <div class="w-5 h-5 bg-gray-400 rounded mr-2"></div>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ t('common.excused') }}</span>
           </div>
         </div>
       </Card>
 
       <!-- Modules List with Coefficients -->
-      <Card title="Current Semester Modules" class="mb-8">
+      <Card :title="t('student.dashboard.modules_semestre')" class="mb-8">
         <div v-if="modules.length > 0" class="overflow-x-auto">
           <table class="w-full">
             <thead>
               <tr class="border-b-2 border-gray-300 dark:border-gray-600">
-                <th class="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Code</th>
-                <th class="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Module Name</th>
-                <th class="text-center py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Coefficient</th>
-                <th class="text-center py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">Hours/Week</th>
+                <th class="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">{{ t('common.code') }}</th>
+                <th class="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">{{ t('common.module') }}</th>
+                <th class="text-center py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">{{ t('common.coefficient') }}</th>
+                <th class="text-center py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50">{{ t('student.dashboard.heures_semaine') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -289,7 +280,7 @@ const getClassForSlot = (day, time) => {
             </tbody>
             <tfoot>
               <tr class="bg-gray-50 dark:bg-gray-800/50">
-                <td colspan="2" class="py-4 px-4 text-sm font-bold text-gray-900 dark:text-white">Total</td>
+                <td colspan="2" class="py-4 px-4 text-sm font-bold text-gray-900 dark:text-white">{{ t('common.total') }}</td>
                 <td class="py-4 px-4 text-center">
                   <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-green-100 to-emerald-100 text-green-900 dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-100">
                     {{ modules.reduce((sum, m) => sum + (m.coefficient || 0), 0) }}
@@ -303,7 +294,7 @@ const getClassForSlot = (day, time) => {
           </table>
         </div>
         <div v-else class="h-32 flex items-center justify-center text-gray-500 dark:text-gray-400">
-          No modules found for current semester
+          {{ t('student.dashboard.aucun_module_semestre_actuel') }}
         </div>
       </Card>
     </div>

@@ -8,27 +8,29 @@
           <img src="/logo.png" alt="Logo INSFP" class="brand-logo" width="44" height="44" />
           <span class="brand-text">
             <span class="brand-name">INSFP</span>
-            <span class="brand-sub">Mohamed Tayeb Boucenna</span>
+            <span class="brand-sub">{{ t('landing.brandSub') }}</span>
           </span>
         </a>
 
-        <nav id="main-nav" :class="['header-nav', { open: isMenuOpen }]" aria-label="Navigation principale">
-          <a v-for="link in navLinks" :key="link.href" :href="link.href" class="nav-link" @click="isMenuOpen = false">{{ link.label }}</a>
+        <nav id="main-nav" :class="['header-nav', { open: isMenuOpen }]" :aria-label="t('landing.nav.label')">
+          <a v-for="link in navLinks" :key="link.href" :href="link.href" class="nav-link" @click="isMenuOpen = false">{{ t(link.label) }}</a>
           <button class="nav-link nav-ai" @click="openAssistant">
             <span class="ai-dot" aria-hidden="true"></span>
-            Assistant IA
+            {{ t('landing.nav.assistant') }}
           </button>
           <div class="nav-mobile-actions">
-            <router-link to="/register" class="btn btn-outline">Inscription en ligne</router-link>
-            <router-link to="/login" class="btn btn-primary">Espace numérique</router-link>
+            <LanguageMenu class="self-start" />
+            <router-link to="/register" class="btn btn-outline">{{ t('landing.nav.registerOnline') }}</router-link>
+            <router-link to="/login" class="btn btn-primary">{{ t('landing.nav.space') }}</router-link>
           </div>
         </nav>
 
         <div class="header-actions">
-          <router-link to="/register" class="btn btn-ghost">Inscription</router-link>
+          <LanguageMenu />
+          <router-link to="/register" class="btn btn-ghost">{{ t('landing.nav.register') }}</router-link>
           <router-link to="/login" class="btn btn-primary">
             <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-            Espace numérique
+            {{ t('landing.nav.space') }}
           </router-link>
         </div>
 
@@ -37,7 +39,7 @@
             <path v-if="!isMenuOpen" d="M3 6h18M3 12h18M3 18h18"/>
             <path v-else d="M18 6 6 18M6 6l12 12"/>
           </svg>
-          <span class="sr-only">Menu</span>
+          <span class="sr-only">{{ t('landing.nav.menu') }}</span>
         </button>
       </div>
     </header>
@@ -48,28 +50,24 @@
         <div class="hero-pattern" aria-hidden="true"></div>
         <div class="container hero-grid">
           <div class="hero-text">
-            <p class="eyebrow eyebrow-light hero-in" style="--d: .05s">Plateforme numérique de l'établissement</p>
-            <h1 class="hero-title hero-in" style="--d: .15s">Former les techniciens supérieurs de demain</h1>
-            <p class="hero-lead hero-in" style="--d: .3s">
-              L'INSFP Mohamed Tayeb Boucenna assure des formations diplômantes de niveau BTS dans les métiers du numérique.
-              Stagiaires, formateurs et administration disposent d'un espace en ligne unique pour la scolarité,
-              les emplois du temps, les évaluations et la communication.
-            </p>
+            <p class="eyebrow eyebrow-light hero-in" style="--d: .05s">{{ t('landing.hero.eyebrow') }}</p>
+            <h1 class="hero-title hero-in" style="--d: .15s">{{ t('landing.hero.title') }}</h1>
+            <p class="hero-lead hero-in" style="--d: .3s">{{ t('landing.hero.lead') }}</p>
             <div class="hero-actions hero-in" style="--d: .45s">
-              <a href="#formations" class="btn btn-gold btn-lg">Consulter les formations</a>
-              <a href="#inscription" class="btn btn-outline-light btn-lg">Procédure d'inscription</a>
+              <a href="#formations" class="btn btn-gold btn-lg">{{ t('landing.hero.ctaTrainings') }}</a>
+              <a href="#inscription" class="btn btn-outline-light btn-lg">{{ t('landing.hero.ctaProcedure') }}</a>
             </div>
           </div>
 
           <aside class="services-card hero-in-right" style="--d: .35s" aria-labelledby="services-title">
-            <h2 id="services-title" class="services-title">Accès aux espaces</h2>
+            <h2 id="services-title" class="services-title">{{ t('landing.services.title') }}</h2>
             <ul class="services-list">
-              <li v-for="s in services" :key="s.title">
+              <li v-for="s in services" :key="s.key">
                 <router-link :to="s.to" class="service-item">
                   <span class="service-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path :d="s.icon"/></svg></span>
                   <span class="service-body">
-                    <strong>{{ s.title }}</strong>
-                    <span>{{ s.desc }}</span>
+                    <strong>{{ t(`landing.services.${s.key}.title`) }}</strong>
+                    <span>{{ t(`landing.services.${s.key}.desc`) }}</span>
                   </span>
                   <svg class="ico chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                 </router-link>
@@ -80,9 +78,9 @@
 
         <div class="container">
           <dl class="key-facts">
-            <div v-for="(f, i) in keyFacts" :key="f.label" class="fact hero-in" :style="{ '--d': `${0.6 + i * 0.1}s` }">
-              <dt>{{ f.label }}</dt>
-              <dd>{{ f.value }}</dd>
+            <div v-for="(f, i) in keyFacts" :key="f" class="fact hero-in" :style="{ '--d': `${0.6 + i * 0.1}s` }">
+              <dt>{{ t(`landing.facts.${f}.label`) }}</dt>
+              <dd>{{ t(`landing.facts.${f}.value`) }}</dd>
             </div>
           </dl>
         </div>
@@ -92,15 +90,15 @@
       <section class="section section-soft" id="avis">
         <div class="container">
           <header class="section-head" v-reveal>
-            <p class="eyebrow">Avis et informations</p>
-            <h2 class="section-title">Informations aux stagiaires</h2>
+            <p class="eyebrow">{{ t('landing.notices.eyebrow') }}</p>
+            <h2 class="section-title">{{ t('landing.notices.title') }}</h2>
           </header>
           <div class="notices">
-            <article v-for="(n, i) in notices" :key="n.title" class="notice" v-reveal="i * 110">
-              <span class="notice-tag">{{ n.tag }}</span>
-              <h3 class="notice-title">{{ n.title }}</h3>
-              <p class="notice-text">{{ n.text }}</p>
-              <router-link :to="n.to" class="notice-link">{{ n.cta }} <span aria-hidden="true">→</span></router-link>
+            <article v-for="(n, i) in notices" :key="n.key" class="notice" v-reveal="i * 110">
+              <span class="notice-tag">{{ t(`landing.notices.${n.key}.tag`) }}</span>
+              <h3 class="notice-title">{{ t(`landing.notices.${n.key}.title`) }}</h3>
+              <p class="notice-text">{{ t(`landing.notices.${n.key}.text`) }}</p>
+              <router-link :to="n.to" class="notice-link">{{ t(`landing.notices.${n.key}.cta`) }} <span class="arrow" aria-hidden="true">→</span></router-link>
             </article>
           </div>
         </div>
@@ -110,12 +108,9 @@
       <section class="section" id="formations">
         <div class="container">
           <header class="section-head" v-reveal>
-            <p class="eyebrow">Offre de formation</p>
-            <h2 class="section-title">Spécialités enseignées</h2>
-            <p class="section-lead">
-              Formations sanctionnées par un diplôme d'État de Brevet de Technicien Supérieur (BTS), niveau 5,
-              organisées en cinq semestres.
-            </p>
+            <p class="eyebrow">{{ t('landing.trainings.eyebrow') }}</p>
+            <h2 class="section-title">{{ t('landing.trainings.title') }}</h2>
+            <p class="section-lead">{{ t('landing.trainings.lead') }}</p>
           </header>
 
           <div class="spec-grid">
@@ -124,11 +119,11 @@
                 <span class="spec-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path :d="sp.icon"/></svg></span>
                 <span class="spec-code">{{ sp.code }}</span>
               </div>
-              <h3 class="spec-name">{{ sp.name }}</h3>
-              <p class="spec-desc">{{ sp.desc }}</p>
+              <h3 class="spec-name">{{ t(`landing.trainings.${sp.key}.name`) }}</h3>
+              <p class="spec-desc">{{ t(`landing.trainings.${sp.key}.desc`) }}</p>
               <ul class="spec-meta">
-                <li>BTS · Niveau 5</li>
-                <li>30 mois</li>
+                <li>{{ t('landing.trainings.level') }}</li>
+                <li>{{ t('landing.trainings.months') }}</li>
               </ul>
             </article>
           </div>
@@ -139,14 +134,14 @@
       <section class="section section-soft" id="modes">
         <div class="container">
           <header class="section-head" v-reveal>
-            <p class="eyebrow">Modes de formation</p>
-            <h2 class="section-title">Trois modes d'accès à la formation</h2>
+            <p class="eyebrow">{{ t('landing.modes.eyebrow') }}</p>
+            <h2 class="section-title">{{ t('landing.modes.title') }}</h2>
           </header>
           <div class="modes">
-            <article v-for="(m, i) in modes" :key="m.title" class="mode" v-reveal="i * 110">
+            <article v-for="(m, i) in modes" :key="m" class="mode" v-reveal="i * 110">
               <span class="mode-num">{{ String(i + 1).padStart(2, '0') }}</span>
-              <h3 class="mode-title">{{ m.title }}</h3>
-              <p class="mode-text">{{ m.text }}</p>
+              <h3 class="mode-title">{{ t(`landing.modes.${m}.title`) }}</h3>
+              <p class="mode-text">{{ t(`landing.modes.${m}.text`) }}</p>
             </article>
           </div>
         </div>
@@ -156,27 +151,22 @@
       <section class="section ai-section" id="assistant">
         <div class="container ai-grid">
           <div class="ai-text" v-reveal>
-            <p class="eyebrow">Assistant intelligent</p>
-            <h2 class="section-title">Une question&nbsp;? L'assistant de l'INSFP vous répond</h2>
-            <p class="section-lead">
-              Spécialités, conditions d'inscription, sessions, fonctionnement de la plateforme :
-              posez votre question en langage naturel et obtenez une réponse immédiate, à toute heure.
-            </p>
+            <p class="eyebrow">{{ t('landing.ai.eyebrow') }}</p>
+            <h2 class="section-title">{{ t('landing.ai.title') }}</h2>
+            <p class="section-lead">{{ t('landing.ai.lead') }}</p>
             <ul class="ai-points">
-              <li>Disponible 24 h / 24</li>
-              <li>Réponses en français et en darja</li>
-              <li>Basé sur l'intelligence artificielle</li>
+              <li v-for="point in aiPoints" :key="point">{{ point }}</li>
             </ul>
             <button class="btn btn-primary btn-lg ai-cta" @click="openAssistant">
               <span class="ai-dot" aria-hidden="true"></span>
-              Discuter avec l'assistant
+              {{ t('landing.ai.cta') }}
             </button>
           </div>
 
-          <button class="ai-stage" v-reveal="150" @click="openAssistant" aria-label="Ouvrir l'assistant">
+          <button class="ai-stage" v-reveal="150" @click="openAssistant" :aria-label="t('landing.ai.open')">
             <span class="ai-ring ai-ring-1" aria-hidden="true"></span>
             <span class="ai-ring ai-ring-2" aria-hidden="true"></span>
-            <span class="ai-bubble">Bonjour ! Posez-moi votre question 👋</span>
+            <span class="ai-bubble">{{ t('landing.ai.bubble') }}</span>
             <AssistantRobot class="ai-stage-robot" />
           </button>
         </div>
@@ -186,24 +176,24 @@
       <section class="section" id="inscription">
         <div class="container">
           <header class="section-head" v-reveal>
-            <p class="eyebrow">Inscription</p>
-            <h2 class="section-title">Procédure d'inscription en ligne</h2>
-            <p class="section-lead">Les sessions de formation sont ouvertes deux fois par an, en février et en septembre.</p>
+            <p class="eyebrow">{{ t('landing.steps.eyebrow') }}</p>
+            <h2 class="section-title">{{ t('landing.steps.title') }}</h2>
+            <p class="section-lead">{{ t('landing.steps.lead') }}</p>
           </header>
 
           <ol class="steps">
-            <li v-for="(st, i) in steps" :key="st.title" class="step" v-reveal="i * 120">
+            <li v-for="(st, i) in steps" :key="st" class="step" v-reveal="i * 120">
               <span class="step-num">{{ i + 1 }}</span>
               <div>
-                <h3 class="step-title">{{ st.title }}</h3>
-                <p class="step-text">{{ st.text }}</p>
+                <h3 class="step-title">{{ t(`landing.steps.${st}.title`) }}</h3>
+                <p class="step-text">{{ t(`landing.steps.${st}.text`) }}</p>
               </div>
             </li>
           </ol>
 
           <div class="steps-cta" v-reveal>
-            <router-link to="/register" class="btn btn-primary btn-lg">Créer mon compte stagiaire</router-link>
-            <span class="steps-note">Un numéro d'inscription délivré par l'administration est obligatoire.</span>
+            <router-link to="/register" class="btn btn-primary btn-lg">{{ t('landing.steps.cta') }}</router-link>
+            <span class="steps-note">{{ t('landing.steps.note') }}</span>
           </div>
         </div>
       </section>
@@ -212,15 +202,12 @@
       <section class="section section-navy" id="institut">
         <div class="container">
           <header class="section-head" v-reveal>
-            <p class="eyebrow eyebrow-light">L'établissement</p>
-            <h2 class="section-title section-title-light">Une administration numérique au service de la formation</h2>
-            <p class="section-lead section-lead-light">
-              La plateforme centralise la gestion pédagogique et administrative de l'institut et garantit
-              la traçabilité des notes, des absences et des documents.
-            </p>
+            <p class="eyebrow eyebrow-light">{{ t('landing.platform.eyebrow') }}</p>
+            <h2 class="section-title section-title-light">{{ t('landing.platform.title') }}</h2>
+            <p class="section-lead section-lead-light">{{ t('landing.platform.lead') }}</p>
           </header>
           <div class="roles">
-            <article v-for="(r, i) in roles" :key="r.title" class="role" v-reveal="i * 110">
+            <article v-for="(r, i) in roles" :key="r.key" class="role" v-reveal="i * 110">
               <h3 class="role-title">{{ r.title }}</h3>
               <ul class="role-list">
                 <li v-for="item in r.items" :key="item">{{ item }}</li>
@@ -237,16 +224,17 @@
         <div class="footer-brand">
           <img src="/logo.png" alt="" class="footer-logo" width="56" height="56" />
           <p class="footer-name">INSFP Mohamed Tayeb Boucenna</p>
-          <p class="footer-ar" lang="ar" dir="rtl">المعهد الوطني المتخصص في التكوين المهني محمد الطيب بوسنة</p>
-          <p class="footer-tutelle">Sous la tutelle du Ministère de la Formation et de l'Enseignement Professionnels</p>
+          <p v-if="locale !== 'ar'" class="footer-ar" lang="ar" dir="rtl">المعهد الوطني المتخصص في التكوين المهني محمد الطيب بوسنة</p>
+          <p v-else class="footer-ar">{{ t('landing.instituteName') }}</p>
+          <p class="footer-tutelle">{{ t('landing.footer.tutelle') }}</p>
         </div>
 
         <div>
-          <h2 class="footer-heading">Contact</h2>
+          <h2 class="footer-heading">{{ t('landing.footer.contact') }}</h2>
           <ul class="footer-list">
             <li>
               <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
-              Horrimet, Algérie
+              {{ t('landing.footer.address') }}
             </li>
             <li>
               <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
@@ -260,20 +248,19 @@
         </div>
 
         <div>
-          <h2 class="footer-heading">Liens utiles</h2>
+          <h2 class="footer-heading">{{ t('landing.footer.links') }}</h2>
           <ul class="footer-list footer-links">
-            <li><a href="#formations">Spécialités</a></li>
-            <li><a href="#inscription">Procédure d'inscription</a></li>
-            <li><router-link to="/register">Inscription en ligne</router-link></li>
-            <li><router-link to="/login">Espace stagiaire / formateur</router-link></li>
+            <li><a href="#formations">{{ t('landing.footer.specialties') }}</a></li>
+            <li><a href="#inscription">{{ t('landing.footer.procedure') }}</a></li>
+            <li><router-link to="/register">{{ t('landing.footer.registerOnline') }}</router-link></li>
+            <li><router-link to="/login">{{ t('landing.footer.spaces') }}</router-link></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
         <div class="container footer-bottom-inner">
-          <span>© {{ year }} INSFP Mohamed Tayeb Boucenna. Tous droits réservés.</span>
-          <span lang="ar" dir="rtl">جميع الحقوق محفوظة</span>
+          <span>© {{ year }} INSFP Mohamed Tayeb Boucenna. {{ t('landing.footer.rights') }}</span>
         </div>
       </div>
     </footer>
@@ -282,7 +269,7 @@
     <Transition name="launcher">
       <button v-if="!isAssistantOpen" class="assistant-launcher" @click="openAssistant">
         <span class="launcher-robot"><AssistantRobot head-only /></span>
-        <span class="launcher-label">Assistant IA</span>
+        <span class="launcher-label">{{ t('assistant.launcher') }}</span>
       </button>
     </Transition>
 
@@ -293,10 +280,10 @@
           <div class="assistant-head">
             <span class="head-robot"><AssistantRobot head-only :mood="isBotTyping ? 'thinking' : 'idle'" /></span>
             <div class="head-text">
-              <h2 id="assistant-title" class="assistant-title">Assistant IA de l'INSFP</h2>
-              <p class="assistant-sub"><span class="online-dot" aria-hidden="true"></span>{{ isBotTyping ? 'En train de répondre…' : 'En ligne' }}</p>
+              <h2 id="assistant-title" class="assistant-title">{{ t('assistant.title') }}</h2>
+              <p class="assistant-sub"><span class="online-dot" aria-hidden="true"></span>{{ isBotTyping ? t('assistant.typing') : t('assistant.online') }}</p>
             </div>
-            <button class="assistant-close" @click="closeAssistant" aria-label="Fermer l'assistant">
+            <button class="assistant-close" @click="closeAssistant" :aria-label="t('assistant.close')">
               <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
           </div>
@@ -321,15 +308,15 @@
                 </div>
                 <div v-if="isBotTyping" key="typing" class="msg-row bot">
                   <span class="msg-avatar"><AssistantRobot head-only mood="thinking" /></span>
-                  <div class="bubble typing" aria-label="L'assistant écrit"><span></span><span></span><span></span></div>
+                  <div class="bubble typing" :aria-label="t('assistant.writing')"><span></span><span></span><span></span></div>
                 </div>
               </TransitionGroup>
             </template>
           </div>
 
           <form class="assistant-foot" @submit.prevent="sendMessage">
-            <input ref="assistantInput" v-model="chatInput" type="text" class="assistant-input" placeholder="Écrivez votre question…" aria-label="Votre question" />
-            <button type="submit" class="send-btn" :disabled="!chatInput.trim() || isBotTyping" aria-label="Envoyer">
+            <input ref="assistantInput" v-model="chatInput" type="text" class="assistant-input" :placeholder="t('assistant.placeholder')" :aria-label="t('assistant.inputLabel')" />
+            <button type="submit" class="send-btn" :disabled="!chatInput.trim() || isBotTyping" :aria-label="t('assistant.send')">
               <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
             </button>
           </form>
@@ -343,6 +330,11 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import apiClient from '@/api/axios'
 import AssistantRobot from '@/components/common/AssistantRobot.vue'
+import LanguageMenu from '@/components/common/LanguageMenu.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t, tm, rt, locale } = useI18n()
+const list = (key) => tm(key).map((item) => rt(item))
 
 // Fade-up on scroll. Usage: v-reveal or v-reveal="delayInMs".
 const vReveal = {
@@ -376,76 +368,45 @@ const isScrolled = ref(false)
 const isMenuOpen = ref(false)
 
 const navLinks = [
-  { href: '#formations', label: 'Formations' },
-  { href: '#modes', label: 'Modes de formation' },
-  { href: '#inscription', label: 'Inscription' },
-  { href: '#contact', label: 'Contact' },
+  { href: '#formations', label: 'landing.nav.trainings' },
+  { href: '#modes', label: 'landing.nav.modes' },
+  { href: '#inscription', label: 'landing.nav.registration' },
+  { href: '#contact', label: 'landing.nav.contact' },
 ]
 
 const services = [
-  { title: 'Espace stagiaire', desc: 'Emploi du temps, notes, absences, cours', to: '/login', icon: 'M22 10 12 5 2 10l10 5 10-5zM6 12v5c3 3 9 3 12 0v-5' },
-  { title: 'Espace formateur', desc: 'Appel, saisie des notes, supports de cours', to: '/login', icon: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' },
-  { title: 'Administration', desc: 'Sessions, délibérations, documents', to: '/login', icon: 'M3 21h18M5 21V10M19 21V10M9 21v-7h6v7M2 10l10-7 10 7' },
-  { title: 'Inscription en ligne', desc: "Avec votre numéro d'inscription", to: '/register', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6' },
+  { key: 'student', to: '/login', icon: 'M22 10 12 5 2 10l10 5 10-5zM6 12v5c3 3 9 3 12 0v-5' },
+  { key: 'teacher', to: '/login', icon: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' },
+  { key: 'admin', to: '/login', icon: 'M3 21h18M5 21V10M19 21V10M9 21v-7h6v7M2 10l10-7 10 7' },
+  { key: 'register', to: '/register', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6' },
 ]
 
-const keyFacts = [
-  { label: 'Diplôme', value: "BTS — diplôme d'État" },
-  { label: 'Durée', value: '5 semestres' },
-  { label: 'Sessions', value: 'Février et septembre' },
-  { label: 'Modes', value: 'Présentiel, apprentissage, cours du soir' },
-]
+const keyFacts = ['diploma', 'duration', 'sessions', 'modes']
 
 const notices = [
-  {
-    tag: 'Inscriptions',
-    title: 'Session de février 2027',
-    text: "Les candidats retenus créent leur compte en ligne à l'aide du numéro d'inscription remis par l'administration. Le compte est activé après validation du dossier.",
-    cta: "S'inscrire",
-    to: '/register',
-  },
-  {
-    tag: 'Scolarité',
-    title: 'Emplois du temps du semestre',
-    text: 'Les emplois du temps publiés par spécialité et par groupe sont consultables dans l\'espace stagiaire et dans l\'espace formateur.',
-    cta: 'Consulter',
-    to: '/login',
-  },
-  {
-    tag: 'Évaluations',
-    title: 'Notes et délibérations',
-    text: "Les notes de contrôle et d'examen sont visibles après validation par le formateur. Les résultats des délibérations sont publiés dans l'espace stagiaire.",
-    cta: 'Accéder à mon espace',
-    to: '/login',
-  },
+  { key: 'registration', to: '/register' },
+  { key: 'schedule', to: '/login' },
+  { key: 'grades', to: '/login' },
 ]
 
 const specialties = [
-  { code: 'DEV', name: 'Développement Web et Mobile', desc: "Conception et réalisation d'applications web et mobiles : interfaces, services, bases de données.", icon: 'm16 18 6-6-6-6M8 6l-6 6 6 6' },
-  { code: 'ASRI', name: 'Administration des Systèmes et Réseaux', desc: "Installation, administration et supervision des réseaux et des serveurs d'entreprise.", icon: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01' },
-  { code: 'BDD', name: 'Administration des Bases de Données', desc: "Conception, exploitation et optimisation des systèmes de gestion de bases de données.", icon: 'M12 8c5 0 9-1.3 9-3s-4-3-9-3-9 1.3-9 3 4 3 9 3zM3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3' },
-  { code: 'SEC', name: 'Sécurité Informatique', desc: "Protection des systèmes d'information, audit de sécurité et gestion des incidents.", icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
-  { code: 'MNT', name: 'Maintenance Informatique', desc: 'Diagnostic, dépannage et maintenance du matériel et des parcs informatiques.', icon: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z' },
+  { key: 'dev', code: 'DEV', icon: 'm16 18 6-6-6-6M8 6l-6 6 6 6' },
+  { key: 'asri', code: 'ASRI', icon: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01' },
+  { key: 'bdd', code: 'BDD', icon: 'M12 8c5 0 9-1.3 9-3s-4-3-9-3-9 1.3-9 3 4 3 9 3zM3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3' },
+  { key: 'sec', code: 'SEC', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+  { key: 'mnt', code: 'MNT', icon: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z' },
 ]
 
-const modes = [
-  { title: 'Formation présentielle', text: "Formation à plein temps au sein de l'institut, alternant enseignements théoriques et travaux pratiques en laboratoire, complétée par un stage pratique." },
-  { title: 'Formation par apprentissage', text: "Formation en alternance entre l'institut et un organisme employeur, sous contrat d'apprentissage, avec un suivi pédagogique assuré par l'établissement." },
-  { title: 'Cours du soir', text: 'Formation organisée en horaires du soir, destinée aux travailleurs et aux personnes souhaitant se qualifier en parallèle de leur activité.' },
-]
+const modes = ['presential', 'apprenticeship', 'evening']
 
-const steps = [
-  { title: 'Retrait du numéro d\'inscription', text: "Le numéro est délivré par l'administration pour une session, une spécialité et un mode de formation." },
-  { title: 'Création du compte', text: "Le candidat saisit son numéro d'inscription et ses informations personnelles sur la plateforme." },
-  { title: 'Validation du dossier', text: "L'administration vérifie le dossier et active le compte du stagiaire." },
-  { title: 'Accès à l\'espace stagiaire', text: 'Le stagiaire complète son profil et accède à son emploi du temps, à ses cours et à ses résultats.' },
-]
+const steps = ['number', 'account', 'validation', 'access']
 
-const roles = [
-  { title: 'Stagiaires', items: ['Emploi du temps de la semaine', 'Notes de contrôle et d\'examen', 'Suivi des absences', 'Cours, devoirs et documents', 'Résultats des délibérations'] },
-  { title: 'Formateurs', items: ['Modules et groupes assignés', 'Appel par séance', 'Création des épreuves et saisie des notes', 'Dépôt des supports de cours', 'Correction des devoirs'] },
-  { title: 'Administration', items: ['Sessions et spécialités', 'Numéros et validation des inscriptions', 'Emplois du temps et affectation des salles', 'Délibérations semestrielles', 'Diffusion des avis et documents'] },
-]
+const roles = computed(() => ['students', 'teachers', 'admin'].map((key) => ({
+  key,
+  title: t(`landing.platform.${key}.title`),
+  items: list(`landing.platform.${key}.items`),
+})))
+const aiPoints = computed(() => list('landing.ai.points'))
 
 // ── Assistant ───────────────────────────────────────────────
 const isAssistantOpen = ref(false)
@@ -455,14 +416,8 @@ const assistantMessagesContainer = ref(null)
 const assistantInput = ref(null)
 const chatMessages = ref([])
 const chatStarted = ref(false)
-const welcomeText = computed(() => chatInput.value.trim()
-  ? 'Je vous écoute… ✍️'
-  : "Bonjour ! Je suis l'assistant de l'INSFP. Posez-moi votre question.")
-const suggestions = [
-  'Quelles spécialités sont proposées ?',
-  "Comment s'inscrire ?",
-  'Quand ouvrent les sessions ?',
-]
+const welcomeText = computed(() => chatInput.value.trim() ? t('assistant.listening') : t('assistant.welcome'))
+const suggestions = computed(() => list('assistant.suggestions'))
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -507,11 +462,11 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    const response = await apiClient.post('/api/chatbot', { message: userQuestion })
-    chatMessages.value.push({ text: response.data.reply || "Désolé, je n'ai pas pu vous répondre.", isBot: true })
+    const response = await apiClient.post('/api/chatbot', { message: userQuestion, lang: locale.value })
+    chatMessages.value.push({ text: response.data.reply || t('assistant.noAnswer'), isBot: true })
   } catch (error) {
     console.error('Erreur Chatbot:', error)
-    chatMessages.value.push({ text: "Le service est momentanément indisponible. Veuillez réessayer plus tard.", isBot: true })
+    chatMessages.value.push({ text: t('assistant.unavailable'), isBot: true })
   } finally {
     isBotTyping.value = false
     scrollToBottom()
@@ -602,26 +557,26 @@ onUnmounted(() => {
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-name { font: 700 19px/1.1 var(--serif); color: var(--navy); letter-spacing: .03em; }
 .brand-sub { font-size: 12.5px; color: var(--muted); font-weight: 500; }
-.header-nav { display: flex; align-items: center; gap: 2px; flex: 1; }
+.header-nav { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; }
 .nav-link {
   position: relative; display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 12px; color: var(--ink); text-decoration: none; font: 500 14.5px/1 var(--sans); white-space: nowrap;
   background: none; border: 0; border-radius: var(--radius); cursor: pointer;
 }
 .nav-link::after {
-  content: ''; position: absolute; left: 12px; right: 12px; bottom: 3px; height: 2px; background: var(--gold);
-  transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+  content: ''; position: absolute; inset-inline: 12px; bottom: 3px; height: 2px; background: var(--gold);
+  transform: scaleX(0); transform-origin: var(--origin-start, left); transition: transform .25s ease;
 }
 .nav-link:hover { color: var(--navy); }
 .nav-link:hover::after { transform: scaleX(1); }
-.nav-ai { margin-left: auto; color: var(--teal); font-weight: 600; background: #e6f4f3; border-radius: 999px; padding: 9px 14px; }
+.nav-ai { margin-inline-start: auto; color: var(--teal); font-weight: 600; background: #e6f4f3; border-radius: 999px; padding: 9px 14px; }
 .nav-ai::after { display: none; }
 .nav-ai:hover { background: #d4ecea; color: var(--teal); }
 .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); animation: ping 1.8s infinite; }
-.header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .btn-ghost { color: var(--navy); background: transparent; }
 .btn-ghost:hover { background: var(--soft); }
-.menu-toggle { display: none; margin-left: auto; background: none; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; color: var(--navy); cursor: pointer; }
+.menu-toggle { display: none; margin-inline-start: auto; background: none; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; color: var(--navy); cursor: pointer; }
 .menu-toggle .ico { width: 22px; height: 22px; }
 .nav-mobile-actions { display: none; }
 @keyframes ping {
@@ -662,7 +617,7 @@ onUnmounted(() => {
 
 .key-facts { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin: 56px 0 0; border-top: 1px solid rgba(255,255,255,.15); }
 .fact { padding: 22px 20px 26px 0; }
-.fact + .fact { padding-left: 20px; border-left: 1px solid rgba(255,255,255,.15); }
+.fact + .fact { padding-inline-start: 20px; border-inline-start: 1px solid rgba(255,255,255,.15); }
 .fact dt { font-size: 12.5px; text-transform: uppercase; letter-spacing: .08em; color: #9fb0c6; margin-bottom: 4px; }
 .fact dd { margin: 0; font-weight: 600; font-size: 15.5px; }
 
@@ -678,7 +633,7 @@ onUnmounted(() => {
 
 /* Notices */
 .notices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.notice { display: flex; flex-direction: column; background: var(--white); border: 1px solid var(--line); border-left: 4px solid var(--teal); border-radius: var(--radius); padding: 22px 22px 20px; }
+.notice { display: flex; flex-direction: column; background: var(--white); border: 1px solid var(--line); border-inline-start: 4px solid var(--teal); border-radius: var(--radius); padding: 22px 22px 20px; }
 .notice-tag { align-self: flex-start; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--teal); margin-bottom: 8px; }
 .notice-title { margin: 0 0 8px; font: 700 18px/1.35 var(--serif); color: var(--navy); }
 .notice-text { margin: 0 0 16px; color: var(--muted); font-size: 15px; flex: 1; }
@@ -698,7 +653,7 @@ onUnmounted(() => {
 .spec-name { margin: 0 0 8px; font: 700 19px/1.3 var(--serif); color: var(--navy); }
 .spec-desc { margin: 0 0 18px; color: var(--muted); font-size: 15px; flex: 1; }
 .spec-meta { display: flex; gap: 8px; list-style: none; margin: 0; padding: 14px 0 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink); font-weight: 500; }
-.spec-meta li + li::before { content: '·'; margin-right: 8px; color: #9aa5b4; }
+.spec-meta li + li::before { content: '·'; margin-inline-end: 8px; color: #9aa5b4; }
 
 /* Modes */
 .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -710,7 +665,7 @@ onUnmounted(() => {
 /* Steps */
 .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; counter-reset: step; }
 .step { position: relative; display: flex; flex-direction: column; gap: 14px; padding: 0 24px 0 0; }
-.step::before { content: ''; position: absolute; top: 20px; left: 48px; right: 8px; height: 2px; background: var(--line); }
+.step::before { content: ''; position: absolute; top: 20px; inset-inline: 48px 8px; height: 2px; background: var(--line); }
 .step:last-child::before { display: none; }
 .step-num { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: var(--white); font-weight: 700; }
 .step-title { margin: 0 0 6px; font: 700 17px/1.35 var(--serif); color: var(--navy); }
@@ -725,14 +680,14 @@ onUnmounted(() => {
 .role-list { list-style: none; margin: 0; padding: 0; }
 .role-list li { position: relative; padding: 7px 0 7px 22px; color: #d3dceb; font-size: 15px; border-top: 1px solid rgba(255,255,255,.08); }
 .role-list li:first-child { border-top: 0; }
-.role-list li::before { content: ''; position: absolute; left: 2px; top: 15px; width: 8px; height: 8px; border-radius: 2px; background: var(--teal); }
+.role-list li::before { content: ''; position: absolute; inset-inline-start: 2px; top: 15px; width: 8px; height: 8px; border-radius: 2px; background: var(--teal); }
 
 /* Footer */
 .footer { background: #071a31; color: #c3cfdf; font-size: 14.5px; }
 .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px; padding-top: 56px; padding-bottom: 40px; }
 .footer-logo { width: 56px; height: 56px; object-fit: contain; background: var(--white); border-radius: 8px; padding: 4px; }
 .footer-name { margin: 14px 0 4px; font: 700 18px/1.3 var(--serif); color: var(--white); }
-.footer-ar { margin: 0 0 10px; font-size: 15px; text-align: left; }
+.footer-ar { margin: 0 0 10px; font-size: 15px; text-align: start; }
 .footer-tutelle { margin: 0; color: #8fa1b8; font-size: 13.5px; }
 .footer-heading { margin: 0 0 14px; font: 600 13px/1 var(--sans); text-transform: uppercase; letter-spacing: .1em; color: var(--gold); }
 .footer-list { list-style: none; margin: 0; padding: 0; }
@@ -766,7 +721,7 @@ onUnmounted(() => {
 .ai-stage-robot { position: relative; z-index: 1; width: 56%; transition: transform .3s ease; }
 .ai-stage:hover .ai-stage-robot { transform: scale(1.05); }
 .ai-bubble {
-  position: absolute; top: 8%; right: 0; z-index: 2;
+  position: absolute; top: 8%; inset-inline-end: 0; z-index: 2;
   background: var(--white); color: var(--navy); font: 600 14.5px/1.3 var(--sans);
   padding: 10px 14px; border-radius: 14px 14px 14px 4px; box-shadow: 0 10px 24px rgba(10, 36, 67, .14);
   animation: bob 3.2s ease-in-out infinite;
@@ -774,7 +729,7 @@ onUnmounted(() => {
 
 /* Assistant launcher */
 .assistant-launcher {
-  position: fixed; right: 24px; bottom: 24px; z-index: 50;
+  position: fixed; inset-inline-end: 24px; bottom: 24px; z-index: 50;
   display: inline-flex; align-items: center; gap: 10px; padding: 6px 18px 6px 6px;
   background: var(--navy); color: var(--white); border: 0; border-radius: 999px;
   font: 600 14px/1 var(--sans); cursor: pointer; box-shadow: 0 10px 28px rgba(10, 36, 67, .35);
@@ -822,7 +777,7 @@ onUnmounted(() => {
 .suggestion:hover { border-color: var(--teal); transform: translateY(-2px); }
 
 /* The robot flies away once the first question is sent */
-.robot-leave-leave-active { position: absolute; top: 20px; left: 20px; right: 20px; transition: opacity .6s ease, transform .6s cubic-bezier(.5, 0, .75, 0); }
+.robot-leave-leave-active { position: absolute; top: 20px; inset-inline: 20px; transition: opacity .6s ease, transform .6s cubic-bezier(.5, 0, .75, 0); }
 .robot-leave-leave-to { opacity: 0; transform: translateY(-140px) scale(.55) rotate(-12deg); }
 
 .messages { display: flex; flex-direction: column; gap: 12px; }
@@ -830,8 +785,8 @@ onUnmounted(() => {
 .msg-row.user { justify-content: flex-end; }
 .msg-avatar { width: 30px; height: 30px; padding: 3px; border-radius: 50%; background: var(--white); border: 1px solid var(--line); flex-shrink: 0; }
 .bubble { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 14.5px; line-height: 1.55; white-space: pre-wrap; word-wrap: break-word; }
-.msg-row.user .bubble { background: var(--navy); color: var(--white); border-bottom-right-radius: 4px; }
-.msg-row.bot .bubble { background: var(--white); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg-row.user .bubble { background: var(--navy); color: var(--white); border-end-end-radius: 4px; }
+.msg-row.bot .bubble { background: var(--white); border: 1px solid var(--line); border-end-start-radius: 4px; }
 .bubble.typing { display: flex; gap: 4px; padding: 14px; }
 .bubble.typing span { width: 7px; height: 7px; border-radius: 50%; background: #9aa5b4; animation: typing 1.2s infinite; }
 .bubble.typing span:nth-child(2) { animation-delay: .2s; }
@@ -864,11 +819,23 @@ onUnmounted(() => {
 @keyframes nudge { 0%, 84%, 100% { transform: rotate(0); } 88% { transform: rotate(-14deg); } 92% { transform: rotate(10deg); } 96% { transform: rotate(-6deg); } }
 
 /* Responsive */
+/* Header: shrink step by step so it never overflows before the burger menu */
+@media (max-width: 1400px) {
+  .header-inner { gap: 16px; }
+  .nav-link { padding: 9px 9px; }
+  .nav-link::after { inset-inline: 9px; }
+  .header-actions :deep(.lang-current) { display: none; }
+  .header-actions :deep(.lang-short) { display: inline; }
+  .header-actions .btn-ghost { display: none; }
+}
+@media (max-width: 1280px) {
+  .brand-sub { display: none; }
+}
 @media (max-width: 1024px) {
   .hero-grid { grid-template-columns: 1fr; gap: 40px; }
   .services-card { max-width: 560px; }
   .key-facts { grid-template-columns: repeat(2, 1fr); }
-  .fact:nth-child(3) { padding-left: 0; border-left: 0; }
+  .fact:nth-child(3) { padding-inline-start: 0; border-inline-start: 0; }
   .fact:nth-child(n+3) { border-top: 1px solid rgba(255,255,255,.15); }
   .notices, .modes, .roles { grid-template-columns: repeat(2, 1fr); }
   .spec-grid > .spec-card { flex-basis: calc((100% - 20px) / 2); }
@@ -878,9 +845,9 @@ onUnmounted(() => {
   .footer-brand { grid-column: 1 / -1; }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .header-nav {
-    display: none; position: absolute; top: 72px; left: 0; right: 0;
+    display: none; position: absolute; top: 72px; inset-inline: 0;
     flex-direction: column; align-items: stretch; gap: 0; padding: 8px 24px 20px;
     background: var(--white); border-bottom: 1px solid var(--line); box-shadow: 0 16px 30px rgba(10, 36, 67, .12);
   }
@@ -889,6 +856,7 @@ onUnmounted(() => {
   .nav-link::after { display: none; }
   .nav-ai { margin: 12px 0 0; justify-content: center; border-bottom: 0; border-radius: 999px; }
   .nav-mobile-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .nav-mobile-actions :deep(.lang-list) { inset-inline-start: 0; inset-inline-end: auto; }
   .header-actions { display: none; }
   .menu-toggle { display: inline-flex; }
 }
@@ -905,13 +873,13 @@ onUnmounted(() => {
   .hero-lead { font-size: 16px; }
   .hero-actions .btn { width: 100%; }
   .key-facts { grid-template-columns: 1fr; }
-  .fact, .fact + .fact { padding: 16px 0; border-left: 0; }
+  .fact, .fact + .fact { padding: 16px 0; border-inline-start: 0; }
   .fact + .fact { border-top: 1px solid rgba(255,255,255,.15); }
   .section { padding: 56px 0; }
   .notices, .modes, .roles, .steps { grid-template-columns: 1fr; }
   .spec-grid > .spec-card { flex-basis: 100%; }
   .step { flex-direction: row; padding: 0; }
-  .step::before { top: 44px; bottom: -28px; left: 19px; right: auto; width: 2px; height: auto; }
+  .step::before { top: 44px; bottom: -28px; inset-inline: 19px auto; width: 2px; height: auto; }
   .step:nth-child(2)::before { display: block; }
   .step:last-child::before { display: none; }
   .steps-cta .btn { width: 100%; }
@@ -920,12 +888,31 @@ onUnmounted(() => {
   .header-nav { padding: 8px 16px 20px; }
   .assistant-overlay { padding: 0; }
   .assistant { max-width: none; height: 100%; border-radius: 0; }
-  .assistant-launcher { right: 16px; bottom: 16px; }
-  .ai-bubble { right: -4px; font-size: 13.5px; }
+  .assistant-launcher { inset-inline-end: 16px; bottom: 16px; }
+  .ai-bubble { inset-inline-end: -4px; font-size: 13.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
   .reveal, .hero-in, .hero-in-right { opacity: 1 !important; transform: none !important; }
 }
+
+/* ── Arabic / right-to-left ─────────────────────────────── */
+[dir="rtl"] .landing {
+  --sans: 'IBM Plex Sans Arabic', 'IBM Plex Sans', Tahoma, sans-serif;
+  --serif: 'Noto Naskh Arabic', 'Source Serif 4', serif;
+  --origin-start: right;
+}
+/* letter-spacing and uppercase break Arabic joining */
+[dir="rtl"] .eyebrow, [dir="rtl"] .fact dt, [dir="rtl"] .notice-tag, [dir="rtl"] .footer-heading,
+[dir="rtl"] .brand-name, [dir="rtl"] .hero-title { letter-spacing: normal; text-transform: none; }
+[dir="rtl"] .hero-title { line-height: 1.35; }
+/* arrows and chevrons point the other way */
+[dir="rtl"] .arrow, [dir="rtl"] .chevron { display: inline-block; transform: scaleX(-1); }
+[dir="rtl"] .service-item:hover .chevron { transform: scaleX(-1) translateX(3px); }
+[dir="rtl"] .hero-pattern { mask-image: linear-gradient(to right, #000 0%, transparent 70%); }
+[dir="rtl"] .ai-bubble { border-radius: 14px 14px 4px 14px; }
+@keyframes fadeRight { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+[dir="rtl"] .hero-in-right { animation-name: fadeRight; }
+
 </style>

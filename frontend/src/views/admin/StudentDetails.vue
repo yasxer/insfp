@@ -12,7 +12,7 @@
       </svg>
       <h3 class="mt-4 text-lg font-medium text-red-800 dark:text-red-200">{{ error }}</h3>
       <button @click="$router.back()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-        Go Back
+        {{ t('common.back') }}
       </button>
     </div>
 
@@ -22,7 +22,7 @@
       <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center space-x-4">
           <button @click="$router.back()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-            <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="rtl:rotate-180 w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
@@ -39,7 +39,7 @@
             <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
             </svg>
-            Reset Password
+            {{ t('admin.student_details.reinitialiser_mot_passe') }}
           </button>
           <span :class="[
             'px-3 py-1 rounded-full text-sm font-medium',
@@ -47,7 +47,7 @@
               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
               : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
           ]">
-            {{ student.is_graduated ? 'Graduated' : 'Enrolled' }}
+            {{ student.is_graduated ? t('common.graduated') : t('common.enrolled') }}
           </span>
         </div>
       </div>
@@ -61,7 +61,7 @@
                 {{ student.first_name?.charAt(0) }}{{ student.last_name?.charAt(0) }}
               </div>
               <h2 class="mt-4 text-xl font-semibold text-white">{{ student.full_name }}</h2>
-              <p class="text-indigo-100">{{ student.specialty?.name || 'No Specialty' }}</p>
+              <p class="text-indigo-100">{{ student.specialty?.name || t('admin.student_details.sans_specialite') }}</p>
             </div>
             <div class="p-6 space-y-4">
               <div class="flex items-center text-sm">
@@ -92,28 +92,28 @@
               <hr class="border-gray-200 dark:border-gray-700">
               <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p class="text-gray-500 dark:text-gray-400">Study Mode</p>
+                  <p class="text-gray-500 dark:text-gray-400">{{ t('admin.student_details.study_mode') }}</p>
                   <p class="font-medium text-gray-900 dark:text-white capitalize">{{ student.study_mode || 'N/A' }}</p>
                 </div>
                 <div>
-                  <p class="text-gray-500 dark:text-gray-400">Group</p>
+                  <p class="text-gray-500 dark:text-gray-400">{{ t('common.group') }}</p>
                   <p class="font-medium text-gray-900 dark:text-white">{{ student.group || 'N/A' }}</p>
                 </div>
                 <div>
-                  <p class="text-gray-500 dark:text-gray-400">Current Semester</p>
+                  <p class="text-gray-500 dark:text-gray-400">{{ t('admin.student_details.semestre_actuel') }}</p>
                   <p class="font-medium text-gray-900 dark:text-white">S{{ student.current_semester }}</p>
                 </div>
                 <div>
-                  <p class="text-gray-500 dark:text-gray-400">Years Enrolled</p>
+                  <p class="text-gray-500 dark:text-gray-400">{{ t('admin.student_details.annees_dinscription') }}</p>
                   <p class="font-medium text-gray-900 dark:text-white">{{ student.years_enrolled || 1 }}</p>
                 </div>
               </div>
               <div v-if="student.is_graduated" class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p class="text-sm text-green-800 dark:text-green-200">
-                  <strong>Graduated:</strong> {{ student.graduation_year }} (S{{ student.graduation_semester }})
+                  <strong>{{ t('admin.student_details.diplome') }}</strong> {{ student.graduation_year }} (S{{ student.graduation_semester }})
                 </p>
                 <p class="text-sm text-green-800 dark:text-green-200">
-                  <strong>Final GPA:</strong> {{ student.final_gpa }}/20
+                  <strong>{{ t('admin.student_details.final_gpa') }}</strong> {{ student.final_gpa }}/20
                 </p>
               </div>
             </div>
@@ -126,11 +126,11 @@
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Current Semester Grades (S{{ student.current_semester }})
+                {{ t('admin.student_details.notes_semestre_actuel_s', { p0: student.current_semester }) }}
               </h3>
               <div v-if="currentSemesterAverage !== null" class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
                 <span class="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-                  Average: {{ currentSemesterAverage }}/20
+                  {{ t('admin.student_details.moyenne_20', { p0: currentSemesterAverage }) }}
                 </span>
               </div>
             </div>
@@ -138,17 +138,17 @@
               <table class="w-full">
                 <thead class="bg-gray-50 dark:bg-gray-900">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Module</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Code</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Coefficient</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Grade</th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.module') }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.code') }}</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.coefficient') }}</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.grade') }}</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ t('common.status') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                   <tr v-if="currentSemesterGrades.length === 0">
                     <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                      No modules found for this semester
+                      {{ t('admin.student_details.aucun_module_semestre') }}
                     </td>
                   </tr>
                   <tr v-for="grade in currentSemesterGrades" :key="grade.module_id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -171,10 +171,10 @@
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
                           : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                       ]">
-                        {{ grade.grade >= 10 ? 'Pass' : 'Fail' }}
+                        {{ grade.grade >= 10 ? t('admin.student_details.valide') : t('admin.student_details.non_valide') }}
                       </span>
                       <span v-else class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                        Pending
+                        {{ t('common.pending') }}
                       </span>
                     </td>
                   </tr>
@@ -186,11 +186,11 @@
           <!-- Previous Semester Averages -->
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Previous Semesters</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('admin.student_details.previous_semesters') }}</h3>
             </div>
             <div class="p-6">
               <div v-if="semesterAverages.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
-                No previous semester records found
+                {{ t('admin.student_details.aucun_semestre_precedent') }}
               </div>
               <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div 
@@ -204,14 +204,14 @@
                   ]"
                 >
                   <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Semester {{ sem.semester }}</span>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ t('admin.student_details.semestre', { p0: sem.semester }) }}</span>
                     <span :class="[
                       'px-2 py-0.5 text-xs font-medium rounded-full',
                       sem.result === 'passed' 
                         ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' 
                         : 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
                     ]">
-                      {{ sem.result === 'passed' ? 'Passed' : 'Failed' }}
+                      {{ sem.result === 'passed' ? t('common.passed') : t('common.failed') }}
                     </span>
                   </div>
                   <div class="text-2xl font-bold" :class="[
@@ -233,7 +233,7 @@
     <div v-if="showResetPasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-opacity-70 overflow-y-auto h-full w-full z-50 flex items-center justify-center" @click.self="closeResetPasswordModal">
       <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Reset Student Password</h3>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('admin.student_details.reinitialiser_mot_passe_stagiaire') }}</h3>
           <button @click="closeResetPasswordModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -242,7 +242,7 @@
         </div>
         <div class="px-6 py-4">
           <div v-if="newPassword" class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <p class="text-sm font-medium text-green-800 dark:text-green-200 mb-2">Password Reset Successfully!</p>
+            <p class="text-sm font-medium text-green-800 dark:text-green-200 mb-2">{{ t('admin.student_details.mot_passe_reinitialise') }}</p>
             <div class="flex items-center justify-between bg-white dark:bg-gray-700 p-3 rounded border border-green-300 dark:border-green-700">
               <code class="text-lg font-mono text-gray-900 dark:text-white">{{ newPassword }}</code>
               <button @click="copyPassword" class="ml-2 p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300">
@@ -251,20 +251,20 @@
                 </svg>
               </button>
             </div>
-            <p class="text-xs text-green-700 dark:text-green-300 mt-2">⚠️ Make sure to save this password - it won't be shown again!</p>
+            <p class="text-xs text-green-700 dark:text-green-300 mt-2">{{ t('admin.student_details.notez_mot_passe_il_ne') }}</p>
           </div>
           <div v-else>
             <form @submit.prevent="handleResetPassword">
               <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  New Password <span class="text-red-500">*</span>
+                  {{ t('admin.student_details.nouveau_mot_passe') }} <span class="text-red-500">*</span>
                 </label>
                 <input
                   v-model="passwordForm.new_password"
                   type="text"
                   required
                   minlength="6"
-                  placeholder="Enter new password (min 6 characters)"
+                  :placeholder="t('admin.student_details.nouveau_mot_passe_6_caracteres')"
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
@@ -277,7 +277,7 @@
                   @click="closeResetPasswordModal"
                   class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
                 >
-                  Cancel
+                  {{ t('common.cancel') }}
                 </button>
                 <button
                   type="submit"
@@ -288,7 +288,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  {{ resetting ? 'Resetting...' : 'Reset Password' }}
+                  {{ resetting ? t('admin.student_details.reinitialisation') : t('admin.student_details.reinitialiser_mot_passe') }}
                 </button>
               </div>
             </form>
@@ -300,6 +300,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from '@/api/axios'
@@ -323,7 +326,7 @@ const resetError = ref(null)
 
 const formatDate = (date) => {
   if (!date) return null
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(dateLocale(), {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -384,7 +387,7 @@ const handleResetPassword = async () => {
 const copyPassword = async () => {
   try {
     await navigator.clipboard.writeText(newPassword.value)
-    toastStore.success('Password copied to clipboard!')
+    toastStore.success(t('admin.student_details.mot_passe_copie'))
   } catch (err) {
     console.error('Failed to copy password:', err)
   }

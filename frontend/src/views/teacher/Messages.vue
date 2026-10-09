@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { dateLocale } from '@/i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import teacherApi from '@/api/endpoints/teacherPortal'
 import Card from '@/components/common/Card.vue'
@@ -22,7 +25,7 @@ const loadMessages = async () => {
     messages.value = response.data || []
   } catch (err) {
     console.error('Failed to load messages:', err)
-    error.value = 'Erreur lors du chargement des messages'
+    error.value = t('teacher.messages.erreur_lors_chargement_messages')
   } finally {
     loading.value = false
   }
@@ -43,7 +46,7 @@ const openMessage = async (message) => {
     window.dispatchEvent(new CustomEvent('message-read'))
   } catch (err) {
     console.error('Failed to load message:', err)
-    error.value = 'Erreur lors du chargement du message'
+    error.value = t('teacher.messages.erreur_lors_chargement_message')
   }
 }
 
@@ -78,9 +81,9 @@ onMounted(() => {
   <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('common.messages') }}</h1>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Communications de l'administration
+          {{ t('teacher.messages.communications_administration') }}
         </p>
       </div>
     </div>
@@ -91,7 +94,7 @@ onMounted(() => {
 
     <div v-else-if="error" class="text-center py-12">
       <p class="text-red-600 dark:text-red-400">{{ error }}</p>
-      <button @click="loadMessages" class="mt-4 text-blue-600 hover:underline">Réessayer</button>
+      <button @click="loadMessages" class="mt-4 text-blue-600 hover:underline">{{ t('teacher.messages.reessayer') }}</button>
     </div>
 
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,12 +102,12 @@ onMounted(() => {
       <div class="lg:col-span-1">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-[600px]">
           <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
-            <h2 class="font-semibold text-gray-900 dark:text-white">Boîte de réception</h2>
+            <h2 class="font-semibold text-gray-900 dark:text-white">{{ t('teacher.messages.boite_reception') }}</h2>
           </div>
           <div class="overflow-y-auto flex-1 p-4 space-y-3">
             <div v-if="messages.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
               <EnvelopeIcon class="w-12 h-12 mx-auto mb-3 opacity-50 text-gray-400" />
-              <p>Aucun message</p>
+              <p>{{ t('teacher.messages.aucun_message') }}</p>
             </div>
             
             <button
@@ -138,7 +141,7 @@ onMounted(() => {
                 {{ message.subject }}
               </p>
               <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {{ new Date(message.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
+                {{ new Date(message.created_at).toLocaleDateString(dateLocale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
               </p>
             </button>
           </div>
@@ -157,14 +160,14 @@ onMounted(() => {
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <div class="flex items-center gap-2">
                   <UserIcon class="w-4 h-4" />
-                  <span class="font-medium">De: {{ selectedMessage.sender.name }}</span>
+                  <span class="font-medium">{{ t('teacher.messages.de_p0', { p0: selectedMessage.sender.name }) }}</span>
                   <span class="px-2 py-0.5 rounded text-xs capitalize bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
-                    Administration
+                    {{ t('teacher.messages.administration') }}
                   </span>
                 </div>
                 <div class="flex items-center gap-2">
                   <CalendarIcon class="w-4 h-4" />
-                  <span>{{ new Date(selectedMessage.created_at).toLocaleString('fr-FR') }}</span>
+                  <span>{{ new Date(selectedMessage.created_at).toLocaleString(dateLocale()) }}</span>
                 </div>
               </div>
             </div>
@@ -189,8 +192,8 @@ onMounted(() => {
         <div v-else class="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 border-dashed dark:border-gray-700 h-[600px] flex items-center justify-center text-gray-500 dark:text-gray-400">
           <div class="text-center">
             <EnvelopeOpenIcon class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-            <p class="text-lg font-medium text-gray-900 dark:text-gray-300">Sélectionnez un message</p>
-            <p class="text-sm mt-1">Cliquez sur un message dans la liste pour le lire</p>
+            <p class="text-lg font-medium text-gray-900 dark:text-gray-300">{{ t('teacher.messages.selectionnez_message') }}</p>
+            <p class="text-sm mt-1">{{ t('teacher.messages.cliquez_message_dans_liste_lire') }}</p>
           </div>
         </div>
       </div>

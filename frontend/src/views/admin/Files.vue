@@ -1,4 +1,6 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted, watch } from 'vue'
 import apiClient from '@/api/axios'
 import Card from '@/components/common/Card.vue'
@@ -38,10 +40,10 @@ const uploadForm = ref({
 
 // Computed
 const targetTypeOptions = [
-  { value: 'all_teachers', label: 'All Teachers', icon: UserGroupIcon },
-  { value: 'all_students', label: 'All Students', icon: AcademicCapIcon },
-  { value: 'session_students', label: 'Specific Session (All Specialties)', icon: AcademicCapIcon },
-  { value: 'specialty_students', label: 'Specific Specialties', icon: AcademicCapIcon },
+  { value: 'all_teachers', label: 'Tous les formateurs', icon: UserGroupIcon },
+  { value: 'all_students', label: 'Tous les stagiaires', icon: AcademicCapIcon },
+  { value: 'session_students', label: 'Une session (toutes les spécialités)', icon: AcademicCapIcon },
+  { value: 'specialty_students', label: 'Des spécialités précises', icon: AcademicCapIcon },
 ]
 
 const showSessionSelect = computed(() => {
@@ -84,7 +86,7 @@ const loadDocuments = async () => {
     documents.value = response.data.data || []
   } catch (err) {
     console.error('Failed to load documents:', err)
-    error.value = 'Failed to load documents'
+    error.value = t('admin.files.failed_to_load_documents')
   } finally {
     loading.value = false
   }
@@ -173,7 +175,7 @@ const uploadDocument = async () => {
       }
     })
 
-    successMessage.value = 'Document uploaded successfully!'
+    successMessage.value = t('admin.files.document_uploaded_successfully')
     setTimeout(() => successMessage.value = null, 3000)
     
     closeUploadModal()
@@ -187,16 +189,16 @@ const uploadDocument = async () => {
 }
 
 const deleteDocument = async (doc) => {
-  if (!confirm(`Are you sure you want to delete "${doc.title}"?`)) return
+  if (!confirm(`Supprimer « ${doc.title} » ?`)) return
 
   try {
     await apiClient.delete(`/api/admin/documents/${doc.id}`)
-    successMessage.value = 'Document deleted successfully!'
+    successMessage.value = t('admin.files.document_deleted_successfully')
     setTimeout(() => successMessage.value = null, 3000)
     await loadDocuments()
   } catch (err) {
     console.error('Failed to delete document:', err)
-    error.value = 'Failed to delete document'
+    error.value = t('admin.files.failed_to_delete_document')
   }
 }
 
@@ -216,7 +218,7 @@ const downloadDocument = async (doc) => {
     window.URL.revokeObjectURL(url)
   } catch (err) {
     console.error('Failed to download document:', err)
-    error.value = 'Failed to download document'
+    error.value = t('admin.files.failed_to_download_document')
   }
 }
 
@@ -261,13 +263,13 @@ onMounted(async () => {
   <div>
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">File Management</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('admin.files.gestion_fichiers') }}</h1>
       <button 
         @click="openUploadModal"
         class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
       >
         <ArrowUpTrayIcon class="w-5 h-5" />
-        Upload File
+        {{ t('admin.files.deposer_fichier') }}
       </button>
     </div>
 
@@ -292,10 +294,10 @@ onMounted(async () => {
         <table class="w-full">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700">
-              <th class="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">File Name</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Target</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Date</th>
-              <th class="text-right py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Actions</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">{{ t('admin.files.nom_fichier') }}</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">{{ t('admin.files.destinataires') }}</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">{{ t('common.date') }}</th>
+              <th class="text-right py-3 px-4 font-medium text-gray-600 dark:text-gray-400">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -331,14 +333,14 @@ onMounted(async () => {
                   <button 
                     @click="downloadDocument(doc)"
                     class="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                    title="Download"
+                    :title="t('common.download')"
                   >
                     <ArrowDownTrayIcon class="w-5 h-5" />
                   </button>
                   <button 
                     @click="deleteDocument(doc)"
                     class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                    title="Delete"
+                    :title="t('common.delete')"
                   >
                     <TrashIcon class="w-5 h-5" />
                   </button>
@@ -351,8 +353,8 @@ onMounted(async () => {
 
       <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">
         <DocumentTextIcon class="w-16 h-16 mx-auto mb-4 opacity-30" />
-        <p>No documents uploaded yet.</p>
-        <p class="text-sm mt-2">Click "Upload File" to add your first document.</p>
+        <p>{{ t('admin.files.aucun_document_depose_moment') }}</p>
+        <p class="text-sm mt-2">{{ t('admin.files.cliquez_deposer_fichier_ajouter_document') }}</p>
       </div>
     </Card>
 
@@ -365,7 +367,7 @@ onMounted(async () => {
       <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Upload File</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('admin.files.deposer_fichier') }}</h2>
           <button 
             @click="closeUploadModal"
             class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
@@ -379,7 +381,7 @@ onMounted(async () => {
           <!-- File Input -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Select File *
+              {{ t('admin.files.fichier') }}
             </label>
             <input 
               type="file" 
@@ -398,7 +400,7 @@ onMounted(async () => {
           <!-- Title -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Title *
+              {{ t('admin.files.title') }}
             </label>
             <input 
               v-model="uploadForm.title"
@@ -406,14 +408,14 @@ onMounted(async () => {
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter document title"
+              :placeholder="t('admin.files.enter_document_title')"
             />
           </div>
 
           <!-- Description -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Description
+              {{ t('common.description') }}
             </label>
             <textarea 
               v-model="uploadForm.description"
@@ -421,14 +423,14 @@ onMounted(async () => {
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Optional description"
+              :placeholder="t('admin.files.description_facultatif')"
             ></textarea>
           </div>
 
           <!-- Target Type -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Send To *
+              {{ t('admin.files.destinataires_2') }}
             </label>
             <div class="space-y-2">
               <label 
@@ -453,7 +455,7 @@ onMounted(async () => {
           <!-- Session Select -->
           <div v-if="showSessionSelect">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Select Session *
+              {{ t('admin.files.session') }}
             </label>
             <select 
               v-model="uploadForm.sessionId"
@@ -461,7 +463,7 @@ onMounted(async () => {
                 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option :value="null">-- Select Session --</option>
+              <option :value="null">{{ t('admin.files.choisir_session') }}</option>
               <option v-for="session in sessions" :key="session.id" :value="session.id">
                 {{ session.name }}
               </option>
@@ -472,21 +474,21 @@ onMounted(async () => {
           <div v-if="showSpecialtySelect && uploadForm.sessionId">
             <div class="flex items-center justify-between mb-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Select Specialties *
+                {{ t('admin.files.specialites') }}
               </label>
               <div class="flex gap-2 text-xs">
                 <button 
                   @click="selectAllSpecialties"
                   class="text-blue-600 hover:text-blue-700"
                 >
-                  Select All
+                  {{ t('admin.files.tout_selectionner') }}
                 </button>
                 <span class="text-gray-400">|</span>
                 <button 
                   @click="deselectAllSpecialties"
                   class="text-gray-600 hover:text-gray-700 dark:text-gray-400"
                 >
-                  Clear
+                  {{ t('common.clear') }}
                 </button>
               </div>
             </div>
@@ -517,7 +519,7 @@ onMounted(async () => {
             </div>
             
             <div v-else class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-              No specialties found for this session
+              {{ t('admin.files.aucune_specialite_dans_session') }}
             </div>
           </div>
         </div>
@@ -528,7 +530,7 @@ onMounted(async () => {
             @click="closeUploadModal"
             class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
           <button 
             @click="uploadDocument"
@@ -537,7 +539,7 @@ onMounted(async () => {
           >
             <LoadingSpinner v-if="uploading" size="small" class="text-white" />
             <ArrowUpTrayIcon v-else class="w-5 h-5" />
-            {{ uploading ? 'Uploading...' : 'Upload' }}
+            {{ uploading ? t('admin.files.envoi') : t('admin.files.deposer') }}
           </button>
         </div>
       </div>

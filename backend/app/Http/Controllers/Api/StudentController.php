@@ -24,6 +24,12 @@ use App\Services\GradeCalculator;
 
 class StudentController extends Controller
 {
+    private const EXAM_TYPE_LABELS = [
+        'controle' => 'Contrôle',
+        'examen' => 'Examen',
+        'rattrapage' => 'Rattrapage',
+    ];
+
     // ═══════════════════════════════════════════════════════════
     // DASHBOARD
     // ═══════════════════════════════════════════════════════════
@@ -93,6 +99,24 @@ class StudentController extends Controller
             })
             ->count();
 
+        // Weekly sessions: same filter as the student's timetable (schedule())
+        $classesThisWeek = Schedule::where('specialty_id', $student->specialty_id)
+            ->where('semester', $student->current_semester)
+            ->where('study_mode', $student->study_mode)
+            ->where(function ($query) use ($student) {
+                $query->whereNull('group')->orWhere('group', $student->group);
+            })
+            ->count();
+
+        // Current semester average (same rules as the grades page and deliberations)
+        $semesterGrades = Grade::where('student_id', $student->id)
+            ->where('semester', $student->current_semester)
+            ->published()
+            ->with(['module', 'exam'])
+            ->get();
+        $semester = app(GradeCalculator::class)->semesterAverage($semesterGrades);
+        $semesterAverage = empty($semester['modules']) ? null : $semester['average'];
+
         // Unread messages (broadcast + individual) visible to this student
         $unreadMessagesCount = Message::where(function($query) use ($user) {
                 $query->where('recipient_type', 'all')
@@ -136,6 +160,8 @@ class StudentController extends Controller
                 'upcoming_exams' => $upcomingExams->count(),
                 'pending_homeworks' => $pendingHomeworksCount,
                 'unread_messages' => $unreadMessagesCount,
+                'classes_this_week' => $classesThisWeek,
+                'semester_average' => $semesterAverage,
             ],
             'modules' => $modules->map(function($module) {
                 return [
@@ -655,7 +681,8 @@ class StudentController extends Controller
         foreach ($schedules as $schedule) {
             $dayOfWeek = $dayMap[strtolower($schedule->day)] ?? null;
 
-            if ($dayOfWeek) {
+            // Carbon::SUNDAY is 0: compare with null so Sunday classes are kept
+            if ($dayOfWeek !== null) {
                 // Find the date for this day in the requested week
                 $date = $startOfWeek->copy()->setISODate($startOfWeek->year, $startOfWeek->weekOfYear, $dayOfWeek);
 
@@ -738,7 +765,8 @@ class StudentController extends Controller
             return [
                 'id' => $grade->id,
                 'subject' => $module ? $module->name : 'Unknown Subject',
-                'type' => $exam ? ucfirst($exam->exam_type) : 'Exam',
+                'type' => $exam ? (self::EXAM_TYPE_LABELS[$exam->exam_type] ?? ucfirst($exam->exam_type)) : 'Épreuve',
+                'type_code' => $exam?->exam_type,
                 'date' => $exam ? $exam->exam_date->format('Y-m-d') : null,
                 'grade' => (float)$grade->grade,
             ];
@@ -784,7 +812,8 @@ class StudentController extends Controller
             return [
                 'id' => $exam->id,
                 'subject' => $exam->module->name,
-                'type' => ucfirst($exam->exam_type),
+                'type' => self::EXAM_TYPE_LABELS[$exam->exam_type] ?? ucfirst($exam->exam_type),
+                'type_code' => $exam->exam_type,
                 'date' => $exam->exam_date->format('Y-m-d'),
                 'time' => $exam->exam_date->format('H:i'), // exam_date is dateTime
                 'room' => $exam->classroom ?? 'TBA',

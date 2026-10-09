@@ -53,8 +53,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     super.initState();
     // Default to today's index
     final today = DateTime.now().weekday;
-    // Map: Mon=1..Sun=7 → our array index (Sat=0..Thu=5)
-    final dayMap = {6: 0, 7: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 0};
+    // Map: Mon=1..Sun=7 → our array index (Sat=0..Thu=5).
+    // On the weekend (Friday, Saturday) show Sunday, the next teaching day.
+    final dayMap = {6: 1, 7: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 1};
     _selectedDayIndex = dayMap[today] ?? 0;
     _loadSchedule();
   }
@@ -104,13 +105,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }).firstOrNull;
   }
 
+  // Module colors, all taken from the institute palette
   final List<Color> _slotColors = [
-    AppColors.primary,
-    AppColors.purple,
+    AppColors.navy,
+    AppColors.teal,
+    AppColors.gold,
+    AppColors.navy500,
     AppColors.green,
     AppColors.orange,
-    const Color(0xFF0891B2),
-    AppColors.pink,
   ];
 
   @override
@@ -344,7 +346,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                 size: 14, color: AppColors.gray500),
                             const SizedBox(width: 4),
                             Text(
-                              'Room ${classData['room']}',
+                              '${classData['room']}',
                               style: AppTextStyles.caption
                                   .copyWith(color: AppColors.gray600),
                             ),

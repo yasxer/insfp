@@ -34,7 +34,11 @@ class ChatbotController extends Controller
 
         // Fetch Database Context
         $specialties = Specialty::where('is_active', true)->get(['name', 'description', 'study_mode']);
-        $sessions = TrainingSession::with('specialties')->where('is_active', true)->get();
+        // Current period and the next intake (open for registration), not the archives
+        $sessions = TrainingSession::with('specialties')->whereIn('status', ['active', 'pending'])->orderBy('start_date')->get();
+        $modeLabels = ['initial' => 'présentiel', 'alternance' => 'apprentissage', 'continue' => 'cours du soir'];
+        $typeLabels = ['presential' => 'présentiel', 'apprentissage' => 'apprentissage', 'cours_soir' => 'cours du soir'];
+        $statusLabels = ['active' => 'en cours de formation', 'pending' => 'prochaine rentrée, inscriptions ouvertes'];
 
         $contextData = "CONTEXTE EXTRAIT DE LA BASE DE DONNÉES:\nSpécialités disponibles globalement à l'INSFP :\n";
         if ($specialties->isEmpty()) {
@@ -42,7 +46,8 @@ class ChatbotController extends Controller
         } else {
             foreach ($specialties as $sp) {
                 $desc = $sp->description ?? "Pas de description détaillée";
-                $contextData .= "- {$sp->name} (Mode: {$sp->study_mode}): {$desc}\n";
+                $mode = $modeLabels[$sp->study_mode] ?? $sp->study_mode;
+                $contextData .= "- {$sp->name} (mode principal : {$mode}) : {$desc}\n";
             }
         }
 
@@ -51,12 +56,13 @@ class ChatbotController extends Controller
             $contextData .= "- Aucune session ouverte pour le moment.\n";
         } else {
             foreach ($sessions as $session) {
-                $contextData .= "\n* {$session->name} (Statut: {$session->status}) :\n";
+                $status = $statusLabels[$session->status] ?? $session->status;
+                $contextData .= "\n* {$session->name} ({$status}) :\n";
                 if ($session->specialties->isEmpty()) {
                     $contextData .= "  - Aucune spécialité n'est encore affectée à cette session.\n";
                 } else {
                     foreach ($session->specialties as $spSession) {
-                        $studyType = $spSession->pivot->study_type ?? 'Non spécifié';
+                        $studyType = $typeLabels[$spSession->pivot->study_type] ?? 'non spécifié';
                         $contextData .= "  - Spécialité: {$spSession->name} | Type d'étude: {$studyType}\n";
                     }
                 }
@@ -79,11 +85,14 @@ class ChatbotController extends Controller
             try {
                 // Gemini sometimes answers 503 (overloaded) for a moment: retry twice
                 // before showing an error. A 429 (quota) is not worth retrying.
-                $response = Http::withHeaders([
+                // Lite model: answers in about a second (gemini-flash-latest took more than 30 s)
+                $response = Http::timeout(45)->withHeaders([
                     'Content-Type' => 'application/json',
+                    // Key in a header, not the URL, so it never ends up in error logs
+                    'x-goog-api-key' => $apiKey,
                 ])->retry(3, 1000, fn ($e) => $e instanceof \Illuminate\Http\Client\RequestException
                     && $e->response->status() !== 429, throw: false)
-                ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . $apiKey, [
+                ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent', [
                     'contents' => [
                         [
                             'parts' => [
@@ -97,7 +106,9 @@ Règles strictes et impératives :
 
 {$contextData}
 
-Voici la question de l'utilisateur : \"{$userMessage}\""]
+Voici la question de l'utilisateur : \"{$userMessage}\"
+
+RAPPEL — {$languageRule}"]
                             ]
                         ]
                     ]

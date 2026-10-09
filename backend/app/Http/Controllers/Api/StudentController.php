@@ -230,6 +230,7 @@ class StudentController extends Controller
             'registration_number' => $student->registration_number,
             'first_name' => $student->first_name,
             'last_name' => $student->last_name,
+            'full_name' => $student->full_name, // used by the mobile app
             'date_of_birth' => $student->date_of_birth->format('Y-m-d'),
             'address' => $student->address,
             'email' => $user->email,

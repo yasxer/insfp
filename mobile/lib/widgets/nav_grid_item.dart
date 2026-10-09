@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/theme.dart';
 
+/// Quick-access tile: tinted icon above a short label, with an optional badge.
 class NavGridItem extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -23,14 +24,13 @@ class NavGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        splashColor: iconColor.withValues(alpha: 0.1),
-        highlightColor: iconColor.withValues(alpha: 0.05),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(16),
+        splashColor: iconColor.withValues(alpha: 0.08),
+        highlightColor: iconColor.withValues(alpha: 0.04),
+        child: Ink(
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
@@ -44,25 +44,23 @@ class NavGridItem extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(18),
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: backgroundColor,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(icon, size: 36, color: iconColor),
+                    child: Icon(icon, size: 24, color: iconColor),
                   ),
                   if (badgeCount > 0)
                     Positioned(
-                      top: -4,
-                      right: -4,
+                      top: -6,
+                      right: -8,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                         decoration: BoxDecoration(
-                          color: AppColors.red,
+                          color: AppColors.gold,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppColors.white, width: 2),
                         ),
@@ -70,7 +68,7 @@ class NavGridItem extends StatelessWidget {
                           badgeCount > 99 ? '99+' : '$badgeCount',
                           textAlign: TextAlign.center,
                           style: AppTextStyles.caption.copyWith(
-                            color: AppColors.white,
+                            color: AppColors.navy900,
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                           ),
@@ -79,15 +77,15 @@ class NavGridItem extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.labelLarge.copyWith(
-                  fontSize: 15,
-                  color: AppColors.gray800,
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelLarge.copyWith(fontSize: 13, color: AppColors.gray800),
                 ),
               ),
             ],

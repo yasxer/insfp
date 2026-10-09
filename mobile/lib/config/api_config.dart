@@ -2,7 +2,9 @@ class ApiConfig {
   // Change this to your server IP when testing on a physical device
   // Android Emulator → http://10.0.2.2:8000
   // Physical device  → http://<your-local-ip>:8000
-  static const String baseUrl = 'http://192.168.100.65:8000';
+  // Can be overridden at build time without editing this file:
+  //   flutter run --dart-define=API_URL=http://192.168.1.20:8000
+  static const String baseUrl = String.fromEnvironment('API_URL', defaultValue: 'http://10.0.2.2:8000');
 
   // Auth
   static const String login = '/api/mobile/login';

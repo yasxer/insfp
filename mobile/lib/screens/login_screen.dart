@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../services/auth_service.dart';
@@ -28,15 +29,14 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
   }
 
@@ -67,30 +67,54 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo / Header
-                    _buildHeader(),
-                    const SizedBox(height: 40),
-
-                    // Login Card
-                    _buildLoginCard(),
-                  ],
+    // White status bar icons over the navy header
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBg,
+        body: Stack(
+          children: [
+            // Navy band behind the top of the card
+            Container(
+              height: MediaQuery.of(context).size.height * 0.42,
+              decoration: const BoxDecoration(
+                gradient: AppColors.headerGradient,
+              ),
+              child: const _HeaderPattern(),
+            ),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildHeader(),
+                          const SizedBox(height: 28),
+                          _buildLoginCard(),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Ministère de la Formation et de l’Enseignement Professionnels',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.gray400,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -100,42 +124,39 @@ class _LoginScreenState extends State<LoginScreen>
     return Column(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: 76,
+          height: 76,
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.primaryLight],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.school_rounded,
-            size: 40,
             color: AppColors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: AppShadows.large,
           ),
+          child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Text(
           'INSFP',
           style: AppTextStyles.displayLarge.copyWith(
-            color: AppColors.primary,
+            color: AppColors.white,
+            fontSize: 30,
             letterSpacing: 2,
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          'Student Portal',
+          'Mohamed Tayeb Boucenna',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.gray500,
+            color: AppColors.white.withValues(alpha: 0.8),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: 36,
+          height: 3,
+          decoration: BoxDecoration(
+            color: AppColors.gold,
+            borderRadius: BorderRadius.circular(2),
           ),
         ),
       ],
@@ -149,9 +170,9 @@ class _LoginScreenState extends State<LoginScreen>
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.gray200),
-            boxShadow: AppShadows.medium,
+            boxShadow: AppShadows.large,
           ),
           child: Form(
             key: _formKey,
@@ -159,12 +180,20 @@ class _LoginScreenState extends State<LoginScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
+                  'STUDENT PORTAL',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.teal,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
                   'Sign In',
-                  style: AppTextStyles.headlineLarge,
+                  style: AppTextStyles.headlineLarge.copyWith(fontSize: 24),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Welcome back to INSFP Portal',
+                  'Use your email or your registration number.',
                   style: AppTextStyles.bodyMedium,
                 ),
                 const SizedBox(height: 24),
@@ -176,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen>
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     labelText: 'Email or Registration Number',
-                    hintText: 'student@insfp.dz or 2025001',
+                    hintText: 'name@stagiaire.insfp.dz or 0001225P1647',
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),
                   validator: (value) {
@@ -288,30 +317,34 @@ class _LoginScreenState extends State<LoginScreen>
                   height: 52,
                   child: ElevatedButton(
                     onPressed: auth.isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      disabledBackgroundColor:
-                          AppColors.primary.withValues(alpha: 0.6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
+                    style:
+                        ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
+                          disabledBackgroundColor: AppColors.primary.withValues(
+                            alpha: 0.6,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ).copyWith(
+                          overlayColor: WidgetStatePropertyAll(
+                            AppColors.white.withValues(alpha: 0.08),
+                          ),
+                        ),
                     child: auth.isLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(AppColors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.white,
+                              ),
                             ),
                           )
-                        : Text(
-                            'Sign In',
-                            style: AppTextStyles.button,
-                          ),
+                        : Text('Sign In', style: AppTextStyles.button),
                   ),
                 ),
               ],
@@ -321,4 +354,31 @@ class _LoginScreenState extends State<LoginScreen>
       },
     );
   }
+}
+
+/// Faint concentric arcs on the header, echoing the web hero pattern.
+class _HeaderPattern extends StatelessWidget {
+  const _HeaderPattern();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _ArcsPainter(), size: Size.infinite);
+  }
+}
+
+class _ArcsPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = Colors.white.withValues(alpha: 0.06);
+    final center = Offset(size.width * 0.92, size.height * 0.08);
+    for (var r = 40.0; r < size.width; r += 34) {
+      canvas.drawCircle(center, r, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

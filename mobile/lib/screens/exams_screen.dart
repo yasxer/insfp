@@ -71,8 +71,8 @@ class _ExamsScreenState extends State<ExamsScreen>
 
   Color _gradeColor(num grade) {
     if (grade >= 16) return AppColors.green;
-    if (grade >= 14) return AppColors.primary;
-    if (grade >= 10) return AppColors.orange;
+    if (grade >= 14) return AppColors.teal;
+    if (grade >= 10) return AppColors.navy500;
     return AppColors.red;
   }
 
@@ -98,7 +98,7 @@ class _ExamsScreenState extends State<ExamsScreen>
           controller: _tabController,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.gray400,
-          indicatorColor: AppColors.primary,
+          indicatorColor: AppColors.gold,
           indicatorWeight: 3,
           labelStyle: AppTextStyles.labelLarge,
           unselectedLabelStyle: AppTextStyles.bodyMedium,
